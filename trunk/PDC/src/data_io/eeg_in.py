@@ -11,6 +11,9 @@ def read_hor_eeg(file_s):
         data = concatenate((data, d))
     return data.reshape(32,-1)
 
+def read_eeg(file_s):
+    return loadtxt(file_s).T
+
 if __name__ == "__main__":
     
     s = 'D:\work\dados\\fmri\einstein\CarlosVIS\Carlos_VIS_MRI Cardiobalistogram Correction_OK.dat'.replace('\\', '/')
