@@ -130,7 +130,7 @@ def pdc_plot(pdc, ss = None, nf = 64, sample_f = 1.0):
 
 def pdc_and_plot(data, maxp = 30, nf = 64, sample_f = 1, ss = True):
     pdc_, ss_ = pdc(data, maxp, nf)
-    if(~ss):
+    if(not ss):
         ss_ = None
     pdc_plot(pdc_, ss_, nf, sample_f)
 
