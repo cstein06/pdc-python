@@ -11,21 +11,32 @@ import rpy2.robjects as ro_
 from data_simulation.ar_data import ar_data
 
 
-def pdc(data, maxp = 30, nf = 64):
+def pdc(data, maxp = 30, nf = 64, detrend = True, SS = True):
     '''Generates spectral PDC matrix from data array
     
       Input: 
         data(n, m) - data matrix (n - number of signals, m - data length)
         maxp - maximum order for estimated AR model
         nf - frequency resolution
+        detrend - Shall the data be detrended
         
       Output:
         PDC(n, n, nf) - PDC matrix
         ss(n, n, nf) - Parametric cross spectral matrix
     '''
-
+    if(type(data) == 'list'):
+        d = data[0].reshape(1,-1)
+        for i in range(size(data)):
+            d = concatenate(d, data[i].reshape(1,-1, axis = 0))
+        data = d
+        
+    if (detrend):
+        data = data - mean(data, axis = 1).reshape(-1,1) #TODO: usar signal.detrend?
     A, er = ar_fit(data, maxp)
-    return pdc_alg(A, er, nf), ss(A, er, nf)
+    if (SS):
+        return pdc_alg(A, er, nf), ss(A, er, nf)
+    else:
+        return pdc_alg(A, er, nf)
 
 def ar_fit(data, maxp = 30):
     '''Estimates multivariate AR fit for data
@@ -46,8 +57,9 @@ def ar_fit(data, maxp = 30):
     ro_.globalEnv["maxp"] = maxp
     r_('data <- ar(array(data, dim), order.max = maxp)')
     
-    A = array(r_('data$ar')).transpose(2,1,0) #conferir A e A.T em todos.
+    A = array(r_('data$ar')).transpose(1,2,0) #TODO: conferir A e A.T em todos.
     er = array(r_('cov(data$resid[-seq(data$order),])'))
+    #print 'Model order: ', array(r_('data$order'))[0]
     return A, er
 
 def A_to_f(A, nf = 64):
@@ -77,11 +89,36 @@ def ss(A, e_cov, nf = 64):
     n, n, r = A.shape
     
     AL = A_to_f(A, nf)
-    ss = empty(AL.shape)
+    ss = empty(AL.shape, dtype = 'complex')
     for i in range(nf):
         H = mat(AL[i]).I
         ss[i] = H*e_cov*H.T
     return ss.transpose(1,2,0)
+
+def coh_alg(A, e_cov, nf = 64):
+    n, n, r = A.shape
+    
+    AL = A_to_f(A, nf)
+    coh = empty(AL.shape, dtype = 'complex')
+    for i in range(nf):
+        H = mat(AL[i]).I
+        ss = H*e_cov*H.T
+        d = ss.diagonal()
+        m = kron(d,d).reshape(n,n)
+        coh[i] = ss/sqrt(m)
+    return coh.transpose(1,2,0)
+
+def coh(data, maxp = 30, nf = 64, detrend = True, SS = True):
+    if(type(data) == 'list'):
+        d = data[0].reshape(1,-1)
+        for i in range(size(data)):
+            d = concatenate(d, data[i].reshape(1,-1, axis = 0))
+        data = d
+        
+    if (detrend):
+        data = data - mean(data, axis = 1).reshape(-1,1) #TODO: usar signal.detrend?
+    A, er = ar_fit(data, maxp)
+    return coh_alg(A,er,nf)
     
 def pdc_alg(A, e_cov, nf = 64):
     '''Generates spectral PDC matrix from AR matrix
@@ -94,6 +131,7 @@ def pdc_alg(A, e_cov, nf = 64):
       Output:
         PDC(n, n, nf) - PDC matrix
     '''
+    # TODO pdc esta errado. normalizacao nao esta OK.
     
     n, n, r = A.shape
     nor = 1/e_cov.diagonal() # normaliza pelo inverso da diagonal
@@ -154,6 +192,12 @@ def teste2():
     data = ar_data(A, er, 1000)
     p, ss = pdc(data)
     pdc_plot(p, ss)
+    
+def teste_vel():
+    a = random.randn(100)
+    b = random.randn(100,100)
+    for i in range(100):
+        pdc([a,b[i]])
 
 if __name__ == "__main__":
     pass
@@ -176,17 +220,19 @@ if __name__ == "__main__":
 #    pdc_plot(pdc)
 
     # Teste completo
-#    A = array([[4,3],[0,3]], dtype=float).reshape(2,2,1)/10
-#    er = array([2,5], dtype = float)
+    A = array([[4,3],[0,3]], dtype=float).reshape(2,2,1)/10
+    er = array([2,5], dtype = float)
 #    print 'A:', A
 #    print 'er:', er
-#    data = ar_data(A, er, 10000)
-#    Aest, er_est = ar_fit(data, maxp = 1)
+    data = ar_data(A, er, 100)
+    Aest, er_est = ar_fit(data, maxp = 1)
 #    print 'A estimado:', Aest # ver dimensoes do A
 #    print 'er estimado:', er_est
 #    pdc = pdc_alg(Aest,er_est)
 #    pdc_plot(pdc)
     
-    #cProfile.run('teste()', sort = 'time')
-    teste2()
+    #cProfile.run('teste_vel()', sort = 'time')
+    #teste2()
+    
+    print coh(Aest, er_est)
     
