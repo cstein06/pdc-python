@@ -148,59 +148,9 @@ def coh(data, maxp = 30, nf = 64, detrend = True, SS = True):
         data = data - mean(data, axis = 1).reshape(-1,1) #TODO: usar signal.detrend?
     A, er = ar_fit(data, maxp)
     return coh_alg(A,er,nf)
-    
-def pdc_diag_alg(A, e_cov, nf = 64):
-    '''Generates spectral diag. normalized PDC matrix from AR matrix
-    
-      Input: 
-        A(n, n, r) - recurrence matrix (n - number of signals, r - model order)
-        e_cov(n, n) - error covariance matrix
-        nf - frequency resolution
-    
-      Output:
-        PDC(n, n, nf) - PDC matrix
-    '''
-    # TODO pdc esta errado. normalizacao nao esta OK.
-    
-    n, n, r = A.shape
-    nor = 1/e_cov.diagonal() # normaliza pelo inverso da diagonal
-    
-    AL = A_to_f(A, nf)
-    
-    # normalizacao por sum(ai ai* sig)
-    dPDC = dot(nor,AL*AL.conj())
-    nPDC = AL*sqrt(nor).reshape(-1,1)
-    PDC = nPDC/sqrt(abs(dPDC)).reshape(nf,1,n).repeat(n, axis = 1)
-    
-    return PDC.transpose(1,2,0)
 
 
-def pdc_one_alg(A, e_cov, nf = 64):
-    '''Generates spectral non-norm. PDC matrix from AR matrix
-    
-      Input: 
-        A(n, n, r) - recurrence matrix (n - number of signals, r - model order)
-        e_cov(n, n) - error covariance matrix
-        nf - frequency resolution
-    
-      Output:
-        PDC(n, n, nf) - PDC matrix
-    '''
-    
-    n, n, r = A.shape
-    nor = ones(n) # pdc_one nao tem normalizacao
-    
-    AL = A_to_f(A, nf)
-    
-    # normalizacao por sum(ai ai* sig)
-    dPDC = dot(nor,AL*AL.conj())
-    nPDC = AL*sqrt(nor).reshape(-1,1)
-    PDC = nPDC/sqrt(abs(dPDC)).reshape(nf,1,n).repeat(n, axis = 1)
-    
-    return PDC.transpose(1,2,0)
-
-
-def pdc_gen_alg(A, e_cov, nf = 64):
+def pdc_alg(A, e_cov, nf = 64, metric = 'gen'):
     '''Generates spectral general (estatis. norm) PDC matrix from AR matrix
     
       Input: 
@@ -211,11 +161,19 @@ def pdc_gen_alg(A, e_cov, nf = 64):
       Output:
         PDC(n, n, nf) - PDC matrix
     '''
-    # TODO pdc esta errado. normalizacao nao esta OK.
     
     n, n, r = A.shape
-    nornum = 1/e_cov.diagonal() # pdc_one nao tem normalizacao
-    norden = inv(e_cov)
+    if metric == 'euc':
+        nornum = ones(n)
+        norden = identity(n)
+    elif metric == 'diag':
+        nornum = 1/diag(e_cov)
+        norden = diag(1/diag(e_cov))
+        print nornum
+        print norden
+    else: #metric == 'gen'
+        nornum = 1/diag(e_cov)
+        norden = inv(e_cov)
     
     AL = A_to_f(A, nf)
     
@@ -223,7 +181,6 @@ def pdc_gen_alg(A, e_cov, nf = 64):
     dPDC = sum(dot(ALT,norden)*ALT.conj(), axis = -1).reshape(nf,-1)
     nPDC = AL*sqrt(nornum).reshape(-1,1)
     PDC = nPDC/sqrt(abs(dPDC)).reshape(nf,1,n).repeat(n, axis = 1)
-    
     return PDC.transpose(1,2,0)
 
 def pdc_plot(pdc, ss = None, nf = 64, sample_f = 1.0):
@@ -253,78 +210,3 @@ def pdc_and_plot(data, maxp = 30, nf = 64, sample_f = 1, ss = True):
         ss_ = None
     pdc_plot(pdc_, ss_, nf, sample_f)
     
-pdc_alg = pdc_diag_alg
-
-def teste():
-    A = array([[4,3],[0,3]], dtype=float).reshape(2,2,1)/10
-    er = array([2,5], dtype = float)
-    print 'A:', A
-    print 'er:', er
-    data = ar_data(A, er, 100000)
-    Aest, er_est = ar_fit(data, maxp = 10)
-    print 'A estimado:', Aest # ver dimensoes do A
-    print 'er estimado:', er_est
-    pdc = pdc_alg(Aest,er_est)
-    pdc_plot(pdc)
-    
-def teste2():
-    A = array([[4,3],[0,3]], dtype=float).reshape(2,2,1)/10
-    er = array([2,5], dtype = float)
-    print 'A:', A
-    print 'er:', er
-    data = ar_data(A, er, 1000)
-    p, ss = pdc(data)
-    pdc_plot(p, ss)
-    
-def teste_vel():
-    a = random.randn(100)
-    b = random.randn(100,100)
-    for i in range(100):
-        pdc([a,b[i]])
-        
-def teste_pdc():
-    A = array([[4,3],[0,3]], dtype=float).reshape(2,2,1)/10
-    er = array([[0.7,0],[0,2]], dtype = float)
-    pdc = pdc_alg(A, er)
-    #pdc_plot(pdc)
-    print abs(pdc)**2
-    
-
-if __name__ == "__main__":
-    pass
-    # TODO: testar qdo n == r, pode haver conversao automatica falha
-    
-    # Testa ar_data
-#    A = array([[4,0],[0,6]], dtype=float).reshape(2,2,1)/10
-#    er = array([2,5], dtype = float)
-#    data = ar_data(A, er, 10000)
-    #print var(data, axis=1), mean(data, axis=1), 'var teorico:', er[0]/(1-0.4**2), er[1]/(1-0.6**2), 
-    
-    # Testa Ar_fit
-#    A = ar_fit(random.randn(2,1000), maxp = 2)[1:]
-#    print A.shape
-    
-    # Testa PDC
-#    A = array([[4,0],[4,4]], dtype=float).reshape(2,2,1)/10
-#    e = array([[1,0],[0,1]], dtype=float)
-#    pdc = pdc_alg(A,e)
-#    pdc_plot(pdc)
-
-    # Teste completo
-#    A = array([[4,3],[0,3]], dtype=float).reshape(2,2,1)/10
-#    er = array([2,5], dtype = float)
-#    print 'A:', A
-##    print 'er:', er
-#    data = ar_data(A, er, 100)
-#    Aest, er_est = ar_fit(data, maxp = 1)
-#    print 'A estimado:', Aest # ver dimensoes do A
-#    print 'er estimado:', er_est
-#    pdc = pdc_alg(Aest,er_est)
-#    pdc_plot(pdc)
-    
-    #cProfile.run('teste_vel()', sort = 'time')
-    #teste2()
-    
-#    print coh(Aest, er_est)
-    
-    teste_pdc()

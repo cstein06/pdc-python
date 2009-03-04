@@ -116,12 +116,15 @@ def test_assym_pdc_ic():
         
 def test_pdc_normalizations():
     A = array([[4,3],[0,3]], dtype=float).reshape(2,2,1)/10
-    #er = array([[0.7,0],[0,2]], dtype = float)
-    er = identity(2)
+    er = array([[0.7,0.1],[0.1,2]], dtype = float)
+    #er = identity(2)
     nf = 5
-    print pdc_.pdc_one_alg(A, er, nf = nf)
-    print pdc_.pdc_gen_alg(A, er, nf = nf)
-    print pdc_.pdc_diag_alg(A, er, nf = nf)
+    #print pdc_.pdc_one_alg(A, er, nf = nf)
+    #print pdc_.pdc_gen_alg(A, er, nf = nf)
+    #print pdc_.pdc_diag_alg(A, er, nf = nf)
+    print pdc_.pdc_alg(A, er, metric = 'euc', nf = nf)
+    print pdc_.pdc_alg(A, er, metric = 'diag', nf = nf)
+    print pdc_.pdc_alg(A, er, metric = 'gen', nf = nf)
 
 def test_patnaik(d, mci = 1000):
     patdf = sum(d)**2/sum(d**2)
@@ -137,6 +140,6 @@ def test_patnaik(d, mci = 1000):
 
 if __name__ == "__main__":
     #test_assym_pdc_semr();
-    test_assym_pdc_th_bootstrap()
-    #test_pdc_normalizations()
+    #test_assym_pdc_th_bootstrap()
+    test_pdc_normalizations()
     
