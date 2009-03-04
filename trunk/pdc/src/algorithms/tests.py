@@ -7,6 +7,32 @@ import algorithms.assym as ass_
 from data_simulation.ar_data import ar_data
 from algorithms.pdc_alg import ar_fit
 
+from numpy import *
+
+def compare_matlab_pdc_one():
+    
+    #A = array([[4,3],[0,3]], dtype=float).reshape(2,2,1)/10
+    A = array([[[4,-4],[3,3]],[[0,0],[0,3]]], dtype=float).reshape(2,2,2)/20
+    er = array([[0.7,0],[0,2]], dtype = float)
+    IP = A.shape[2]
+    nd = 100
+    u1 = sin(linspace(0,10,nd)).reshape(1,-1)
+    u2 = sin(linspace(0,13,nd)).reshape(1,-1)
+    u = concatenate((u1, u2), axis = 0)
+    nf = 5
+    
+    pdc = pdc_.pdc_one_alg(A, er, nf)
+    #print abs(pdc)**2
+    
+    Af = pdc_.A_to_f(A, nf = nf)
+    th, ic1, ic2 = ass_.assym_pdc_one(u, Af, er, IP, alpha = 0.05)
+    print 'th', th
+    print 'ic1', ic1
+    print 'ic2', ic2
+    
+
+    
+
 def test_pdc():
     A = array([[[4,-4],[3,3]],[[0,0],[0,3]]], dtype=float).reshape(2,2,2)/20
     er = array([[0.7,0],[0,2]], dtype = float)
@@ -44,7 +70,7 @@ def test_assym_pdc_semr():
     print 'ic1', ic1
     print 'ic2', ic2
     
-def test_assym_pdc_th(montei = 100, nd = 100, A = None, er = None, maxp = 2, nf = 20):
+def test_assym_pdc_th(montei = 100, nd = 100, A = None, er = None, maxp = 2, nf = 20, alpha = 0.05):
     if A == None:
         A = array([[[4,-4],[3,3]],[[0,0],[0,3]]], dtype=float).reshape(2,2,2)/20
     if er == None:
@@ -58,14 +84,15 @@ def test_assym_pdc_th(montei = 100, nd = 100, A = None, er = None, maxp = 2, nf 
         data = ar_data(A, er, nd)
         Aest, erest = ar_fit(data, maxp = maxp)
         pdc[i] = abs(pdc_.pdc_one_alg(Aest, erest, nf = nf))**2
-        th[i], ic1[i], ic2[i] = ass_.assym_pdc_one(data, pdc_.A_to_f(Aest, nf = nf), erest, maxp)
+        th[i], ic1[i], ic2[i] = ass_.assym_pdc_one(data, pdc_.A_to_f(Aest, nf = nf), erest, maxp, alpha = alpha)
 
     h0size = sum((pdc < th), axis = 0)/float(montei)
+    pdcr = abs(pdc_.pdc_one_alg(A, er, nf = nf))**2
     #pp.hist(th10, bins = 50)
     #pp.plot(sorted(pdc10), chi2.ppf(linspace(0.5/montei,1-0.5/montei,montei), 2))
     #pp.show()
     #print h0size/float(montei)
-    return pdc, th, ic1, ic2, h0size
+    return pdc, th, ic1, ic2, h0size, pdcr
     
         
 def test_assym_pdc_ic():

@@ -14,18 +14,20 @@ cat = lambda a,b, ax: concatenate((a,b), axis = ax)
 
 def xlag(x, lag):
     if(lag == 0):
-        return x.copy;
+        return x.copy();
     xl = zeros(x.shape)
-    xl[:,:-lag] = x[:,lag:]
+    xl[:,lag:] = x[:,:-lag]
     return xl
 
 # Autocorrelation. Data in rows. From order 0 to p-1.
 # Output: nxn blocks of autocorr of lags i. (Nuttall Strand matrix)
 def bigautocorr(x, p):
     y = x[:]
+    nd = x.shape[1]
     for i in arange(1,p):
-        y = concatenate((y, xlag(y,i)))
-    return cov(y.T)
+        y = concatenate((y, xlag(y,i)), axis=0)
+    return dot(y, y.T)/nd
+    #return cov(y.T)
 
 def assym_pdc_one(x, Af, e_var, p, alpha = 0.05):
     
@@ -36,10 +38,9 @@ def assym_pdc_one(x, Af, e_var, p, alpha = 0.05):
     ic1 = empty([n,n,nf])
     ic2 = empty([n,n,nf])
     
-    #print bigautocorr(x, p)
     gammai = inv(bigautocorr(x, p))
     omega = kron(gammai,e_var)
-    
+    #print bigautocorr(x, p)
     
     for ff in range(nf):
         f = ff/(2.0*nf)
@@ -79,22 +80,25 @@ def assym_pdc_one(x, Af, e_var, p, alpha = 0.05):
                 G2 = dot(dot(Ca.T,G2a),Ca)
                 
                 varass1 = dot(dot(G1,omega),G1)/nd
-                ic1[i,j,ff] = pdc - sqrt(varass1)*st.norm.ppf(1-alpha)
-                ic2[i,j,ff] = pdc + sqrt(varass1)*st.norm.ppf(1-alpha)
+                #print sqrt(varass1)*st.norm.ppf(1-alpha/2.0)
+                ic1[i,j,ff] = pdc - sqrt(varass1)*st.norm.ppf(1-alpha/2.0)
+                ic2[i,j,ff] = pdc + sqrt(varass1)*st.norm.ppf(1-alpha/2.0)
                 
                 L = cholesky(omega, lower=1)
                 D = dot(dot(L.T, G2), L)
                 d = eigh(D, eigvals_only=True)
                 d = d[abs(d) > 1E-8]
                 if (d.size > 2):
-                    print 'assym tem mais de 2 chi2'
+                    print 'assym tem mais de 2 chi2:'
+                    print d
+                #print 'f', ff, 'i:', i, 'j', j, 'd', d
                 
                 #patdf = 0.5*sum(d)**2/(2*sum(d**2))
                 #patden = sum(d)/(2*sum(d**2))
                 patdf = sum(d)**2/sum(d**2)
                 patden = sum(d)/sum(d**2)
                 #print 1-alpha, patdf, patden*n, d
-                th[i,j,ff] = st.chi2.ppf(1-alpha, patdf)/(patden*nd)
+                th[i,j,ff] = st.chi2.ppf(1-alpha, patdf)/(patden*2*nd)
                 
     return th, ic1, ic2
             

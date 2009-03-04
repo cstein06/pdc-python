@@ -186,7 +186,6 @@ def pdc_one_alg(A, e_cov, nf = 64):
       Output:
         PDC(n, n, nf) - PDC matrix
     '''
-    # TODO pdc esta errado. normalizacao nao esta OK.
     
     n, n, r = A.shape
     nor = ones(n) # pdc_one nao tem normalizacao
