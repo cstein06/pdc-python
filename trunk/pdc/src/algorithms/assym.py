@@ -29,7 +29,7 @@ def bigautocorr(x, p):
     return dot(y, y.T)/nd
     #return cov(y.T)
 
-def assym_pdc_one(x, Af, e_var, p, alpha = 0.05):
+def assym_pdc(x, Af, e_var, p, metric = 'gen', alpha = 0.05):
     
     n, nd = x.shape
     nf = Af.shape[0]
@@ -68,6 +68,14 @@ def assym_pdc_one(x, Af, e_var, p, alpha = 0.05):
                 Ij = diag(Ij)
                 Ij = kron(Ij, I(n))
                 Ij = kron(I(2), Ij)
+                
+                if metric == 'euc':
+                    pass
+                elif metric == 'diag':
+                    Iij = dot(Iij, kron(I(2), omega))
+                    Ij = dot(dot(Ij, kron(I(2), omega)))
+                else: #metric == 'gen' 
+                    pass
                 
                 num = dot(dot(a, Iij), a)
                 den = dot(dot(a, Ij), a)
