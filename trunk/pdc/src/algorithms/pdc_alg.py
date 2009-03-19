@@ -169,8 +169,6 @@ def pdc_alg(A, e_cov, nf = 64, metric = 'gen'):
     elif metric == 'diag':
         nornum = 1/diag(e_cov)
         norden = diag(1/diag(e_cov))
-        print nornum
-        print norden
     else: #metric == 'gen'
         nornum = 1/diag(e_cov)
         norden = inv(e_cov)
@@ -182,6 +180,33 @@ def pdc_alg(A, e_cov, nf = 64, metric = 'gen'):
     nPDC = AL*sqrt(nornum).reshape(-1,1)
     PDC = nPDC/sqrt(abs(dPDC)).reshape(nf,1,n).repeat(n, axis = 1)
     return PDC.transpose(1,2,0)
+
+def dtf_one_alg(A, er, nf = 64):
+    '''Generates spectral non-norm. DTF matrix from AR matrix
+    
+      Input: 
+        A(n, n, r) - recurrence matrix (n - number of signals, r - model order)
+        e_cov(n, n) - error covariance matrix
+        nf - frequency resolution
+    
+      Output:
+        DTF(n, n, nf) - PDC matrix
+    '''
+    
+    n, n, r = A.shape
+    #nor = ones(n) # dtf_one nao tem normalizacao
+    
+    AL = A_to_f(A, nf)
+    HL = empty(AL.shape, dtype=complex)
+    for i in range(nf):
+        HL[i] = inv(AL[i])
+        
+    # normalizacao por sum(ai ai* sig)
+    dDTF = sum(HL*HL.conj(), axis = 2)
+    nDTF = HL
+    DTF = nDTF/sqrt(abs(dDTF)).reshape(nf,n,1).repeat(n, axis = 2)
+    
+    return DTF.transpose(1,2,0)
 
 def pdc_plot(pdc, ss = None, nf = 64, sample_f = 1.0):
     
