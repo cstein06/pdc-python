@@ -7,15 +7,39 @@ from scipy.linalg import inv as inv
 
 #corrlag = lambda a,b,lag: cov(a[k:],b[:-k])/a.size
 
-vec = lambda x: x.ravel('F')
-O = lambda n: zeros([n,n],  dtype=float)
-I = lambda n: identity(n, dtype=float)
+vec = lambda x: mat(x.ravel('F')).T
+O = lambda n: mat(zeros([n,n],  dtype=float))
+I = lambda n: mat(identity(n, dtype=float))
 cat = lambda a,b, ax: concatenate((a,b), axis = ax)
+mdiag = lambda a: mat(diag(diag(a)))
+diagtom = lambda a: mat(diag(array(a).reshape(-1)))
+
+#GInv = lambda a: dot(inv(dot(a.T, a)),a.T)
+
+def Dup(n):
+    d = matrix(zeros([n*n, (n*(n+1))/2]))
+    count = 0
+    for j in range(n):
+        for i in range(n):
+            if i >= j:
+                d[j*n+i, count]=1
+                count = count+1
+            else:
+                d[j*n+i, :]=d[i*n+j, :]
+    return d
+
+def TT(n):
+    ''' TT(n)*vec(B) = T(n,n)*vecB = vec(B.T)'''
+    t = O(n**2)
+    for i in range(n):
+        for j in range(n):
+            t[i*n+j, j*n+i] = 1 
+    return t
 
 def xlag(x, lag):
     if(lag == 0):
         return x.copy();
-    xl = zeros(x.shape)
+    xl = matrix(zeros(x.shape))
     xl[:,lag:] = x[:,:-lag]
     return xl
 
@@ -28,8 +52,65 @@ def bigautocorr(x, p):
         y = concatenate((y, xlag(y,i)), axis=0)
     return dot(y, y.T)/nd
     #return cov(y.T)
+    
+    
+def fdh_da(Af, n):
+    
+    aa1 = cat(Af.real, -Af.imag, 1)
+    aa2 = cat(Af.imag, Af.real, 1)
+    aa = cat(aa1, aa2, 0)
+    ha = aa.I
+    dvechda = -kron(ha.T,ha)
+    dhda = dvechda[:2*n**2,:2*n**2]
+    
+    tR1 = kron(I(n),kron(array([[1],[0]]), I(n)))
+    tR2 = kron(I(n),kron(array([[0],[1]]), I(n)))
+    tR = mat(cat(tR1, tR2, 1))
+    
+    dhda = tR*dhda*tR
+    
+    return dhda
+    
+def fIij(i,j,n):
+    Iij = zeros(n**2)
+    Iij[n*j+i] = 1
+    Iij = diag(Iij)
+    return mat(kron(I(2), Iij))
+
+def fIj(j,n):
+    Ij = zeros(n)
+    Ij[j] = 1
+    Ij = diag(Ij)
+    Ij = kron(Ij, I(n))
+    return mat(kron(I(2), Ij))
+
+def fIi(i,n):
+    Ii = zeros(n)
+    Ii[i] = 1
+    Ii = diag(Ii)
+    Ii = kron(I(n), Ii)
+    return mat(kron(I(2), Ii))
+
+def fCa(f, p, n):
+    C1 = cos(-2*pi*f*mat(arange(1,p+1)))
+    S1 = sin(-2*pi*f*mat(arange(1,p+1)))    
+    C2 = cat(C1.reshape(1,-1),S1.reshape(1,-1),0)
+    return kron(C2,identity(n**2))    
+
+def fEig(omega, G2):
+    L = mat(cholesky(omega, lower=1))
+    D = L.T*G2*L
+    d = eigh(D, eigvals_only=True)
+    d = d[abs(d) > 1E-8]
+    if (d.size > 2):
+        print 'assym tem mais de 2 chi2:'
+        print d
+    return d
 
 def assym_pdc(x, Af, e_var, p, metric = 'gen', alpha = 0.05):
+    
+    x = mat(x)
+    e_var = mat(e_var)
     
     n, nd = x.shape
     nf = Af.shape[0]
@@ -44,12 +125,8 @@ def assym_pdc(x, Af, e_var, p, metric = 'gen', alpha = 0.05):
     
     for ff in range(nf):
         f = ff/(2.0*nf)
-        C1 = cos(-2*pi*f*arange(1,p+1))
-        S1 = sin(-2*pi*f*arange(1,p+1))
         
-        C2 = cat(C1.reshape(1,-1),S1.reshape(1,-1),0)
-        
-        Ca = kron(C2,identity(n**2))
+        Ca = fCa(f, p, n)
         
         a = vec(Af[ff,:,:])
         a = cat(a.real, a.imag, 0)
@@ -58,56 +135,146 @@ def assym_pdc(x, Af, e_var, p, metric = 'gen', alpha = 0.05):
         for i in range(n):
             for j in range(n):
                 
-                Iij = zeros(n**2)
-                Iij[n*j+i] = 1
-                Iij = diag(Iij)
-                Iij = kron(I(2), Iij)
+                Iij = fIij(i,j,n)
+                Ij = fIj(j,n)
                 
-                Ij = zeros(n)
-                Ij[j] = 1
-                Ij = diag(Ij)
-                Ij = kron(Ij, I(n))
-                Ij = kron(I(2), Ij)
-                
+                'No caso diag ou gen, deve-se acrescentar o evar na formula'
                 if metric == 'euc':
-                    pass
+                    Iije = Iij
+                    Ije = Ij
                 elif metric == 'diag':
-                    Iij = dot(Iij, kron(I(2), omega))
-                    Ij = dot(dot(Ij, kron(I(2), omega)))
+                    evar_d = mdiag(e_var)
+                    evar_d_big = kron(I(2*n), evar_d)
+                    Iije = Iij*evar_d_big.I
+                    Ije = Ij*evar_d_big.I
                 else: #metric == 'gen' 
-                    pass
+                    evar_d = mdiag(e_var)
+                    evar_d_big = kron(I(2*n), evar_d)
+                    Iije = Iij*evar_d_big.I
+                    evar_big = kron(I(2*n), e_var)
+                    Ije = Ij*evar_big.I*Ij                
                 
-                num = dot(dot(a, Iij), a)
-                den = dot(dot(a, Ij), a)
+                num = a.T*Iije*a
+                den = a.T*Ije*a
                 pdc = num/den
-    
-                G1a = 2*dot(Iij,a)/den - 2*dot(Ij,a)*num/(den**2)
-                G2a = 2*Iij/den
                 
-                G1 = -dot(G1a,Ca)
-                G2 = dot(dot(Ca.T,G2a),Ca)
                 
-                varass1 = dot(dot(G1,omega),G1)/nd
-                #print sqrt(varass1)*st.norm.ppf(1-alpha/2.0)
+                'Acrescenta derivada em relacao a evar'
+                if metric == 'euc':
+                    dpdc_dev = mat(zeros((n*(n+1))/2))
+                elif metric == 'diag':
+                    evar_d = mdiag(e_var)
+                    evar_d_big = kron(I(2*n), evar_d)
+                    inv_ed = evar_d_big.I
+                    evec = vec(e_var)
+                    'derivada de vec(Ed-1) por vecE'
+                    de_deh = Dup(n)
+                    debig_de = kron(TT(n), I(4*n**2)) * \
+                               kron(I(n), kron(vec(I(2*n)), I(n)))
+                    dedinv_dev = diagtom(vec(-inv_ed*inv_ed))
+                    dedinv_deh = dedinv_dev*debig_de*de_deh
+                    'derivada do num por vecE'
+                    dnum_dev = kron((Iij*a).T, a.T)*dedinv_deh
+                    'derivada do den por vecE'
+                    dden_dev = kron((Ij*a).T, a.T)*dedinv_deh
+                    dpdc_dev = (den*dnum_dev - num*dden_dev)/(den**2)
+                else: # metric == 'gen'
+                    evar_d = mdiag(e_var)
+                    evar_d_big = kron(I(2*n), evar_d)
+                    inv_ed = evar_d_big.I
+                    evar_big = kron(I(2*n), e_var)
+                    inv_e = evar_big.I
+                    evec = vec(e_var)
+                    'derivada de vec(Ed-1) por vecE'
+                    de_deh = Dup(n)
+                    debig_de = kron(TT(n), I(2*n*2*n)) * \
+                               kron(I(n), kron(vec(I(2*n)), I(n)))
+                    dedinv_devd = diagtom(vec(-inv_ed*inv_ed)) #TODO: conferir
+                    dedinv_dehd = dedinv_devd*debig_de*de_deh
+                    dedinv_dev = -kron(inv_e.T, inv_e)
+                    dedinv_deh = dedinv_dev*debig_de*de_deh
+                    'derivada do num por vecE'
+                    dnum_dev = kron((Iij*a).T, a.T)*dedinv_dehd
+                    'derivada do den por vecE'
+                    dden_dev = kron((Ij*a).T, a.T*Ij)*dedinv_deh
+                    dpdc_dev = (den*dnum_dev - num*dden_dev)/(den**2)
+                    
+                G1a = 2*a.T*Iije/den - 2*num*a.T*Ije/(den**2)
+                G1 = -G1a*Ca
+                
+                omega_evar = 2*Dup(n).I*kron(e_var, e_var)*Dup(n).I.T
+            
+                varalpha = G1*omega*G1.T #TODO: conferir
+                varevar = dpdc_dev*omega_evar*dpdc_dev.T
+                varass1 = (varalpha + varevar)/nd
+                
                 ic1[i,j,ff] = pdc - sqrt(varass1)*st.norm.ppf(1-alpha/2.0)
                 ic2[i,j,ff] = pdc + sqrt(varass1)*st.norm.ppf(1-alpha/2.0)
                 
-                L = cholesky(omega, lower=1)
-                D = dot(dot(L.T, G2), L)
-                d = eigh(D, eigvals_only=True)
-                d = d[abs(d) > 1E-8]
-                if (d.size > 2):
-                    print 'assym tem mais de 2 chi2:'
-                    print d
-                #print 'f', ff, 'i:', i, 'j', j, 'd', d
+                G2a = 2*Iije/den
+                G2 = Ca.T*G2a*Ca #TODO: conferir!
                 
-                #patdf = 0.5*sum(d)**2/(2*sum(d**2))
-                #patden = sum(d)/(2*sum(d**2))
+                d = fEig(omega, G2)
                 patdf = sum(d)**2/sum(d**2)
                 patden = sum(d)/sum(d**2)
-                #print 1-alpha, patdf, patden*n, d
                 th[i,j,ff] = st.chi2.ppf(1-alpha, patdf)/(patden*2*nd)
                 
     return th, ic1, ic2
-            
+
+
+def assym_dtf_one(x, Af, e_var, p, alpha = 0.05):
     
+    x = mat(x)
+    e_var = mat(e_var)
+    
+    n, nd = x.shape
+    nf = Af.shape[0]
+    
+    th = empty([n,n,nf])
+    ic1 = empty([n,n,nf])
+    ic2 = empty([n,n,nf])
+    varass1 = empty([n,n,nf])
+    
+    gammai = inv(bigautocorr(x, p))
+    omega = kron(gammai,e_var)
+    
+    for ff in range(nf):
+        f = ff/(2.0*nf)
+        
+        Ca = fCa(f, p, n)
+        
+        Hf = mat(Af[ff,:,:]).I
+        h = vec(Hf)
+        h = cat(h.real, h.imag, 0)
+        #a = vec(cat(I(n), O(n), 1)) - dot(Ca, al)
+        
+        dhda = fdh_da(mat(Af[ff,:,:]), n)
+       
+        for i in range(n):
+            for j in range(n):
+                
+                Iij = fIij(i,j,n)
+                
+                Ii = fIi(i,n)
+                
+                num = h.T*Iij*h
+                den = h.T*Ii*h
+                dtf = num/den
+    
+                G1a = 2*h.T*Iij/den - 2*num*h.T*Ii/(den**2)
+                G1 = -G1a*dhda*Ca
+                
+                varass1[i,j,ff] = G1*omega*G1.T/nd
+                ic1[i,j,ff] = dtf - sqrt(varass1[i,j,ff])*st.norm.ppf(1-alpha/2)
+                ic2[i,j,ff] = dtf + sqrt(varass1[i,j,ff])*st.norm.ppf(1-alpha/2)
+                
+                G2a = 2*Iij/den
+                G2 = Ca.T*dhda.T*G2a*dhda*Ca #TODO: conferir o .T
+                
+                d = fEig(omega, G2)
+                patdf = sum(d)**2/sum(d**2)
+                patden = sum(d)/sum(d**2)
+                
+                th[i,j,ff] = st.chi2.ppf(1-alpha, patdf)/(patden*2*nd)
+                
+    return th, ic1, ic2, varass1
