@@ -8,7 +8,6 @@ import algorithms.assym as ass_
 from data_simulation.ar_data import ar_data
 from algorithms.pdc_alg import ar_fit
 
-from numpy import *
 
 def compare_matlab_pdc_one(nd = 100, nf = 5, metric = 'euc'):
     ''' Compara resultado do pdc e assym pdc com o matlab '''
@@ -66,7 +65,7 @@ def test_assym_pdc_semr():
     print 'ic1', ic1
     print 'ic2', ic2
     
-def test_assym_pdc(nm = 100, nd = 100, A = None, er = None, 
+def test_assym_pdc_old(nm = 100, nd = 100, A = None, er = None, 
                       maxp = 2, nf = 20, alpha = 0.05, metric = 'euc'):
     ''' Testa se test H0 e H1 do pdc esta de acordo com o alpha.
     
@@ -81,20 +80,23 @@ def test_assym_pdc(nm = 100, nd = 100, A = None, er = None,
                    [[0,0.5],[-0.1,0.2],[0.4,0.1]]], dtype = float) #Ex artigo daniel
     if er == None:
         #er = array([[0.7,0.3],[0.3,2]], dtype = float)
-        er = identity(3)
+        #er = identity(3)
+        er = array([[1,0.3,0.2],[0.3,2,0.6], [0.2, 0.6, 2]], dtype = float)
     n = A.shape[0]
     pdc = empty([nm, n, n, nf])
     th  = empty([nm, n, n, nf])
     ic1 = empty([nm, n, n, nf])
     ic2 = empty([nm, n, n, nf])
+    varass = empty([nm, n, n, nf])
+    varass2 = empty([nm, n, n, nf])
     time.clock()
     for i in range(nm):
         data = ar_data(A, er, nd)
         Aest, erest = ar_fit(data, maxp = maxp)
         pdc[i] = abs(pdc_.pdc_alg(Aest, erest, nf = nf, metric = metric))**2
-        th[i], ic1[i], ic2[i] = ass_.assym_pdc(data, pdc_.A_to_f(Aest, nf = nf), erest, 
+        th[i], ic1[i], ic2[i], varass[i], varass2[i] = ass_.assym_pdc(data, pdc_.A_to_f(Aest, nf = nf), erest, 
                                                maxp, alpha = alpha, metric = metric)
-        if (i%100 == 0):
+        if (i%10 == 0):
             print 'nm:', i, 'time:', time.clock()
 
     h0size = sum((pdc < th), axis = 0)/float(nm)
@@ -105,7 +107,51 @@ def test_assym_pdc(nm = 100, nd = 100, A = None, er = None,
     #pp.plot(sorted(pdc10), chi2.ppf(linspace(0.5/montei,1-0.5/montei,montei), 2))
     #pp.show()
     #print h0size/float(montei)
-    return pdc, th, ic1, ic2, h0size, h11, h12, pdcr
+    return pdc, th, ic1, ic2, h0size, h11, h12, pdcr, varass, varass2
+
+def test_assym_pdc(nm = 100, nth = 50, nd = 100, A = None, er = None, 
+                      maxp = 2, nf = 20, alpha = 0.05, metric = 'euc'):
+    ''' Testa se test H0 e H1 do pdc esta de acordo com o alpha.
+    
+    o th retorna threshold de h0, ic1 e ic2 o intervalo de confianca, 
+    h0size o tamanho do teste sob h0; e h11 e h12 o tamanho sob h1. '''
+    
+    if A == None:
+        #A = array([[[4,-4],[4,-2]],[[0,0],[0,3]]], dtype=float).reshape(2,2,2)/10
+        a21 = 0
+        A = array([[[0.2, 0],[-0.4, -0.2],[0.3,0]], 
+                   [[a21, 0],[0.8,-0.1],[0.4,0]],
+                   [[0,0.5],[-0.1,0.2],[0.4,0.1]]], dtype = float) #Ex artigo daniel
+    if er == None:
+        #er = array([[0.7,0.3],[0.3,2]], dtype = float)
+        #er = identity(3)
+        er = array([[1,0.3,0.2],[0.3,2,0.6], [0.2, 0.6, 2]], dtype = float)
+    n = A.shape[0]
+    pdc = empty([nm, n, n, nf])
+    th  = empty([nm, n, n, nf])
+    ic1 = empty([nm, n, n, nf])
+    ic2 = empty([nm, n, n, nf])
+    varass = empty([nm, n, n, nf])
+    varass2 = empty([nm, n, n, nf])
+    time.clock()
+    for i in range(nm):
+        data = ar_data(A, er, nd)
+        Aest, erest = ar_fit(data, maxp = maxp)
+        pdc[i] = abs(pdc_.pdc_alg(Aest, erest, nf = nf, metric = metric))**2
+        th[i], ic1[i], ic2[i], varass[i], varass2[i] = ass_.assym_pdc(data, pdc_.A_to_f(Aest, nf = nf), erest, 
+                                               maxp, alpha = alpha, metric = metric)
+        if (i%10 == 0):
+            print 'nm:', i, 'time:', time.clock()
+
+    h0size = sum((pdc < th), axis = 0)/float(nm)
+    pdcr = abs(pdc_.pdc_alg(A, er, nf = nf, metric = metric))**2
+    h11 = sum((pdcr < ic1), axis = 0)/float(nm)
+    h12 = sum((pdcr > ic2), axis = 0)/float(nm)
+    #pp.hist(th10, bins = 50)
+    #pp.plot(sorted(pdc10), chi2.ppf(linspace(0.5/montei,1-0.5/montei,montei), 2))
+    #pp.show()
+    #print h0size/float(montei)
+    return pdc, th, ic1, ic2, h0size, h11, h12, pdcr, varass, varass2
 
 
 def testR():
@@ -147,12 +193,13 @@ def test_assym_dtf(nm = 100, nd = 100, A = None, er = None,
     ic1 = empty([nm, n, n, nf])
     ic2 = empty([nm, n, n, nf])
     varass = empty([nm, n, n, nf])
+    varass2 = empty([nm, n, n, nf])
     time.clock()
     for i in range(nm):
         data = ar_data(A, er, nd)
         Aest, erest = ar_fit(data, maxp = maxp)
         dtf[i] = abs(pdc_.dtf_one_alg(Aest, erest, nf = nf))**2
-        th[i], ic1[i], ic2[i], varass[i] = ass_.assym_dtf_one(data, pdc_.A_to_f(Aest, nf = nf), erest, 
+        th[i], ic1[i], ic2[i], varass[i], varass2[i] = ass_.assym_dtf_one(data, pdc_.A_to_f(Aest, nf = nf), erest, 
                                                maxp, alpha = alpha)
         if (i%10 == 0):
             print 'nm:', i, 'time:', time.clock()
@@ -165,7 +212,7 @@ def test_assym_dtf(nm = 100, nd = 100, A = None, er = None,
     #pp.plot(sorted(pdc10), chi2.ppf(linspace(0.5/montei,1-0.5/montei,montei), 2))
     #pp.show()
     #print h0size/float(montei)
-    return dtf, th, ic1, ic2, h0size, h11, h12, dtfr, varass
+    return dtf, th, ic1, ic2, h0size, h11, h12, dtfr, varass, varass2
     
         
 def test_pdc_normalizations():
