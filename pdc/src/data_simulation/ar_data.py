@@ -35,6 +35,20 @@ def ar_data_R(A, er = None, m = 1000):
 
 
 def ar_data(A, er = None, m = 1000, dummy = 100):
+    '''Simulate ar-model from A matrix
+    
+      Input: 
+        A(n, n, p) - AR model (n - number of signals, p - model order)
+        er(n) - variance of innovations
+        m - length of simulated time-series
+    
+      Output:
+        data(n, m) - simulated time-series
+    '''
+    
+    if (A.ndim == 2):
+        A.resize(A.shape[0], A.shape[1], 1)
+    
     n = A.shape[0]
     p = A.shape[2]
     if er == None:

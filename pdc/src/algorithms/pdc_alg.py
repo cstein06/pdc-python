@@ -64,6 +64,8 @@ def ar_fit(data, maxp = 30):
         A(n, n, p) - estimated AR model
         er(n, n) - covariance of residuals
     '''
+    if (data.ndim == 1):
+        data.resize(1, data.shape[0])
     
     ri_.initr()
     
