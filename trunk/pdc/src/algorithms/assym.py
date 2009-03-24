@@ -16,6 +16,17 @@ diagtom = lambda a: mat(diag(array(a).reshape(-1)))
 
 #GInv = lambda a: dot(inv(dot(a.T, a)),a.T)
 
+def vech(a):
+    n = a.shape[0]
+    v = empty((n*(n+1))/2)
+    cont = 0
+    for j in range(n):
+        for i in range(n):
+            if i >= j:
+                v[cont] = a[i,j]
+                cont = cont + 1
+    return v
+            
 def Dup(n):
     d = matrix(zeros([n*n, (n*(n+1))/2]))
     count = 0
@@ -28,13 +39,22 @@ def Dup(n):
                 d[j*n+i, :]=d[i*n+j, :]
     return d
 
-def TT(n):
-    ''' TT(n)*vec(B) = T(n,n)*vecB = vec(B.T)'''
-    t = O(n**2)
-    for i in range(n):
-        for j in range(n):
-            t[i*n+j, j*n+i] = 1 
+def TT(a,b):
+    ''' TT(a,b)*vec(B) = vec(B.T), onde B eh axb.'''
+    t = O(a*b)
+    for i in range(a):
+        for j in range(b):
+            t[i*b+j, j*a+i] = 1 
     return t
+
+def fdebig_de(n):
+    return dot(kron(TT(2*n, n), I(n*2*n)),
+           kron(I(n), kron(vec(I(2*n)), I(n))))
+    
+
+def fdebig_de_small(n):
+    return dot(kron(TT(2, n), I(n*2)),
+           kron(I(n), kron(vec(I(2)), I(n))))
 
 def xlag(x, lag):
     if(lag == 0):
@@ -205,8 +225,7 @@ def assym_pdc(x, Af, e_var, p, metric = 'gen', alpha = 0.05):
                     
                     'derivada de vec(Ed-1) por vecE'
                     de_deh = Dup(n)
-                    debig_de = kron(TT(n), I(4*n**2)) * \
-                               kron(I(n), kron(vec(I(2*n)), I(n)))
+                    debig_de = fdebig_de(n)
                     dedinv_dev = diagtom(vec(-inv_ed*inv_ed))
                     dedinv_deh = dedinv_dev*debig_de*de_deh
                     
@@ -226,8 +245,7 @@ def assym_pdc(x, Af, e_var, p, metric = 'gen', alpha = 0.05):
 
                     'derivada de vec(Ed-1) por vecE'
                     de_deh = Dup(n)
-                    debig_de = kron(TT(n), I(2*n*2*n)) * \
-                               kron(I(n), kron(vec(I(2*n)), I(n)))
+                    debig_de = fdebig_de(n)
                     
                     dedinv_devd = diagtom(vec(-inv_ed*inv_ed)) #TODO: conferir
                     dedinv_dehd = dedinv_devd*debig_de*de_deh
@@ -320,6 +338,388 @@ def assym_dtf_one(x, Af, e_var, p, alpha = 0.05):
                 patdf = sum(d)**2/sum(d**2)
                 patden = sum(d)/sum(d**2)
                 
+                th[i, j, ff] = st.chi2.ppf(1-alpha, patdf)/(patden*2*nd)
+                varass2[i, j, ff] = 2*patdf/(patden*2*nd)**2
+                
+    return th, ic1, ic2, varass1, varass2
+
+def fc(i, n):
+    vi = zeros(n)
+    vi[i] = 1
+    vi.resize(n,1)
+    return mat(kron(vi, I(n)))
+
+def fk1(e_var_inv, i,j,n):
+    ci = fc(i,n)
+    cj = fc(j,n)
+    
+    return kron(I(2), ci)*e_var_inv*kron(I(2),cj).T
+    
+def fk2(e_var_inv, i,j,n):
+    ci = fc(i,n)
+    cj = fc(j,n)
+    
+    return kron(I(2), ci)*e_var_inv*kron(array([[0,1],[-1,0]]),cj).T
+    
+    
+def assym_pc(x, Af, e_var, p, alpha = 0.05):
+       
+    x = mat(x)
+    e_var = mat(e_var)
+    
+    n, nd = x.shape
+    nf = Af.shape[0]
+    
+    th = empty([n, n, nf])
+    ic1 = empty([n, n, nf])
+    ic2 = empty([n, n, nf])
+    varass1 = empty([n, n, nf])
+    varass2 = empty([n, n, nf])
+    
+    gammai = inv(bigautocorr(x, p))
+    omega = kron(gammai, e_var)
+    #print bigautocorr(x, p)
+    
+    for ff in range(nf):
+        f = ff/(2.0*nf)
+        
+        Ca = fCa(f, p, n)
+        
+        a = vec(Af[ff, :, :])
+        a = cat(a.real, a.imag, 0)
+        #a = vec(cat(I(n), O(n), 1)) - dot(Ca, al)
+        
+        for i in range(n):
+            for j in range(n):
+                
+                evar_big = kron(I(2), e_var)
+                evar_big_inv = evar_big.I
+                ei = evar_big_inv
+                #evar_inv = e_var.I
+                #ei = evar_inv
+                
+                k1ij = fk1(evar_big_inv, i, j, n)       
+                k2ij = fk2(evar_big_inv, i, j, n)     
+                k1ii = fk1(evar_big_inv, i, i, n)      
+                k1jj = fk1(evar_big_inv, j, j, n)  
+                
+                num = (a.T*k1ij*a)**2+(a.T*k2ij*a)**2
+                den = (a.T*k1ii*a)*(a.T*k1jj*a)
+                pc = num/den
+                
+                #Acrescenta derivada em relacao a evar
+                ci = fc(i,n)
+                cj = fc(j,n)
+                
+                a11i = a.T*kron(I(2), ci)
+                a12j = kron(I(2),cj).T*a
+                a21i = a.T*kron(I(2), ci)
+                a22j = kron(array([[0,1],[-1,0]]),cj).T*a
+                
+                a11j = a.T*kron(I(2), cj)
+                a12i = kron(I(2),ci).T*a
+                
+                num1 = a11i*ei*a12j
+                num2 = a21i*ei*a22j
+                den1 = a11i*ei*a12i
+                den2 = a11j*ei*a12j
+                
+                dnum1_dei = kron(a12j.T, a11i)
+                dnum2_dei = kron(a22j.T, a21i)
+                dden1_dei = kron(a12i.T, a11i)
+                dden2_dei = kron(a12j.T, a11j)
+                
+                #check den1*den2 == den e num1**2+num2**2 = num. checked!.
+                dpc_dei = (2*num1*dnum1_dei + 2*num2*dnum2_dei)/den + \
+                          - num*(dden1_dei/den1 + dden2_dei/den2)/den
+                          
+                'derivada de vec(Ed-1) por vecE'
+                de_deh = Dup(n)
+                debig_de = fdebig_de_small(n)
+                dedinv_dev = -kron(ei.T, ei)
+                dedinv_deh = dedinv_dev*debig_de*de_deh
+                #dedinv_deh = dedinv_dev*de_deh
+                
+                dpc_dev = dpc_dei*dedinv_deh
+                
+                d2pc_dei2 = 2*(dnum1_dei.T*dnum1_dei +  \
+                               dnum2_dei.T*dnum2_dei)/den
+                               
+                d2pc_dev2 = dedinv_deh.T*d2pc_dei2*dedinv_deh
+                
+                #fim da derivada por e_var
+                
+                dnum_da = 2*((a.T*k1ij*a)*(a.T*(k1ij+k1ij.T)) + \
+                             (a.T*k2ij*a)*(a.T*(k2ij+k2ij.T)))
+                dden_da = 2*((a.T*k1jj*a)*(a.T*k1ii) + \
+                             (a.T*k1ii*a)*(a.T*k1jj))
+                G1a = dnum_da/den - num*dden_da/den**2
+                G1 = -G1a*Ca
+                
+                omega_evar = 2*Dup(n).I*kron(e_var, e_var)*Dup(n).I.T
+            
+                varalpha = G1*omega*G1.T 
+                varevar = dpc_dev*omega_evar*dpc_dev.T
+                varass1[i, j, ff] = (varalpha + varevar)/nd
+                
+                
+                ic1[i, j, ff] = pc - sqrt(varass1[i, j, ff])*st.norm.ppf(1-alpha/2.0)
+                ic2[i, j, ff] = pc + sqrt(varass1[i, j, ff])*st.norm.ppf(1-alpha/2.0)
+                
+                d1 = (k1ij+k1ij.T)*a
+                d2 = (k2ij+k2ij.T)*a
+                G2a = 2*(d1*d1.T + d2*d2.T)/den
+                G2 = Ca.T*G2a*Ca 
+                
+                d1 = fEig(omega, G2)
+                d2 = fEig(omega_evar, d2pc_dev2)
+                d = concatenate((d1,d2)) #TODO: conferir
+                patdf = sum(d)**2/sum(d**2)
+                patden = sum(d)/sum(d**2)
+                th[i, j, ff] = st.chi2.ppf(1-alpha, patdf)/(patden*2*nd)
+                varass2[i, j, ff] = 2*patdf/(patden*2*nd)**2
+                
+    return th, ic1, ic2, varass1, varass2
+
+def fl(i, n):
+    vi = zeros(n)
+    vi[i] = 1
+    vi.resize(n,1)
+    return mat(kron(I(n), vi))
+
+def fkl1(evar_big, i,j,n):
+    li = fl(i,n)
+    lj = fl(j,n)
+    
+    return kron(I(2), li)*evar_big*kron(I(2),lj).T
+    
+def fkl2(evar_big, i,j,n):
+    li = fl(i,n)
+    lj = fl(j,n)
+    
+    return kron(I(2), li)*evar_big*kron(array([[0,1],[-1,0]]),lj).T
+   
+def assym_coh(x, Af, e_var, p, alpha = 0.05):
+       
+    x = mat(x)
+    e_var = mat(e_var)
+    
+    n, nd = x.shape
+    nf = Af.shape[0]
+    
+    th = empty([n, n, nf])
+    ic1 = empty([n, n, nf])
+    ic2 = empty([n, n, nf])
+    varass1 = empty([n, n, nf])
+    varass2 = empty([n, n, nf])
+    
+    gammai = inv(bigautocorr(x, p))
+    omega = kron(gammai, e_var)
+    #print bigautocorr(x, p)
+    
+    for ff in range(nf):
+        f = ff/(2.0*nf)
+        
+        Ca = fCa(f, p, n)
+        
+        Hf = mat(Af[ff, :, :]).I
+        h = vec(Hf)
+        h = cat(h.real, h.imag, 0)
+        
+        dhda = fdh_da(mat(Af[ff, :, :]), n)
+        
+        for i in range(n):
+            for j in range(n):
+                
+                evar_big = kron(I(2), e_var)
+                #evar_inv = e_var.I
+                #ei = evar_inv
+                
+                k1ij = fkl1(evar_big, i, j, n)       
+                k2ij = fkl2(evar_big, i, j, n)     
+                k1ii = fkl1(evar_big, i, i, n)      
+                k1jj = fkl1(evar_big, j, j, n)  
+                
+                num = (h.T*k1ij*h)**2+(h.T*k2ij*h)**2
+                den = (h.T*k1ii*h)*(h.T*k1jj*h)
+                coh = num/den
+                
+                #Acrescenta derivada em relacao a evar
+                li = fl(i,n)
+                lj = fl(j,n)
+                
+                h11i = h.T*kron(I(2), li)
+                h12j = kron(I(2),lj).T*h
+                h21i = h.T*kron(I(2), li)
+                h22j = kron(array([[0,1],[-1,0]]),lj).T*h
+                
+                h11j = h.T*kron(I(2), lj)
+                h12i = kron(I(2),li).T*h
+                
+                num1 = h11i*evar_big*h12j
+                num2 = h21i*evar_big*h22j
+                den1 = h11i*evar_big*h12i
+                den2 = h11j*evar_big*h12j
+                
+                dnum1_de = kron(h12j.T, h11i)
+                dnum2_de = kron(h22j.T, h21i)
+                dden1_de = kron(h12i.T, h11i)
+                dden2_de = kron(h12j.T, h11j)
+                
+                #check den1*den2 == den e num1**2+num2**2 = num. checked!.
+                dcoh_de = (2*num1*dnum1_de + 2*num2*dnum2_de)/den + \
+                          - num*(dden1_de/den1 + dden2_de/den2)/den
+                          
+                'derivada de vec(Ed-1) por vecE'
+                de_deh = Dup(n)
+                debig_de = fdebig_de_small(n)
+                ded_deh = debig_de*de_deh
+                
+                dcoh_dev = dcoh_de*ded_deh
+                
+                d2coh_de2 = 2*(dnum1_de.T*dnum1_de +  \
+                               dnum2_de.T*dnum2_de)/den
+                               
+                d2coh_dev2 = ded_deh.T*d2coh_de2*ded_deh
+                
+                #fim da derivada por e_var
+                
+                dnum_dh = 2*((h.T*k1ij*h)*(h.T*(k1ij+k1ij.T)) + \
+                             (h.T*k2ij*h)*(h.T*(k2ij+k2ij.T)))
+                dden_dh = 2*((h.T*k1jj*h)*(h.T*k1ii) + \
+                             (h.T*k1ii*h)*(h.T*k1jj))
+                G1a = dnum_dh/den - num*dden_dh/den**2
+                G1 = -G1a*dhda*Ca
+                
+                omega_evar = 2*Dup(n).I*kron(e_var, e_var)*Dup(n).I.T
+            
+                varalpha = G1*omega*G1.T 
+                varevar = dcoh_dev*omega_evar*dcoh_dev.T
+                varass1[i, j, ff] = (varalpha + varevar)/nd
+                
+                
+                ic1[i, j, ff] = coh - sqrt(varass1[i, j, ff])*st.norm.ppf(1-alpha/2.0)
+                ic2[i, j, ff] = coh + sqrt(varass1[i, j, ff])*st.norm.ppf(1-alpha/2.0)
+                
+                d1 = (k1ij+k1ij.T)*h
+                d2 = (k2ij+k2ij.T)*h
+                G2a = 2*(d1*d1.T + d2*d2.T)/den
+                G2 = Ca.T*dhda.T*G2a*dhda*Ca 
+                
+                d1 = fEig(omega, G2)
+                d2 = fEig(omega_evar, d2coh_dev2)
+                d = concatenate((d1,d2)) #TODO: conferir
+                patdf = sum(d)**2/sum(d**2)
+                patden = sum(d)/sum(d**2)
+                th[i, j, ff] = st.chi2.ppf(1-alpha, patdf)/(patden*2*nd)
+                varass2[i, j, ff] = 2*patdf/(patden*2*nd)**2
+                
+    return th, ic1, ic2, varass1, varass2
+
+def assym_ss(x, Af, e_var, p, alpha = 0.05):
+       
+    x = mat(x)
+    e_var = mat(e_var)
+    
+    n, nd = x.shape
+    nf = Af.shape[0]
+    
+    th = empty([n, n, nf])
+    ic1 = empty([n, n, nf])
+    ic2 = empty([n, n, nf])
+    varass1 = empty([n, n, nf])
+    varass2 = empty([n, n, nf])
+    
+    gammai = inv(bigautocorr(x, p))
+    omega = kron(gammai, e_var)
+    #print bigautocorr(x, p)
+    
+    for ff in range(nf):
+        f = ff/(2.0*nf)
+        
+        Ca = fCa(f, p, n)
+        
+        Hf = mat(Af[ff, :, :]).I
+        h = vec(Hf)
+        h = cat(h.real, h.imag, 0)
+        
+        dhda = fdh_da(mat(Af[ff, :, :]), n)
+        
+        for i in range(n):
+            for j in range(n):
+                
+                evar_big = kron(I(2), e_var)
+                #evar_big_inv = evar_big.I
+                #ei = evar_big_inv
+                #evar_inv = e_var.I
+                #ei = evar_inv
+                
+                k1ij = fkl1(evar_big, i, j, n)       
+                k2ij = fkl2(evar_big, i, j, n)
+                
+                num = (h.T*k1ij*h)**2+(h.T*k2ij*h)**2
+                coh = num
+                
+                #Acrescenta derivada em relacao a evar
+                li = fl(i,n)
+                lj = fl(j,n)
+                
+                h11i = h.T*kron(I(2), li)
+                h12j = kron(I(2),lj).T*h
+                h21i = h.T*kron(I(2), li)
+                h22j = kron(array([[0,1],[-1,0]]),lj).T*h
+                
+                num1 = h11i*evar_big*h12j
+                num2 = h21i*evar_big*h22j
+                
+                dnum1_de = kron(h12j.T, h11i)
+                dnum2_de = kron(h22j.T, h21i)
+                
+                #check den1*den2 == den e num1**2+num2**2 = num. checked!.
+                dcoh_de = 2*num1*dnum1_de + 2*num2*dnum2_de
+                          
+                'derivada de vec(Ed-1) por vecE'
+                de_deh = Dup(n)
+                debig_de = fdebig_de_small(n)
+                #dedinv_dev = -kron(ei.T, ei)
+                ded_deh = debig_de*de_deh
+                #dedinv_deh = dedinv_dev*de_deh
+                
+                dcoh_dev = dcoh_de*ded_deh
+                
+                d2coh_de2 = 2*(dnum1_de.T*dnum1_de +  \
+                               dnum2_de.T*dnum2_de)
+                               
+                d2coh_dev2 = ded_deh.T*d2coh_de2*ded_deh
+                
+                #fim da derivada por e_var
+                
+                dnum_dh = 2*((h.T*k1ij*h)*(h.T*(k1ij+k1ij.T)) + \
+                             (h.T*k2ij*h)*(h.T*(k2ij+k2ij.T)))
+                G1a = dnum_dh
+                G1 = -G1a*dhda*Ca
+                
+                omega_evar = 2*Dup(n).I*kron(e_var, e_var)*Dup(n).I.T
+            
+                varalpha = G1*omega*G1.T 
+                varevar = dcoh_dev*omega_evar*dcoh_dev.T
+                varass1[i, j, ff] = (varalpha + varevar)/nd
+                
+                
+                ic1[i, j, ff] = coh - sqrt(varass1[i, j, ff])*st.norm.ppf(1-alpha/2.0)
+                ic2[i, j, ff] = coh + sqrt(varass1[i, j, ff])*st.norm.ppf(1-alpha/2.0)
+                
+                d1 = (k1ij+k1ij.T)*h
+                d2 = (k2ij+k2ij.T)*h
+                G2a = 2*(d1*d1.T + d2*d2.T)
+                G2 = Ca.T*dhda.T*G2a*dhda*Ca 
+                
+                d1 = fEig(omega, G2)
+                d2 = fEig(omega_evar, d2coh_dev2)
+                d = concatenate((d1,d2)) #TODO: conferir
+
+                patdf = sum(d)**2/sum(d**2)
+                patden = sum(d)/sum(d**2)
                 th[i, j, ff] = st.chi2.ppf(1-alpha, patdf)/(patden*2*nd)
                 varass2[i, j, ff] = 2*patdf/(patden*2*nd)**2
                 
