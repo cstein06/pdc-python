@@ -1,16 +1,12 @@
-'''Feito pelo Gilson, precisa revisar'''
-'''TODO: Lyap nao esta correto.'''
+'''Feito pelo Gilson, precisa revisar. parece bater c matlab.'''
 
-from numpy import array,zeros,eye,kron,dot,exp,pi,cos,sin,diag,ones,tril,fliplr,finfo,resize
+from numpy import array,zeros,eye,kron,dot,exp,pi,cos,sin,diag,ones,tril,resize,finfo
 from numpy.core.fromnumeric import reshape
 from numpy.core.umath import isnan
 from numpy.lib.scimath import log, sqrt
-from numpy.lib.twodim_base import flipud
 from numpy.linalg import pinv, inv, eig
 from scipy.linalg.basic import det
 from scipy.linalg.decomp import schur
-from scipy.signal.signaltools import detrend
-from scipy.stats import std
 
 eps = finfo(float).eps.item()
 
@@ -73,7 +69,7 @@ def lyap(A, B, C=[]):
         X = X.real
     return X
 
-def mcar_ns(u, IP):
+def nstrand(u, maxp = 30):
     '''
     %   Calculate the coeficients of multi-channel auto-regressive matrix using
     %   Nuttall-Strand algorithm (a generalization of single channel harmonic
@@ -99,6 +95,7 @@ def mcar_ns(u, IP):
     NUMCHS=lx      #% Number of channels.
     MAXORDER=200   #% Maximum order of AR model allowed for calculation.
     N=max(u.shape) #% N - Number of samples per channel.
+    IP = maxp
 
     #    Initialization
     ISTAT=0
@@ -160,9 +157,9 @@ def mcar_ns(u, IP):
             A=-A
             B=-B
             break
-    return pf,A,pb,B,ef,eb,ISTAT
+    return A.transpose(1,2,0), pf/N #pf,A,pb,B,ef,eb,ISTAT
 
-def mvar(u,MaxIP=0,alg=1,criterion=1):
+def ar_fit(u,MaxIP=0,alg=1,criterion=1):
     '''
     %
     %[IP,pf,A,pb,B,ef,eb,vaic,Vaicv] = mvar(u,MaxIP,alg,criterion)
@@ -203,7 +200,7 @@ def mvar(u,MaxIP=0,alg=1,criterion=1):
     IP=1
     Vaicv=zeros((MaxOrder+1,1), float)
     while IP <= UpperboundOrder:
-        [npf, na, npb, nb, nef, neb, ISTAT]=mcar_ns(u,IP)
+        [npf, na, npb, nb, nef, neb, ISTAT]=nstrand(u,IP)
         
         vaic=max(u.shape)*log(det(npf))+2*nChannels*nChannels*IP;
         
@@ -233,6 +230,36 @@ def mvar(u,MaxIP=0,alg=1,criterion=1):
     vaic=vaicv
     Vaicv=Vaicv[range(1,IP+1),0]
     Vaicv.shape = (Vaicv.size,1)
-    pf=pf[:,:]/nSegLength
 
     return IP,pf,A,pb,B,ef,eb,vaic,Vaicv
+
+def R_YW(data, maxp = 30):
+    '''Estimates multivariate AR fit for data, using Yule-walker of R package.
+    
+      Input: 
+        data(n, m) - data matrix (n - number of signals, m - data length)
+        maxp - maximum order for estimated AR model
+    
+      Output:
+        A(n, n, p) - estimated AR model
+        er(n, n) - covariance of residuals
+    '''
+    
+    from rpy2.robjects import r as r_
+    import rpy2.rinterface as ri_
+    import rpy2.robjects as ro_
+
+    if (data.ndim == 1):
+        data.resize(1, data.shape[0])
+    
+    ri_.initr()
+    
+    ri_.globalEnv["data"] = ri_.FloatSexpVector(data.ravel())
+    ri_.globalEnv["dim"] = ri_.IntSexpVector(data.shape[::-1])
+    ro_.globalEnv["maxp"] = maxp
+    r_('data <- ar(array(data, dim), order.max = maxp)')
+    
+    A = array(r_('data$ar')).transpose(1,2,0) #TODO: conferir A e A.T em todos.
+    er = array(r_('cov(data$resid[-seq(data$order),])'))
+    #print 'Model order: ', array(r_('data$order'))[0]
+    return A, er

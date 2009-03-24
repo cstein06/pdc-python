@@ -6,7 +6,7 @@ import time
 import algorithms.pdc_alg as pdc_
 import algorithms.assym as ass_
 from data_simulation.ar_data import ar_data
-from algorithms.pdc_alg import ar_fit
+import algorithms.ar_fit as ar_fit
 
 from scipy.stats import cov as cov
 from scipy.linalg import cholesky
@@ -22,15 +22,18 @@ def ass_alpha(x, e_var, p, n):
 def test_alpha(nm = 100, nd = 100, A = None, er = None, maxp = 2):
     
     if A == None:
+        A = array([[[4],[4]],[[0],[3]]], dtype=float).reshape(2,2,2)/10
+        maxp=1
         #A = array([[[4,-4],[4,-2]],[[0,0],[0,3]]], dtype=float).reshape(2,2,2)/10
-        a21 = 0
-        A = array([[[0.2, 0],[-0.4, -0.2],[0.3,0]], 
-                   [[a21, 0],[0.8,-0.1],[0.4,0]],
-                   [[0,0.5],[-0.1,0.2],[0.4,0.1]]], dtype = float) #Ex artigo daniel
-        maxp = 2
+        #maxp=2
+        #a21 = 0
+        #A = array([[[0.2, 0],[-0.4, -0.2],[0.3,0]], 
+        #           [[a21, 0],[0.8,-0.1],[0.4,0]],
+        #           [[0,0.5],[-0.1,0.2],[0.4,0.1]]], dtype = float) #Ex artigo daniel
+        #maxp = 2
     if er == None:
-        #er = array([[0.7,0.3],[0.3,2]], dtype = float)
-        er = identity(3)
+        er = array([[0.7,0.3],[0.3,2]], dtype = float)
+        #er = identity(3)
         
     n = A.shape[0]
     varass = empty([nm, n**2*maxp, n**2*maxp])
@@ -38,19 +41,60 @@ def test_alpha(nm = 100, nd = 100, A = None, er = None, maxp = 2):
     time.clock()
     for i in range(nm):
         data = ar_data(A, er, nd)
-        Aest, erest = ar_fit(data, maxp = maxp)  
+        Aest, erest = ar_fit.nstrand(data, maxp = maxp)  
         varass[i] = ass_alpha(data, erest, maxp, nd)
         al[i] = Aest.transpose([2,1,0]).ravel()
       
         if (i%10 == 0):
             print 'nm:', i, 'time:', time.clock()
     varal = cov(al)
-    #pp.hist(th10, bins = 50)
-    #pp.plot(sorted(pdc10), chi2.ppf(linspace(0.5/montei,1-0.5/montei,montei), 2))
-    #pp.show()
-    #print h0size/float(montei)
     return varass, varal
 
+def debig_de(e_var):
+    n = e_var.shape[0]
+    
+    return dot(kron(ass_.TT(2*n, n), ass_.I(n*2*n)),
+           kron(ass_.I(n), kron(ass_.vec(ass_.I(2*n)), ass_.I(n))))
+    #p = 2
+    #return dot(kron(ass_.TT(n), ass_.I(p*p)),
+    #       kron(ass_.I(n), kron(ass_.vec(ass_.I(p)), ass_.I(n))))
+    #return dot(kron(ass_.I(p), kron(ass_.TT(n), ass_.I(n))), \
+    #           kron(ass_.vec(ass_.I(p)), ass_.I(n*n))) 
+    
+def ass_evar(e_var, nd):
+    n = e_var.shape[0]
+    di = ass_.Dup(n).I
+    return 2*di*kron(e_var, e_var)*di.T/nd
+    
+def test_evar(nm = 100, nd = 100, A = None, er = None, maxp = 2):
+    
+    if A == None:
+        A = array([[[4,-4],[4,-2]],[[0,0],[0,3]]], dtype=float).reshape(2,2,2)/10
+        #a21 = 0
+        #A = array([[[0.2, 0],[-0.4, -0.2],[0.3,0]], 
+        #           [[a21, 0],[0.8,-0.1],[0.4,0]],
+        #           [[0,0.5],[-0.1,0.2],[0.4,0.1]]], dtype = float) #Ex artigo daniel
+        maxp = 2
+    if er == None:
+        er = array([[0.7,0.3],[0.3,2]], dtype = float)
+        #er = identity(3)
+        
+    n = A.shape[0]
+    vares = empty([nm, (n*(n+1))/2, (n*(n+1))/2])
+    al = empty([nm, (n*(n+1))/2])
+    erm = empty([nm, n, n])
+    time.clock()
+    for i in range(nm):
+        data = ar_data(A, er, nd)
+        Aest, erest = ar_fit.nstrand(data, maxp = maxp)  
+        vares[i] = ass_evar(erest, nd)
+        al[i] = ass_.vech(erest)
+        erm[i] = erest
+      
+        if (i%10 == 0):
+            print 'nm:', i, 'time:', time.clock()
+    varel = cov(al)
+    return vares, varel, erm
 
 
 def test_dinv(nm = 100):

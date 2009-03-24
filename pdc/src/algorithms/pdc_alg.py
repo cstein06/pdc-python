@@ -5,11 +5,8 @@ from scipy.linalg import inv
 
 import cProfile
 
-from rpy2.robjects import r as r_
-import rpy2.rinterface as ri_
-import rpy2.robjects as ro_
-
 from data_simulation.ar_data import ar_data
+import algorithms.ar_fit as ar_fit
 
 def pdc_ss_coh(data, maxp = 30, nf = 64, detrend = True):
 
@@ -22,7 +19,7 @@ def pdc_ss_coh(data, maxp = 30, nf = 64, detrend = True):
     if (detrend):
         data = data - mean(data, axis = 1).reshape(-1,1) #TODO: usar signal.detrend?
     
-    A, er = ar_fit(data, maxp)
+    A, er = ar_fit.nstrand(data, maxp)
     return abs(pdc_alg(A, er, nf))**2, abs(ss(A, er, nf))**2, abs(coh_alg(A, er, nf))**2
 
 
@@ -47,37 +44,13 @@ def pdc(data, maxp = 30, nf = 64, detrend = True, SS = True):
         
     if (detrend):
         data = data - mean(data, axis = 1).reshape(-1,1) #TODO: usar signal.detrend?
-    A, er = ar_fit(data, maxp)
+    A, er = ar_fit.nstrand(data, maxp)
     if (SS):
         return pdc_alg(A, er, nf), ss(A, er, nf)
     else:
         return pdc_alg(A, er, nf)
 
-def ar_fit(data, maxp = 30):
-    '''Estimates multivariate AR fit for data
-    
-      Input: 
-        data(n, m) - data matrix (n - number of signals, m - data length)
-        maxp - maximum order for estimated AR model
-    
-      Output:
-        A(n, n, p) - estimated AR model
-        er(n, n) - covariance of residuals
-    '''
-    if (data.ndim == 1):
-        data.resize(1, data.shape[0])
-    
-    ri_.initr()
-    
-    ri_.globalEnv["data"] = ri_.FloatSexpVector(data.ravel())
-    ri_.globalEnv["dim"] = ri_.IntSexpVector(data.shape[::-1])
-    ro_.globalEnv["maxp"] = maxp
-    r_('data <- ar(array(data, dim), order.max = maxp)')
-    
-    A = array(r_('data$ar')).transpose(1,2,0) #TODO: conferir A e A.T em todos.
-    er = array(r_('cov(data$resid[-seq(data$order),])'))
-    #print 'Model order: ', array(r_('data$order'))[0]
-    return A, er
+
 
 def A_to_f(A, nf = 64):
     '''Calculates A(f), in the frequency domain
@@ -101,6 +74,20 @@ def A_to_f(A, nf = 64):
     AL = eye(n) - sum(Af, axis = 3)
     
     return AL
+    
+def pc(A, e_cov, nf = 64):
+    n, n, r = A.shape
+    
+    e_cov = mat(e_cov)
+    AL = A_to_f(A, nf)
+    pc = empty(AL.shape, dtype = 'complex')
+    for i in range(nf):
+        ALi = mat(AL[i])
+        ps = ALi.T*e_cov.I*ALi.conj() #TODO: conferir T e conj
+        d = ps.diagonal()
+        m = kron(d,d).reshape(n,n)
+        pc[i] = ps/sqrt(m)
+    return pc.transpose(1,2,0)
     
 def ss(A, e_cov, nf = 64):
     n, n, r = A.shape
@@ -148,7 +135,7 @@ def coh(data, maxp = 30, nf = 64, detrend = True, SS = True):
         
     if (detrend):
         data = data - mean(data, axis = 1).reshape(-1,1) #TODO: usar signal.detrend?
-    A, er = ar_fit(data, maxp)
+    A, er = ar_fit.nstrand(data, maxp)
     return coh_alg(A,er,nf)
 
 

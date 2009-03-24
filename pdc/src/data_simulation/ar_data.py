@@ -55,12 +55,13 @@ def ar_data(A, er = None, m = 1000, dummy = 100):
         er = identity(n)
     if er.ndim == 1:
         er = diag(er)
-        
+    
+    w = mnorm(zeros(n), er, m+dummy-p)
     data = zeros([n, m+dummy])
     for i in arange(p, m+dummy):
         for j in arange(p):
             data[:,i] = data[:,i] + dot(A[:,:,j], data[:,i-j-1])
-        data[:,i] = data[:,i] + mnorm(zeros(n), er)
+        data[:,i] = data[:,i] + w[i-p]
             
     return data[:,dummy:]
     
