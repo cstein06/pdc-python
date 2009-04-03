@@ -460,6 +460,8 @@ def assym_pc(x, Af, e_var, p, alpha = 0.05):
             
                 varalpha = G1*omega*G1.T 
                 varevar = dpc_dev*omega_evar*dpc_dev.T
+                print varalpha, varevar
+                
                 varass1[i, j, ff] = (varalpha + varevar)/nd
                 
                 
@@ -474,6 +476,7 @@ def assym_pc(x, Af, e_var, p, alpha = 0.05):
                 d1 = fEig(omega, G2)
                 d2 = fEig(omega_evar, d2pc_dev2)
                 d = concatenate((d1,d2)) #TODO: conferir
+                print 'd', ff, i, j, d
                 patdf = sum(d)**2/sum(d**2)
                 patden = sum(d)/sum(d**2)
                 th[i, j, ff] = st.chi2.ppf(1-alpha, patdf)/(patden*2*nd)
@@ -570,7 +573,7 @@ def assym_coh(x, Af, e_var, p, alpha = 0.05):
                 dcoh_de = (2*num1*dnum1_de + 2*num2*dnum2_de)/den + \
                           - num*(dden1_de/den1 + dden2_de/den2)/den
                           
-                'derivada de vec(Ed-1) por vecE'
+                'derivada de Ebig por vecE'
                 de_deh = Dup(n)
                 debig_de = fdebig_de_small(n)
                 ded_deh = debig_de*de_deh
@@ -595,6 +598,8 @@ def assym_coh(x, Af, e_var, p, alpha = 0.05):
             
                 varalpha = G1*omega*G1.T 
                 varevar = dcoh_dev*omega_evar*dcoh_dev.T
+                
+                #print varalpha, varevar
                 varass1[i, j, ff] = (varalpha + varevar)/nd
                 
                 
