@@ -211,11 +211,16 @@ def test_assym_dtf(nm = 100, nd = 100, A = None, er = None,
     varass2 = empty([nm, n, n, nf])
     time.clock()
     for i in range(nm):
+        #print 'nm:', i, 'time:', time.clock()
         data = ar_data(A, er, nd)
+        #print 'data', 'time:', time.clock()
         Aest, erest = nstrand(data, maxp = maxp)
+        #print 'nstrand', 'time:', time.clock()
         dtf[i] = abs(pdc_.dtf_one_alg(Aest, erest, nf = nf))**2
+        
         th[i], ic1[i], ic2[i], varass[i], varass2[i] = ass_.assym_dtf_one(data, pdc_.A_to_f(Aest, nf = nf), erest, 
                                                maxp, alpha = alpha)
+        #print 'ass', 'time:', time.clock()
         if (i%10 == 0):
             print 'nm:', i, 'time:', time.clock()
 
@@ -263,8 +268,8 @@ def test_assym_pc(nm = 100, nd = 100, A = None, er = None,
         #           [[0,0],[0,0],[0.4,0.1]]], dtype = float) #Ex dtf = 0
     if er == None:
         #er = array([[1,0],[0,1]], dtype = float)
-        #er = identity(3)
-        er = array([[0.7,0.3, 0], [0.3, 1.2, 0.4], [0, 0.4, 2]], dtype = float)
+        er = identity(3)
+        #er = array([[0.7,0.3, 0], [0.3, 1.2, 0.4], [0, 0.4, 2]], dtype = float)
         
     n = A.shape[0]
     pc = empty([nm, n, n, nf])
@@ -275,11 +280,14 @@ def test_assym_pc(nm = 100, nd = 100, A = None, er = None,
     varass2 = empty([nm, n, n, nf])
     time.clock()
     for i in range(nm):
+        #print time.clock()
         data = ar_data(A, er, nd)
         Aest, erest = nstrand(data, maxp = maxp)
         pc[i] = abs(pdc_.pc(Aest, erest, nf = nf))**2
+        #print time.clock()
         th[i], ic1[i], ic2[i], varass[i], varass2[i] = ass_.assym_pc(data, pdc_.A_to_f(Aest, nf = nf), erest, 
                                                maxp, alpha = alpha)
+        #print time.clock()
         if (i%10 == 0):
             print 'nm:', i, 'time:', time.clock()
 
@@ -317,18 +325,18 @@ def test_assym_coh(nm = 100, nd = 100, A = None, er = None,
     h0size o tamanho do teste sob h0; e h11 e h12 o tamanho sob h1. '''
     
     if A == None:
-        #A = array([[[4,-4],[6,-3]],[[0,0],[0,3]]], dtype=float).reshape(2,2,2)/10
-        A = array([[[0.2, 0.4],[0.3, 0.2],[0.3,-0.2]], 
-                   [[0, 0],[0.8,-0.1],[0,0]],
-                   [[0, 0],[0,0],[0.4,0.1]]], dtype = float) 
+        A = array([[[4,-4],[6,-3]],[[0,0],[0,3]]], dtype=float).reshape(2,2,2)/10
+        #A = array([[[0.2, 0.4],[0.3, 0.2],[0.3,-0.2]], 
+        #           [[0, 0],[0.8,-0.1],[0,0]],
+        #           [[0, 0],[0,0],[0.4,0.1]]], dtype = float) 
         
         #A = array([[[0.4, -0.6],[-0.3, -0.2],[0.4,-0.2]], 
         #           [[-0.2,0.4],[0.8,-0.1],[0.4,0.3]],
         #           [[0,0],[0,0],[0.4,0.1]]], dtype = float) #Ex dtf = 0
     if er == None:
-        #er = array([[1,0],[0,1]], dtype = float)
+        er = array([[1,0],[0,1]], dtype = float)
         #er = identity(3)
-        er = array([[0.7,0.3, 0], [0.3, 1.2, 0.4], [0, 0.4, 2]], dtype = float)
+        #er = array([[0.7,0.3, 0], [0.3, 1.2, 0.4], [0, 0.4, 2]], dtype = float)
         
     n = A.shape[0]
     coh = empty([nm, n, n, nf])
@@ -391,8 +399,8 @@ def test_assym_ss(nm = 100, nd = 100, A = None, er = None,
         #           [[0,0],[0,0],[0.4,0.1]]], dtype = float) #Ex dtf = 0
     if er == None:
         #er = array([[1,0],[0,1]], dtype = float)
-        #er = identity(3)
-        er = array([[0.7,0.3, 0], [0.3, 1.2, 0.4], [0, 0.4, 2]], dtype = float)
+        er = identity(3)
+        #er = array([[0.7,0.3, 0], [0.3, 1.2, 0.4], [0, 0.4, 2]], dtype = float)
         
     n = A.shape[0]
     ss = empty([nm, n, n, nf])
@@ -442,11 +450,14 @@ def test_patnaik(d, mci = 1000):
     patden = sum(d)/sum(d**2)
     if (d.size != 2):
         print 'expecting d.size = 2'
+        print d
+    ds = d.size
     pat = empty(mci)
-    rpat = empty(mci)
+    rpat = zeros(mci)
     for i in arange(mci):
         pat[i] = chi2.rvs(patdf)/patden
-        rpat[i] = chi2.rvs(1)*d[0] + chi2.rvs(1)*d[1]
+        for j in arange(ds):
+            rpat[i] = rpat[i] + chi2.rvs(1)*d[j]
     return pat, rpat
 
 if __name__ == "__main__":
