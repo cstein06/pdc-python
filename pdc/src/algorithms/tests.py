@@ -325,7 +325,7 @@ def test_assym_coh(nm = 100, nd = 100, A = None, er = None,
     h0size o tamanho do teste sob h0; e h11 e h12 o tamanho sob h1. '''
     
     if A == None:
-        A = array([[[4,-4],[6,-3]],[[0,0],[0,3]]], dtype=float).reshape(2,2,2)/10
+        A = array([[[4,-4],[0,0]],[[0,0],[0,3]]], dtype=float).reshape(2,2,2)/10
         #A = array([[[0.2, 0.4],[0.3, 0.2],[0.3,-0.2]], 
         #           [[0, 0],[0.8,-0.1],[0,0]],
         #           [[0, 0],[0,0],[0.4,0.1]]], dtype = float) 
