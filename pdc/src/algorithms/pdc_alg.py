@@ -83,7 +83,7 @@ def pc(A, e_cov, nf = 64):
     pc = empty(AL.shape, dtype = 'complex')
     for i in range(nf):
         ALi = mat(AL[i])
-        ps = ALi.T*e_cov.I*ALi.conj() #TODO: conferir T e conj
+        ps = ALi.T*e_cov.I*ALi.conj()
         d = ps.diagonal()
         m = kron(d,d).reshape(n,n)
         pc[i] = ps/sqrt(m)
