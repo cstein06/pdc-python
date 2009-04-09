@@ -96,6 +96,42 @@ def test_evar(nm = 100, nd = 100, A = None, er = None, maxp = 2):
     varel = cov(al)
     return vares, varel, erm
 
+def test_eaind(nm = 100, nd = 100, A = None, er = None, maxp = 2):
+    
+    if A == None:
+        A = array([[[4,-4],[4,-2]],[[0,0],[0,3]]], dtype=float).reshape(2,2,2)/10
+        #a21 = 0
+        #A = array([[[0.2, 0],[-0.4, -0.2],[0.3,0]], 
+        #           [[a21, 0],[0.8,-0.1],[0.4,0]],
+        #           [[0,0.5],[-0.1,0.2],[0.4,0.1]]], dtype = float) #Ex artigo daniel
+        maxp = 2
+    if er == None:
+        er = array([[0.7,0.3],[0.3,2]], dtype = float)
+        #er = identity(3)
+        
+    n = A.shape[0]
+    vares = empty([nm, (n*(n+1))/2, (n*(n+1))/2])
+    ale = empty([nm, (n*(n+1))/2])
+    ala = empty([nm, n**2*maxp])
+    erm = empty([nm, n, n])
+    time.clock()
+    for i in range(nm):
+        data = ar_data(A, er, nd)
+        Aest, erest = ar_fit.nstrand(data, maxp = maxp)  
+        vares[i] = ass_evar(erest, nd)
+        ala[i] = Aest.transpose([2,1,0]).ravel()
+        print ala[i]
+        ale[i] = ass_.vech(erest)
+        print ale[i]
+        erm[i] = erest
+        if (i%10 == 0):
+            print 'nm:', i, 'time:', time.clock()
+    varel = cov(ale)
+    print ale.shape
+    print ala.shape
+    big = ass_.cat(ala, ale, 1)
+    varbig = cov(big)
+    return vares, varel, erm, varbig 
 
 def test_dinv(nm = 100):
     #e_var = array([[1, 0.1, 0.2, 0.1], [0, 2, 0.3, 0.2], 

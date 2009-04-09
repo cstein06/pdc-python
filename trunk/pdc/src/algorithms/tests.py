@@ -325,17 +325,17 @@ def test_assym_coh(nm = 100, nd = 100, A = None, er = None,
     h0size o tamanho do teste sob h0; e h11 e h12 o tamanho sob h1. '''
     
     if A == None:
-        A = array([[[4,-4],[0,0]],[[0,0],[0,3]]], dtype=float).reshape(2,2,2)/10
-        #A = array([[[0.2, 0.4],[0.3, 0.2],[0.3,-0.2]], 
-        #           [[0, 0],[0.8,-0.1],[0,0]],
-        #           [[0, 0],[0,0],[0.4,0.1]]], dtype = float) 
+        #A = array([[[4,-4],[0,0]],[[0,0],[0,3]]], dtype=float).reshape(2,2,2)/10
+        A = array([[[0.2, 0.4],[0.3, 0.2],[0.3,-0.2]], 
+                   [[0, 0],[0.8,-0.1],[0,0]],
+                   [[0, 0],[0,0],[0.4,0.1]]], dtype = float) 
         
         #A = array([[[0.4, -0.6],[-0.3, -0.2],[0.4,-0.2]], 
         #           [[-0.2,0.4],[0.8,-0.1],[0.4,0.3]],
         #           [[0,0],[0,0],[0.4,0.1]]], dtype = float) #Ex dtf = 0
     if er == None:
-        er = array([[1,0],[0,1]], dtype = float)
-        #er = identity(3)
+        #er = array([[1,0],[0,1]], dtype = float)
+        er = identity(3)
         #er = array([[0.7,0.3, 0], [0.3, 1.2, 0.4], [0, 0.4, 2]], dtype = float)
         
     n = A.shape[0]
@@ -366,9 +366,12 @@ def test_assym_coh(nm = 100, nd = 100, A = None, er = None,
     return coh, th, ic1, ic2, h0size, h11, h12, cohr, varass, varass2
 
 def test_ss():
-    Aest = array([[4,2],[0,3]], dtype=float).reshape(2,2,1)/10
-    erest = array([[0.7,0],[0,2]], dtype = float)
-    #erest = identity(2)
+    #Aest = array([[4,2],[0,3]], dtype=float).reshape(2,2,1)/10
+    Aest = array([[[0.2, 0.4],[0.3, 0.2],[0.3,-0.2]], 
+                   [[0, 0],[0.8,-0.1],[0,0]],
+                   [[0, 0],[0,0],[0.4,0.1]]], dtype = float) 
+    #erest = array([[0.7,0],[0,2]], dtype = float)
+    erest = identity(3)
     data = ar_data(Aest, erest, 1000)
     maxp = 1
     nf = 2
