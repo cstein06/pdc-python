@@ -189,19 +189,19 @@ def test_assym_dtf(nm = 100, nd = 100, A = None, er = None,
     h0size o tamanho do teste sob h0; e h11 e h12 o tamanho sob h1. '''
     
     if A == None:
-        A = array([[[4,-4],[6,-3]],[[0,0],[0,3]]], dtype=float).reshape(2,2,2)/10
+        #A = array([[[4,-4],[6,-3]],[[0,0],[0,3]]], dtype=float).reshape(2,2,2)/10
         #a21 = 0
         #A = array([[[0.2, 0],[-0.4, -0.2],[0.3,0]], 
         #           [[a21, 0],[0.8,-0.1],[0.4,0]],
          #          [[0,0.5],[-0.1,0.2],[0.4,0.1]]], dtype = float) #Ex artigo daniel
         
-        #A = array([[[0.4, -0.6],[-0.3, -0.2],[0.4,-0.2]], 
-        #           [[-0.2,0.4],[0.8,-0.1],[0.4,0.3]],
-        #           [[0,0],[0,0],[0.4,0.1]]], dtype = float) #Ex dtf = 0
+        A = array([[[0.4, -0.6],[-0.3, -0.2],[0.4,-0.2]], 
+                   [[-0.2,0.4],[0.8,-0.1],[0.4,0.3]],
+                   [[0,0],[0,0],[0.4,0.1]]], dtype = float) #Ex dtf = 0
     if er == None:
-        er = array([[0.7,0.3],[0.3,2]], dtype = float)
+        #er = array([[0.7,0.3],[0.3,2]], dtype = float)
         #er = array([[1,0],[0,1]], dtype = float)
-        #er = identity(3)
+        er = identity(3)
     n = A.shape[0]
     dtf = empty([nm, n, n, nf])
     th  = empty([nm, n, n, nf])
@@ -397,9 +397,9 @@ def test_assym_ss(nm = 100, nd = 100, A = None, er = None,
                    [[0, 0],[0.8,-0.1],[0,0]],
                    [[0, 0],[0,0],[0.4,0.1]]], dtype = float) 
         
-        #A = array([[[0.4, -0.6],[-0.3, -0.2],[0.4,-0.2]], 
-        #           [[-0.2,0.4],[0.8,-0.1],[0.4,0.3]],
-        #           [[0,0],[0,0],[0.4,0.1]]], dtype = float) #Ex dtf = 0
+        #A = array([[[0.4, -0.2],[-0.3, -0.2],[0.4,-0.2]], 
+        #           [[-0.2,0.2],[0.6,-0.1],[0.2,0.3]],
+        #           [[0,0],[0.2,0],[0.3,0.1]]], dtype = float) #Ex dtf = 0
     if er == None:
         #er = array([[1,0],[0,1]], dtype = float)
         er = identity(3)
@@ -462,6 +462,56 @@ def test_patnaik(d, mci = 1000):
         for j in arange(ds):
             rpat[i] = rpat[i] + chi2.rvs(1)*d[j]
     return pat, rpat
+
+
+def test_assym_coh_test(nm = 100, nd = 100, A = None, er = None, 
+                  maxp = 2, nf = 20, alpha = 0.05):
+    ''' Testa se test H0 e H1 do pdc esta de acordo com o alpha.
+    
+    o th retorna threshold de h0, ic1 e ic2 o intervalo de confianca, 
+    h0size o tamanho do teste sob h0; e h11 e h12 o tamanho sob h1. '''
+    
+    if A == None:
+        #A = array([[[4,-4],[0,0]],[[0,0],[0,3]]], dtype=float).reshape(2,2,2)/10
+        A = array([[[0.4, -0.2],[-0.3, -0.2],[0.4,-0.2]], 
+                   [[-0.2,0.2],[0.6,-0.1],[0.2,0.3]],
+                   [[0,0],[0.2,0],[0.3,0.1]]], dtype = float) #Ex dtf = 0
+        
+        #A = array([[[0.4, -0.6],[-0.3, -0.2],[0.4,-0.2]], 
+        #           [[-0.2,0.4],[0.8,-0.1],[0.4,0.3]],
+        #           [[0,0],[0,0],[0.4,0.1]]], dtype = float) #Ex dtf = 0
+    if er == None:
+        #er = array([[1,0],[0,1]], dtype = float)
+        er = identity(3)
+        #er = array([[0.7,0.3, 0], [0.3, 1.2, 0.4], [0, 0.4, 2]], dtype = float)
+        
+    n = A.shape[0]
+    coh = empty([nm, n, n, nf])
+    th  = empty([nm, n, n, nf])
+    ic1 = empty([nm, n, n, nf])
+    ic2 = empty([nm, n, n, nf])
+    varass = empty([nm, n, n, nf])
+    varass2 = empty([nm, n, n, nf])
+    time.clock()
+    for i in range(nm):
+        data = ar_data(A, er, nd)
+        Aest, erest = nstrand(data, maxp = maxp)
+        coh[i] = ass_.coh_test(pdc_.A_to_f(Aest, nf = nf), er)
+        th[i], ic1[i], ic2[i], varass[i], varass2[i] = ass_.assym_coh_test(data, pdc_.A_to_f(Aest, nf = nf), er, 
+                                               maxp, alpha = alpha, At = pdc_.A_to_f(A, nf = nf))
+        if (i%10 == 0):
+            print 'nm:', i, 'time:', time.clock()
+
+    h0size = sum((coh < th), axis = 0)/float(nm)
+    cohr = ass_.coh_test(pdc_.A_to_f(A, nf = nf), er)
+    h11 = sum((cohr < ic1), axis = 0)/float(nm)
+    h12 = sum((cohr > ic2), axis = 0)/float(nm)
+    #pp.hist(th10, bins = 50)
+    #pp.plot(sorted(pdc10), chi2.ppf(linspace(0.5/montei,1-0.5/montei,montei), 2))
+    #pp.show()
+    #print h0size/float(montei)
+    return coh, th, ic1, ic2, h0size, h11, h12, cohr, varass, varass2
+
 
 if __name__ == "__main__":
     #test_assym_pdc_semr();
