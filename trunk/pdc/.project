@@ -14,4 +14,11 @@
 	<natures>
 		<nature>org.python.pydev.pythonNature</nature>
 	</natures>
+	<linkedResources>
+		<link>
+			<name>docs/asymp.tex</name>
+			<type>1</type>
+			<location>/media/dados/work/producao/assym.tex</location>
+		</link>
+	</linkedResources>
 </projectDescription>

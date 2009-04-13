@@ -2,6 +2,7 @@ from numpy import *
 import matplotlib.pyplot as pp
 from scipy.stats import chi2
 import time
+from scipy import randn
 
 import algorithms.pdc_alg as pdc_
 import algorithms.assym as ass_
@@ -22,10 +23,10 @@ def ass_alpha(x, e_var, p, n):
 def test_alpha(nm = 100, nd = 100, A = None, er = None, maxp = 2):
     
     if A == None:
-        A = array([[[4],[4]],[[0],[3]]], dtype=float).reshape(2,2,2)/10
-        maxp=1
-        #A = array([[[4,-4],[4,-2]],[[0,0],[0,3]]], dtype=float).reshape(2,2,2)/10
-        #maxp=2
+        #A = array([[[4],[4]],[[0],[3]]], dtype=float).reshape(2,2,2)/10
+        #maxp=1
+        A = array([[[4,-4],[4,-2]],[[0,0],[0,3]]], dtype=float).reshape(2,2,2)/10
+        maxp=2
         #a21 = 0
         #A = array([[[0.2, 0],[-0.4, -0.2],[0.3,0]], 
         #           [[a21, 0],[0.8,-0.1],[0.4,0]],
@@ -120,36 +121,41 @@ def test_eaind(nm = 100, nd = 100, A = None, er = None, maxp = 2):
         Aest, erest = ar_fit.nstrand(data, maxp = maxp)  
         vares[i] = ass_evar(erest, nd)
         ala[i] = Aest.transpose([2,1,0]).ravel()
-        print ala[i]
+        #print ala[i]
         ale[i] = ass_.vech(erest)
-        print ale[i]
+        #print ale[i]
         erm[i] = erest
         if (i%10 == 0):
             print 'nm:', i, 'time:', time.clock()
     varel = cov(ale)
-    print ale.shape
-    print ala.shape
     big = ass_.cat(ala, ale, 1)
     varbig = cov(big)
     return vares, varel, erm, varbig 
 
 def test_dinv(nm = 100):
+    #e_var = diag(array([1, 0.1, 0.2, 0.1, 0.3, 2, 0.3, 0.2]))/100 + randn(8,8)/10000
+   # e_var = diag(randn(2*3**2))/100 + randn(2*3**2,2*3**2)/10000
     #e_var = array([[1, 0.1, 0.2, 0.1], [0, 2, 0.3, 0.2], 
     #         [0.1, 0.3, 1, 0.3], [0.2, 0, 0, 3]])
     #e_var = e_var+e_var.T
-    e_var = diag(array([1, 0.1, 0.2, 0.1, 0.3, 2, 0.3, 0.2]))/100
-    n = 2
+    #e_var = diag(array([1, 0.1, 0.2, 0.1, 0.3, 2, 0.3, 0.2]))/100
+    e_var = diag(array([1, 0.3, 0.2, 2, 0.8, -0.3, 0.1, 1, 2, 0.8, -0.3, 0.1, 1, 2, 0.8, -0.3, 0.1, 1]))/1000
+    #e_var = identity(18)/1000
+    n = 3
     #e_var = diag(array([0.001,0.0005]))
     #n = 1
-    print e_var
+    #print e_var
     hv = empty([nm, 2*n**2])
     ha = empty([nm, 2*n**2, 2*n**2])
-    #mean = ones([2*n**2])
-    mean = array([1, 0.3, 0.2, 2, 0.8, -0.3, 0.1, 1])
-    #mean = [1,1]
+    #mea = ones([2*n**2])
+    #mea = array([1, 0.3, 0.2, 2, 0.8, -0.3, 0.1, 1])
+    #mea = array([1, 0.3, 0.2, 2, 0.8, -0.3, 0.1, 1, 2, 0.8, -0.3, 0.1, 1, 2, 0.8, -0.3, 0.1, 1])
+    mea = array(ass_.cat(ass_.vec(identity(3)), ass_.vec(zeros([3,3])), 0)).reshape(-1)
+    #print mea
+    #mea = [1,1]
     for i in range(nm):
         
-        a = random.multivariate_normal(mean, e_var)
+        a = random.multivariate_normal(mea, e_var)
         al = a[0:n**2].reshape(n,n).T + 1j*a[n**2:2*n**2].reshape(n,n).T
         h = inv(al)
         hvt = ass_.vec(h)
@@ -165,8 +171,10 @@ def test_dinv(nm = 100):
         #print hv
         #print dh_da
         #print ha[i]
+        if (i%1000 == 0):
+            print 'nm:', i, 'time:', time.clock()
     vara = cov(hv)
-    return vara, ha
+    return vara, mean(ha, axis = 0)
         
         
         
