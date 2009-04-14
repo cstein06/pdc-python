@@ -26,7 +26,7 @@ x_{t} = \sum_{k=1}^{p}{A_{k}\cdot x_{t-k}} + \varepsilon_{t}; (n \times 1)
 
 onde $x_{t}$ é o valor da série multivariada no tempo $t$, $A_k$ são as matrizes de relação linear entre as śeries e $\varepsilon_{t}$ são ruídos gaussianos brancos, também definidos como inovação do modelo.
 
-Assim a série temporal de índice $i$ Granger-causa outra de índice $j$ se para alguma das matrizes $A$ temos $A_{k_{ij}} \neq 0$. 
+Assim a série temporal de índice $j$ Granger-causa outra de índice $i$ se para alguma das matrizes $A$ temos $A_{k_{ij}} \neq 0$. 
 
 A partir desse modelo, foram definidos diversos índices de conectividade, cada um com certas propriedades e limitações. Uma medida, chamada Coerência Parcial Direcionada (PDC), é definida em cada frequencia $\lambda$ por:
 \begin{equation}
@@ -220,7 +220,7 @@ Para os intervalos de confiança basta pegar os respectivos quantis da distribui
 
 \subsection{Teste contra a hipótese nula}
 
-Uma observação importante é a que variância encontrada na seção anterior se anula sob $H_0$, pois $I_{j}^{c} = 0$, de forma que devemos encontrar as derivadas de ordem 2. Nesse caso, dado uma estimador $\hat{y}$ para $y$, com variância assintótica $\Omega$ tal que $\frac{\Omega}{N} \to 0$, e uma função $g = g(\hat{y})$, com $G_2 = \frac{\partial g(y)}{\partial y \partial y^{'}}$, temos:
+Uma observação importante é a que variância encontrada na seção anterior se anula sob $H_0$, pois $I_{j}^{c} a = 0$, de forma que devemos encontrar as derivadas de ordem 2. Nesse caso, dado uma estimador $\hat{y}$ para $y$, com variância assintótica $\Omega$ tal que $\frac{\Omega}{N} \to 0$, e uma função $g = g(\hat{y})$, com $G_2 = \frac{\partial g(y)}{\partial y \partial y^{'}}$, temos:
 \begin{equation}
 N (g(\hat{y}) - g(y)) \to \frac{1}{2} \cdot x^{'} \cdot G_2 \cdot x
 \end{equation}
@@ -361,7 +361,7 @@ Seja $R$ tal que $R \cdot vec(\left[ \begin{array}{c} M_{1} \\ M_{2} \end{array}
 Seja $S$ tal que $S \cdot vec([M_{1} M_{2}]) = vec([-M_{2} M_{1}])$. Onde $M_{1}, M_{2}$ são $(n \times n)$. Assim:
 \begin{equation}
 \left[ \begin{array}{c}
- R \\ R \cdot S
+ R^{'} \\ R^{'} \cdot S
 \end{array} \right] vec([A_{r} A_{i}]) = \left[ \begin{array}{c}
  vec(\left[ \begin{array}{c}
  A_{r} \\ A_{i}
@@ -373,14 +373,14 @@ Seja $S$ tal que $S \cdot vec([M_{1} M_{2}]) = vec([-M_{2} M_{1}])$. Onde $M_{1}
 \end{array} \right] = vec(A^{\ast})
 \end{equation}
 o que implica $\frac{\partial vec(A^{\ast})}{\partial vec(A)^{'}} = \left[ \begin{array}{c}
- R \\ R \cdot S
+ R^{'} \\ R^{'} \cdot S
 \end{array} \right]$
 
 Pela regra da cadeia:
 \begin{equation}
 \frac{\partial h}{\partial a^{'}} = \frac{\partial h}{\partial vec(A^{\ast})^{'}} \cdot \frac{\partial vec(A^{\ast})}{\partial vec(A)^{'}} = 
 R \cdot B \cdot \left[ \begin{array}{c}
- R \\ R \cdot S
+ R^{'} \\ R^{'} \cdot S
 \end{array} \right]
 \end{equation}
 
@@ -392,7 +392,7 @@ R_{1} = I_{n} \otimes (\left[ \begin{array}{c} 1 \\ 0 \end{array} \right] \otime
 R_{2} = I_{n} \otimes (\left[ \begin{array}{c} 0 \\ 1 \end{array} \right] \otimes I_{n})
 \end{equation}
 \begin{equation}
-R = [R_{1} R_{2}]
+R = [R_{1} R_{2}]^{'}
 \end{equation}
 e matriz $S$ por:
 \begin{equation}
@@ -526,10 +526,10 @@ de onde temos:
 
 Sob $H_0$ teremos $num_{PC} = 0$. Desta vez a derivada segunda não é nula. Primeiramente $\frac{\partial PC_{ij}}{\partial \varepsilon \partial \varepsilon^{'}}$:
 \begin{equation}
-\frac{\partial num_{PC_{1}}}{\partial \varepsilon^{'}} = \frac{\partial (a_{11}^{i} \Sigma_{2}^{-1} a_{12}^{j})}{\partial \varepsilon^{'}} = a_{12}^{j^{'}} \otimes a_{11}^{i}
+\frac{\partial num_{PC_{1}}}{\partial \varepsilon^{'}} = \frac{\partial (a_{11}^{i} \Sigma_{2}^{-1} a_{12}^{j})}{\partial \varepsilon^{'}} = a_{12}^{j^{'}} \otimes a_{11}^{i} \frac{\partial vec(\Sigma_{2}^{-1})}{\partial \varepsilon^{'}}
 \end{equation}
 \begin{equation}
-\frac{\partial num_{PC_{2}}}{\partial \varepsilon^{'}} = \frac{\partial (a_{21}^{i} \Sigma_{2}^{-1} a_{22}^{j})}{\partial \varepsilon^{'}} = a_{22}^{j^{'}} \otimes a_{21}^{i}
+\frac{\partial num_{PC_{2}}}{\partial \varepsilon^{'}} = \frac{\partial (a_{21}^{i} \Sigma_{2}^{-1} a_{22}^{j})}{\partial \varepsilon^{'}} = a_{22}^{j^{'}} \otimes a_{21}^{i} \frac{\partial vec(\Sigma_{2}^{-1})}{\partial \varepsilon^{'}}
 \end{equation}
 \begin{equation}
 \frac{\partial PC_{ij}}{\partial \varepsilon \partial \varepsilon^{'}} = \frac{2 \frac{\partial num_{PC_{1}}}{\partial \varepsilon} \frac{\partial num_{PC_{1}}}{\partial \varepsilon^{'}} + 2 \frac{\partial num_{PC_{2}}}{\partial \varepsilon} \frac{\partial num_{PC_{2}}}{\partial \varepsilon^{'}}}{den_{PC_{1}} \cdot den_{PC_{2}}}
@@ -541,10 +541,10 @@ Também precisamos calcular $\frac{\partial PC_{ij}}{\partial \alpha \partial \v
 \end{equation}
 onde
 \begin{equation}
-\frac{\partial num_{PC_{1}}}{\partial \alpha} = (k_{1}^{ij} + k_{1}^{ij^{'}}) a
+\frac{\partial num_{PC_{1}}}{\partial \alpha} = (k_{1}^{ij} + k_{1}^{ij^{'}}) a \frac{\partial a}{\partial \alpha^{'}}
 \end{equation}
 \begin{equation}
-\frac{\partial num_{PC_{2}}}{\partial \alpha} = (k_{2}^{ij} + k_{2}^{ij^{'}}) a
+\frac{\partial num_{PC_{2}}}{\partial \alpha} = (k_{2}^{ij} + k_{2}^{ij^{'}}) a \frac{\partial a}{\partial \alpha^{'}}
 \end{equation}
 
 Assim sendo $\Omega_{big} = \left[ \begin{array}{cc} 
