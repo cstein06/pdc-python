@@ -20,7 +20,7 @@ def pdc_ss_coh(data, maxp = 30, nf = 64, detrend = True):
         data = data - mean(data, axis = 1).reshape(-1,1) #TODO: usar signal.detrend?
     
     A, er = ar_fit.nstrand(data, maxp)
-    return abs(pdc_alg(A, er, nf))**2, abs(ss(A, er, nf))**2, abs(coh_alg(A, er, nf))**2
+    return abs(pdc_alg(A, er, nf))**2, abs(ss_alg(A, er, nf))**2, abs(coh_alg(A, er, nf))**2
 
 
 def pdc(data, maxp = 30, nf = 64, detrend = True, SS = True):
@@ -75,7 +75,7 @@ def A_to_f(A, nf = 64):
     
     return AL
     
-def pc(A, e_cov, nf = 64):
+def pc_alg(A, e_cov, nf = 64):
     n, n, r = A.shape
     
     e_cov = mat(e_cov)
@@ -89,7 +89,7 @@ def pc(A, e_cov, nf = 64):
         pc[i] = ps/sqrt(m)
     return pc.transpose(1,2,0)
     
-def ss(A, e_cov, nf = 64):
+def ss_alg(A, e_cov, nf = 64):
     n, n, r = A.shape
     
     AL = A_to_f(A, nf)
