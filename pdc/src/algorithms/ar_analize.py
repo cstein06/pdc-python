@@ -126,7 +126,6 @@ class Ar_analyze:
         self.er = array(r_('cov(data$resid[-1,])'))
         return self.A, self.er
     
-    def pdc_plot(pdc, ss = None, nf = 64):
         
 
 
