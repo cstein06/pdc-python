@@ -1,0 +1,610 @@
+\documentclass[a4paper,10pt]{article}
+
+\usepackage[brazilian]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+
+%opening
+\title{Cálculo da estatística assintótica para medidas de conectividade lineares}
+\author{}
+
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+
+\end{abstract}
+
+\section{Introdução}
+
+Dadas $n$ séries temporais, queremos inferir se há relação de causalidade entre elas. Para isso usaremos a definição de causalidade de Granger, de forma que devemos inferir se uma série temporal ajuda na predição de outra série temporal. Assumiremos que as séries temporais são geradas por um modelo autoregressivo multivariado (VAR) de ordem finita $p$, definido por:
+\begin{equation}
+x_{t} = \sum_{k=1}^{p}{A_{k}\cdot x_{t-k}} + \varepsilon_{t}; (n \times 1)
+\end{equation}
+
+onde $x_{t}$ é o valor da série multivariada no tempo $t$, $A_k$ são as matrizes de relação linear entre as śeries e $\varepsilon_{t}$ são ruídos gaussianos brancos, também definidos como inovação do modelo.
+
+Assim a série temporal de índice $i$ Granger-causa outra de índice $j$ se para alguma das matrizes $A$ temos $A_{k_{ij}} \neq 0$. 
+
+A partir desse modelo, foram definidos diversos índices de conectividade, cada um com certas propriedades e limitações. Uma medida, chamada Coerência Parcial Direcionada (PDC), é definida em cada frequencia $\lambda$ por:
+\begin{equation}
+|\pi_{ij}(\lambda)|^{2} = \frac{a_{ij} \bar{a}_{ij}}{\sum_{k=1}^{n}{a_{kj} \bar{a}_{kj}}}  
+\end{equation}
+
+
+onde aqui cada $a_{ij}$ está no domínio da frequência, obtido pela transformada de Fourier discreta na frequencia $\lambda$ dos termos $a_{k_{ij}}$. Ela pondera o valor da relação de $j$ para $i$ pelas outras relações que com origem em $j$. Em outras palavras, normaliza pela fonte.
+
+Ao aplicar esta análise a dados reais, deve-se inferir os valores de $A$ e se torna necessário um teste contra a hipótese nula $ |\pi_{ij}(\lambda)|^{2} = 0$, além de intervalos de confiança. Este trabalho deseja obter as fórmulas assintóticas para fazer este teste e obter estes intervalos.
+
+\section{Exemplo de referência: PDC diagonal}
+
+Daremos como exemplo de cálculo o procedimento para a obtenção do teste contra a hipótese nula e dos intervalos de confiança para a Coerência Parcial Direcionada diagonal (PDCd) (definida anteriormente como generalizada, gPDC):
+\begin{equation}
+|\pi_{d_{ij}}(\lambda)|^{2} = \frac{a_{ij} \bar{a}_{ij} \sigma_{ij}^{-2}} {\sum_{k=1}^{n}{a_{kj} \bar{a}_{kj} \sigma_{kk}^{-2}}}
+\end{equation}
+
+O procedimento se baseará no método delta para estatísticas assintóticas. Dado uma estimador $\hat{y}$ para $y$, com variância assintótica $\Omega/N$, e uma função $g = g(\hat{y})$, a variância assintótica de $g$ é $\frac{1}{N} \cdot G \cdot \Omega \cdot G^{'}$, onde $G = \frac{\partial g(y)}{\partial y}$:
+\begin{equation} 
+\sqrt{N} (g(\hat{y}) - g(y)) \to N(0, G \Omega G^{'})
+\end{equation}
+
+
+Se temos a variância assintótica dos estimadores dos parâmetros do VAR, temos que calcular a derivada de nosso índice de conectividade por estes parâmetros. A partir da variância assintótica inferimos os intervalos de confiança.
+
+\subsection{Variância assintótica dos estimadores do VAR}
+
+Dada uma amostra $X$ de tamanho $N$ da série temporal multivariada e a ordem $p$, estimaremos as matrizes $A$, tendo os $\varepsilon_{t}$ como resíduos do modelo (ou inovações do processo). Os estimadores eficientes para as matrizes $A$, por exemplo Yule-Walker e Nuttall-Strand, tem como variância assintótica:
+\begin{equation}
+\sqrt{N} (\hat{\alpha} - \alpha) \to N(0,\Omega_{\alpha}); (n^{2}p \times n^{2}p)
+\end{equation}
+onde $\alpha = vec(A^{\ast})$ é como representaremos as matrizes $A$ conjuntamente, $\Omega_{\alpha} = \Gamma_{x}(0)^{-1}\otimes \Sigma$ e $\Sigma = E[\varepsilon_{t}\cdot \varepsilon_{t}^{'}]$. $\Gamma_{x}(0)$ é definido por:
+\begin{equation}
+\Gamma_{x}(0) = \left[ \begin{array}{cccc} 
+\Gamma(0) & \Gamma(1) & \cdots & \Gamma(p-1) \\
+\Gamma(-1) & \Gamma(0) & \cdots & \Gamma(p-2) \\
+\vdots & \vdots & \ddots & \vdots \\
+\Gamma(p-1) & \Gamma(p-2) & \cdots & \Gamma(0) \end{array} \right]; (np \times np)
+\end{equation}
+onde $\Gamma(k) = E[x_{t} \cdot x_{t-k}^{'}]$ e é estimado pela correlação entre a série e a série com lag k.
+
+Se $\Sigma$ é desconhecido, teremos que estimá-lo também, com base na covariância dos resíduos do modelo estimado. Tem-se a variância assintótica deste estimador dada por:
+\begin{equation} 
+\sqrt(N) (\hat{\varepsilon} - \varepsilon) \to N(0, \Omega_{\varepsilon})
+\end{equation}
+\begin{equation}
+\Omega_{\varepsilon} = 2 \cdot D_{n} \cdot D_{n}^{+} \cdot (\Sigma \otimes \Sigma) \cdot D_{n}^{+^{'}} \cdot D_{n}^{'}
+\end{equation}
+onde $\hat{\varepsilon} = vec(\hat{\Sigma})$ é como representaremos $\Sigma$, $D_{n}$ é a matriz de duplicação para matrizes $ n \times n$ simétricas $A$: $D_{n}*vech(A) = vec(A)$, ou seja, dado um vetor contendo os termos contidos e abaixo da diagonal de uma matriz simétrica, ele recupera a matriz toda. $D_{n}^{+}$ é a inversa generalizada de $D_{n}$.
+
+A estimação do $\alpha$ e do $\varepsilon$ são assintoticamente independentes.
+
+\subsection{Formulação matricial}
+
+Escolhemos desenvolver as contas de forma matricial, assim reformularemos o PDCd.
+
+Na fórmula do PDCd temos as variáveis no domínio da frequencia. Elas são obtidas por:
+\begin{equation}
+a(\lambda)_{ij} = \sum_{k = 0}^{p} a_{ij} \cdot e^{-j2 \pi \lambda k}
+\end{equation}
+ou de forma matricial: $a^{\ast}(\lambda) = vec(I_{n} - \sum_{k=1}^{p} {A_{k} \cdot e^{-j2\pi\lambda k}})$. Como $a^{\ast}(\lambda)$ é um vetor imaginário iremos decompô-lo em sua parte real e imaginária para facilitar as futuras derivadas: $a(\lambda) = \left[ \begin{array}{c} \Re(a^{\ast}(\lambda)) \\ \Im(a^{\ast}(\lambda)) \end{array} \right]$, denotado daqui para frente simplesmente por $a$.
+
+A formulação matricial de $a$ é:
+$a = vec(\left[ I_{n} O_{n} \right]) - \zeta^{\ast} \cdot \alpha$, onde $\zeta^{\ast}$ é a matriz que aplica a transformada de Fourier, separando a parte real e imaginária ($\cos e \sin$) e pode ser construída por:
+\begin{equation}
+C = [\cos(-2\pi\lambda \cdot 1) \cos(-2\pi\lambda \cdot 2) \dots \cos(-2\pi\lambda \cdot p)]
+\end{equation}
+\begin{equation}
+S = \left[\sin(-2\pi\lambda \cdot 1) \sin(-2\pi\lambda \cdot 2) \dots \sin(-2\pi\lambda \cdot p)\right]
+\end{equation}
+\begin{equation}
+\zeta = \left[\begin{array}{c} C \\ S \end{array} \right]
+\end{equation}
+\begin{equation}
+\zeta^{\ast} = \zeta \otimes I_{n^{2}}
+\end{equation}
+
+Reescrevendo o PDCd:
+\begin{equation} 
+|\pi_{d_{ij}}(\lambda)|^{2} = \frac{a_{ij} \bar{a}_{ij} \sigma_{ij}^{-2}} {\sum_{k=1}^{n}{a_{kj} \bar{a}_{kj} \sigma_{kk}^{-2}}} = \frac{a^{'} \bar{\Sigma}_{d}^{-1} I_{ij}^{c} a}{a^{'} \bar{\Sigma}_{d}^{-1} I_{j}^{c} a}
+\end{equation}
+
+Nesta segunda formulação, $I_{ij}^{c}$ serve para selecionar os termos $a(\lambda)_{ij}$ (tanto a parte real quanto imaginária), pois $a_{ij} \bar {a}_{ij} = \Re{a_{ij}}^2 + \Im{a_{ij}}^2$, de forma que $I_{ij}^{c} \cdot a$ mantém apenas estes elementos e zera os outros. $I_{j}^{c}$ serve de forma semelhante para selecionar toda a coluna $j$ de $a$, zerando os outros termos. Eles podem ser definidos por:
+\begin{equation}
+I_{ij} = diag(\left[ 0 \dots 0 1 0 \dots 0 \right]); (n^{2} \times n^{2})
+\end{equation} 
+com apenas termo $i+n\cdot j$ não nulo.
+\begin{equation}
+I_{ij}^{c} = I_{2} \otimes I_{ij}; (2n^{2} \times 2n^{2}) 
+\end{equation}
+\begin{equation}
+I_{j}^{\ast} = diag([0 \dots 0 1 0 \dots 0]); (n \times n)
+\end{equation}
+com apenas termo $j$ não nulo.
+\begin{equation}
+I_{j} = I_{j}^{\ast} \otimes I_{n}; (n^{2} \times n^{2})
+\end{equation}
+\begin{equation}
+I_{j}^{c} = I_{2} \otimes I_{j}; (2n^{2} \times 2n^{2})
+\end{equation}
+
+A matriz $\bar{\Sigma}_{d}$ é formulada convenientemente para manter a normalização desejada:
+
+\begin{equation}
+\Sigma_{d} = diag(diag(\Sigma)); (n \times n)
+\end{equation}
+\begin{equation}
+\bar{\Sigma}_{d} = I_{2n} \otimes \Sigma_{d}; (2n^{2} \times 2n^{2})
+\end{equation}
+
+O mais importante é que a formulação é dada por uma razão de formas quadráticas, facilitando as contas seguintes.
+
+\subsection{Derivada de PDCd por $\alpha$}
+
+Fazendo a derivada do PDCd por $a$, obtemos:
+\begin{equation}
+G_{d_1}^{\ast} = \frac{\partial |\pi_{d_{ij}}(\lambda)|^{2}}{\partial a^{'}} = \frac{2 a^{'} \bar{\Sigma}_{d}^{-1} I_{ij}^{c}} {a^{'} \bar{\Sigma}_{d}^{-1} I_{j}^{c} a} - \frac{2 a^{'} \bar{\Sigma}_{d}^{-1} I_{j}^{c} (a^{'} \bar{\Sigma}_{d}^{-1} I_{ij}^{c} a)} {(a^{'} \bar{\Sigma}_{d}^{-1} I_{j}^{c} a)^{2}}; (1 \times 2n^{2})
+\end{equation}
+
+A derivada de $a$ por $\alpha$ é dada por:
+\begin{equation}
+\frac{\partial a}{\partial \alpha^{'}} = -\zeta^{\ast}; (2n^{2} \times n^{2}p)
+\end{equation}
+
+De forma que a derivada de PDCd em relação a $\alpha$, pela regra da cadeia, é:
+\begin{equation}
+G_{d_1} = \frac{\partial |\pi_{d_{ij}}(\lambda)|^{2}}{\partial \alpha^{'}} = G_{d_1}^{\ast} \cdot -\zeta^{\ast}; (1 \times n^{2}p)
+\end{equation}
+
+Assim, se $\Sigma$ for conhecido, a variância assintótica de $|\hat{\pi}_{d_{ij}}(\lambda)|^{2}$ é:
+\begin{equation}
+\sqrt{N} (|\hat{\pi}_{d_{ij}}(\lambda)|^{2} - |\pi_{d_{ij}}(\lambda)|^{2}) \to N(0, G_{d_1} \Omega_{\alpha} G_{d_1}^{'}) 
+\end{equation}
+\subsection{Derivada de PDCd por $\varepsilon$}
+
+Se $\Sigma$ não for conhecido, teremos que estimá-lo. Como ele aparece na formulação do PDCd, sua estimação influirá na variância assintótica do estimador. Assim desejamos encontrar $G_{d_e} = \frac{|\pi_{d_{ij}}(\lambda)|^{2}}{\partial \varepsilon^{'}}$.
+
+Decompomos o $|\pi_{d_{ij}}(\lambda)|^{2}$ em numerador e denominador:
+\begin{equation}
+|\pi_{d_{ij}}(\lambda)|^{2} = \frac{num_{d}}{den_{d}}
+\end{equation}
+\begin{equation}
+num_{d} = a^{'} \bar{\Sigma}_{d}^{-1} I_{ij}^{c} a
+\end{equation}
+\begin{equation}
+den_{d} = a^{'} \bar{\Sigma}_{d}^{-1} I_{j}^{c} a
+\end{equation}
+e definimos $\bar{\varepsilon} = vec(\bar{\Sigma}); (4n^{4} \times 1)$.
+
+Aplicaremos várias vezes a regrada cadeia:
+\begin{equation}
+\frac{|\pi_{d_{ij}}(\lambda)|^{2}}{\partial \varepsilon^{'}} = \frac{den_{d} \cdot \frac{\partial num_{d}}{\partial \varepsilon^{'}} - num_{d} \cdot \frac{\partial den_{d}}{\partial \varepsilon^{'}}}{den_{d}^{2}}; (1 \times \frac{n(n+1)}{2})
+\end{equation}
+
+Novamente pela regra da cadeia:
+\begin{equation}
+\frac{num_{d}}{\partial \varepsilon^{'}} = \frac{num_{d}}{\partial \bar{\varepsilon}^{'}} \cdot \frac{\partial \bar{\varepsilon}}{\partial \varepsilon^{'}}
+\end{equation}
+\begin{equation}
+\frac{den_{d}}{\partial \varepsilon^{'}} = \frac{den_{d}}{\partial \bar{\varepsilon}^{'}} \cdot \frac{\partial \bar{\varepsilon}}{\partial \varepsilon^{'}}
+\end{equation}
+
+Temos: 
+\begin{equation}
+\frac{\partial num_{d}}{\partial \bar{\varepsilon}^{'}} = ((I_{ij} \cdot a)^{'} \otimes a^{'}) \cdot \frac{\partial vec(\bar{\Sigma}_{d}^{-1})}{\partial \bar{\varepsilon}^{'}}
+\end{equation}
+\begin{equation}
+\frac{\partial den_{d}}{\partial \bar{\varepsilon}^{'}} = ((I_{j} \cdot a)^{'} \otimes a^{'}) \cdot \frac{\partial vec(\bar{\Sigma}_{d}^{-1})}{\partial \bar{\varepsilon}^{'}}
+\end{equation}
+e 
+\begin{equation}
+\frac{\partial vec(\bar{\Sigma}_{d}^{-1})}{\partial \bar{\varepsilon}^{'}} = diag(vec(-\bar{\Sigma}_{d}^{2}))
+\end{equation}
+pois zera os termos fora da diagonal.
+
+Como $\bar{\varepsilon} = vec(I_{2n} \otimes \Sigma)$, temos
+\begin{equation}
+\frac{\partial \bar{\varepsilon}}{\partial \varepsilon^{'}} = (T_{2n,n} \otimes I_{n \cdot 2n}) \cdot (I_{n} \otimes vec(I_{2n}) \otimes I_{n}); (4n^{4} \times n^{2})
+\end{equation}
+onde $T_{p,q} \cdot vec(B) = vec(B^{'})$, com $B (p \times q)$, concluindo assim a derivada.
+
+OBS: A fórmula é $\frac{\partial vec(A \otimes B)}{\partial vec(B)} = (T_{n,p} \otimes I_{n \cdot q}) \cdot (I_{q} \otimes vec(A) \otimes I_{p}); A (m \times n), B (p \times q)$.
+
+Assim a variância assintótica do PDCd é a soma da variância em relação a estimação do $\alpha$ e do $\varepsilon$:
+\begin{equation}
+\sqrt{N} (|\hat{\pi}_{d_{ij}}(\lambda)|^{2} - |\pi_{d_{ij}}(\lambda)|^{2}) \to N(0, G_{d_1} \Omega_{\alpha} G_{d_1}^{'} + G_{d_e} \Omega_{\varepsilon} G_{d_e}^{'}) 
+\end{equation}
+
+Para os intervalos de confiança basta pegar os respectivos quantis da distribuição normal assintótica.
+
+\subsection{Teste contra a hipótese nula}
+
+Uma observação importante é a que variância encontrada na seção anterior se anula sob $H_0$, pois $I_{j}^{c} = 0$, de forma que devemos encontrar as derivadas de ordem 2. Nesse caso, dado uma estimador $\hat{y}$ para $y$, com variância assintótica $\Omega$ tal que $\frac{\Omega}{N} \to 0$, e uma função $g = g(\hat{y})$, com $G_2 = \frac{\partial g(y)}{\partial y \partial y^{'}}$, temos:
+\begin{equation}
+N (g(\hat{y}) - g(y)) \to \frac{1}{2} \cdot x^{'} \cdot G_2 \cdot x
+\end{equation}
+com $x \to N(0, \Omega)$.
+
+Neste caso podemos fazer uma transformação de variáveis que torna o limite uma soma de chi-quadrados. Seja $\Omega = L \cdot L^{'}$ a decomposição de Choleski de $\Omega$, sendo $L$ matriz triangular inferior. Defina $x = Lz$, logo $z = (L^{'}L)^{-1} L^{'} x$.
+
+Temos que $E[z \cdot z^{'}] = I$. Assim se $D = L^{'} G_2 L$ e $D = U \Lambda U^{'}$ sua diagonalização, temos:
+que $\frac{\Omega}{N} \to 0$, e uma função $g = g(\hat{y})$, com $G_2 = \frac{\partial g(y)}{\partial y \partial y^{'}}$, temos:
+\begin{equation}
+x^{'} G_{2} x = z^{'} D z = \sum_{k} {l_{k} z^{'} u_{k} u_{k}^{'} z} = \sum_{k} {l_{k} \nu_{k}^{2}}
+\end{equation}
+pois $u_{k} u_{k}^{'} = I$, sendo $l_{k}$ os autovalores de $D$ e $\nu_{k}^{2}$ chi-quadrados com 1 grau de liberdade.
+
+Logo $N (g(\hat{y}) - g(y)) \to \sum_{k} {l_{k} \nu_{k}^{2}}$.
+
+Assim para ter a distribuição assintótica de segunda ordem necessitamos a segunda derivada $G_{d_2}$, dada por:
+\begin{equation}
+G_{d_2} = \frac{\partial |\pi_{d_{ij}}(\lambda)|^{2}}{\partial \alpha \partial \alpha^{'}} = \zeta^{\ast^{'}} \cdot G_{2}^{\ast} \cdot \zeta^{\ast}; (n^{2}p \times n^{2}p)
+\end{equation}
+\begin{equation}
+G_{d_2}^{\ast} = \frac{\partial |\pi_{d_{ij}}(\lambda)|^{2}}{\partial a \partial a^{'}} = \frac{2 \bar{\Sigma}_{d}^{-1} I_{ij}^{c}}{(a^{'} \bar{\Sigma}_{d}^{-1} I_{j}^{c} a)}; (2n^{2} \times 2n^{2})
+\end{equation}
+
+Dado $G_{d_2}$, basta decompor $\Omega$, calcular $D$ e achar seus autovalores. Para o teste de hipótese basta calcular o quantil superior da soma de chi-quadrados $\sum_{k} {l_{k} \nu_{k}^{2}}$. 
+
+Para este cálculo utilizamos a aproximação de Patnaik, por uma chi-quadrado: $c\cdot \chi^2_d$, com $c = \frac{\sum_k {l_k^2}}{(\sum_k {l_k})^2}$ e $d = \frac{\sum_k {l_k^2}}{(\sum_k {l_k})^2}$.
+
+Temos $rank(D) \le rank(G_{2}^{\ast} \le rank(I_{ij}^{c}) = 2$, logo no máximo dois autovalores serão não-nulos, sendo uma soma de até duas chi-quadrados.
+
+Caso $\Sigma$ seja desconhecido, devemos adicionar a variância relativa à sua estimação. No caso do PDCd, esta derivada é nula, pois os termos $I_{ij}^{c} a$, que são nulos sob $H_0$, não desaparecem.
+
+
+\section{Estatística para PDCe, PDCg e DTF}
+
+Utilizando o mesmo procedimento do capítulo anterior, iremos calcular a estatística para outras medidas de conectividades baseadas no modelo VAR.
+
+\subsection{PDC}
+
+A Coerência Parcial Direcionada (PDC) é a medida originalmente proposta, não havendo normalização pela variância dos resíduos:
+\begin{equation}
+|\pi_{ij}(\lambda)|^{2} = \frac{a_{ij} \bar{a}_{ij}}{\sum_{k=1}^{n}{a_{kj} \bar{a}_{kj}}} = \frac{a^{'} I_{ij}^{c} a}{a^{'} I_{j}^{c} a}
+\end{equation}
+
+Temos uma formulação matricial semelhante ao PDCd, mas sem a presença do $\Sigma$. Desta forma teremos derivadas semelhantes:
+\begin{equation}
+G_{1}^{\ast} = \frac{\partial |\pi_{ij}(\lambda)|^{2}}{\partial a^{'}} = \frac{2 a^{'} I_{ij}^{c}} {a^{'} I_{j}^{c} a} - \frac{2 a^{'} I_{j}^{c} (a^{'} I_{ij}^{c} a)} {(a^{'} I_{j}^{c} a)^{2}}; (1 \times 2n^{2})
+\end{equation}
+e sob $H_0$ ($I_{ij}^{c} a = 0$):
+\begin{equation}
+G_{2}^{\ast} = \frac{\partial |\pi_{ij}(\lambda)|^{2}}{\partial a \partial a^{'}} = \frac{2 I_{ij}^{c}}{(a^{'} I_{j}^{c} a)}; (2n^{2} \times 2n^{2})
+\end{equation}
+no lugar de $G_{d_1}$ e $G_{d_2}$, respectivamente.
+
+Como não há dependência de $\hat{\Sigma}$ em sua definição, não precisamos considerar sua variância assintótica ou então considerar a derivada em relação a $\varepsilon$ como nula.
+
+\subsection{PDCg}
+
+A Coerência Parcial Direcionada generalizada (PDCg) se diferencia havendo normalização pela matriz $\Sigma$ completa, e não apenas sua diagonal:
+
+\begin{equation}
+ |\pi_{g_{ij}}(\lambda)|^{2}  = \frac{a^{'} \bar{\Sigma}_{d}^{-1} I_{ij}^{c} a}{a^{'} I_{j}^{c} \bar{\Sigma}^{-1} I_{j}^{c} a}
+\end{equation}
+com $\bar{\Sigma} = I_{2n} \otimes \Sigma$.
+
+Novamente a formulação é semelhante, tendo as derivadas em relação ao $a$:
+\begin{equation}
+G_{g_1}^{\ast} = \frac{\partial |\pi_{g_{ij}}(\lambda)|^{2}}{\partial a^{'}} = \frac{2 a^{'} \bar{\Sigma}_{d}^{-1} I_{ij}^{c}} {a^{'} I_{j}^{c} \bar{\Sigma}^{-1} I_{j}^{c} a} - \frac{2 a^{'} I_{j}^{c} \bar{\Sigma}^{-1} I_{j}^{c} (a^{'} \bar{\Sigma}_{d}^{-1} I_{ij}^{c} a)} {(a^{'} I_{j}^{c} \bar{\Sigma}^{-1} I_{j}^{c} a)^{2}}; (1 \times 2n^{2})
+\end{equation}
+\begin{equation}
+G_{g_2}^{\ast} = \frac{\partial |\pi_{g_{ij}}(\lambda)|^{2}}{\partial a \partial a^{'}} = \frac{2 \bar{\Sigma}_{d}^{-1} I_{ij}^{c}}{(a^{'} I_{j}^{c} \bar{\Sigma}^{-1} I_{j}^{c} a)}; (2n^{2} \times 2n^{2})
+\end{equation}
+e derivada em relação ao $\varepsilon$:
+\begin{equation}
+\frac{\partial den_{g}}{\partial \bar{\varepsilon}^{'}} = ((I_{j} \cdot a)^{'} \otimes (a^{'} \cdot I_{j})) \cdot \frac{\partial vec(\bar{\Sigma}^{-1})}{\partial \bar{\varepsilon}^{'}}
+\end{equation}
+com:
+\begin{equation}
+\frac{\partial vec(\bar{\Sigma}^{-1})}{\partial vec(\bar{\Sigma})^{'}} = -\bar{\Sigma}^{-1^{'}} \otimes \bar{\Sigma}^{-1}
+\end{equation}
+
+\subsection{DTF}
+
+Um outro grupo de medidas de conectividade utiliza a inversa da matriz $A(\lambda)$. Uma delas é a função de transferência direcionada (DTF):
+\begin{equation}
+ |dtf_{ij}(\lambda)|^{2} = \frac{h^{'} I_{ij}^{l} h}{h^{'} I_{i}^{l} h}
+\end{equation}
+onde $h = vec([\begin{array}{cc}\Re(A^{-1}(\lambda)) & \Im(A^{-1}(\lambda))])\end{array}$, análogo ao $a$. A matriz $I_{i}^{l}$ seleciona a linha $i$ (diferentemente de $I_{j}^{c}$ que seleciona a coluna $j$):
+\begin{equation}
+I_{i}^{\ast} = diag([0 \dots 0 1 0 \dots 0]); (n \times n)
+\end{equation}
+com apenas termo $i$ não nulo.
+\begin{equation}
+I_{i} = I_{n} \otimes I_{i}^{\ast}; (n^{2} \times n^{2})
+\end{equation}
+\begin{equation}
+I_{i}^{l} = I_{2} \otimes I_{i}; (2n^{2} \times 2n^{2})
+\end{equation}
+
+Vemos que a formulação é analoga ao PDC, mas utilizando $h$ no lugar de $a$ e $I_{i}^{l}$ no lugar de $I_{j}^{c}$. Desta forma adicionaremos na regra da cadeia a derivada $\frac{\partial h}{\partial a^{'}}$ e substituiremos $I_{i}^{l}$ por $I_{j}^{c}$:
+
+\begin{equation}
+G_{dtf_{1}}^{\ast} = \frac{\partial |dtf_{ij}(\lambda)|^{2}} {\partial h^{'}} = \frac{2 h^{'} I_{ij}^{l}} {h^{'} I_{i}^{l} h} - \frac{2 h^{'} I_{i}^{l} (h^{'} I_{ij}^{l} h)} {(h^{'} I_{i}^{l} h)^{2}}; (1 \times 2n^{2})
+\end{equation}
+\begin{equation}
+G_{dtf_{1}} = G_{dtf_{1}}^{\ast} \cdot \frac{\partial h}{\partial a^{'}} \cdot -\zeta^{\ast} 
+\end{equation}
+\begin{equation}
+G_{dtf_{2}}^{\ast} = \frac{\partial |dtf_{ij}(\lambda)|^{2}} {\partial h \partial h^{'}} = \frac{2 I_{ij}^{l}}{(h^{'} I_{j}^{l} h)}; (2n^{2} \times 2n^{2})
+\end{equation}
+\begin{equation}
+G_{dtf_{2}} = \zeta^{\ast^{'}} \cdot (\frac{\partial h}{\partial a^{'}})^{'} \cdot G_{dtf_{2}}^{\ast} \cdot \frac{\partial h}{\partial a^{'}} \cdot \zeta^{\ast}
+\end{equation}
+
+Para o cálculo de $\frac{\partial h}{\partial a^{'}}$ definimos $A_{r} = \Re(A)$, $A_{i} = \Im(A)$, $H = A^{-1}$ e o mesmo para $H_{r}$ e $H_{i}$. Definimos as matrizes:
+\begin{equation}
+A^{\ast} = \left[ \begin{array}{cc} A_{r} & -A_{i} \\ A_{i} & A_{r} \end{array} \right]; (2n \times 2n)
+\end{equation}
+\begin{equation}
+H^{\ast} = \left[ \begin{array}{cc} H_{r} & -H_{i} \\ H_{i} & H_{r} \end{array} \right]; (2n \times 2n)
+\end{equation}
+de forma que $H^{\ast} = A^{\ast^{-1}}$.
+
+Temos:
+\begin{equation}
+\frac{\partial vec(H^{\ast})}{\partial vec(A^{\ast})^{'}} = -H^{\ast^{'}} \otimes H^{\ast} = \left[ \begin{array}{cc} B_{11} & B_{12} \\ B_{21} & B_{22}
+\end{array} \right]; (4n^{2} \times 4n^{2})
+\end{equation}
+onde cada $B_{ij}$ é um dos quatro quadrantes da matriz.
+
+Queremos calcular $\frac{vec([H_{r} H_{i})}{vec([A_{r} A_{i}])^{'}}$, de forma que utilizaremos:
+\begin{equation}
+B = [B_{11} B_{12}] = \frac{\partial vec( \left[ \begin{array}{c} H_{r} \\ H_{i} \end{array} \right])}{\partial vec(A^{\ast})^{'}}
+\end{equation}
+
+Seja $R$ tal que $R \cdot vec(\left[ \begin{array}{c} M_{1} \\ M_{2} \end{array} \right]) = vec([M_{1} M_{2}])$, onde $M_{1}, M_{2}$ são $(n \times n)$. Assim $R \cdot B = \frac{vec([H_{r} H_{i}])}{vec(A^{\ast})^{'}} = \frac{\partial h}{\partial vec(A^{\ast})^{'}}$.
+
+Seja $S$ tal que $S \cdot vec([M_{1} M_{2}]) = vec([-M_{2} M_{1}])$. Onde $M_{1}, M_{2}$ são $(n \times n)$. Assim:
+\begin{equation}
+\left[ \begin{array}{c}
+ R \\ R \cdot S
+\end{array} \right] vec([A_{r} A_{i}]) = \left[ \begin{array}{c}
+ vec(\left[ \begin{array}{c}
+ A_{r} \\ A_{i}
+\end{array} \right]
+) \\ vec(\left[ \begin{array}{c}
+ -A_{i} \\ A_{r}
+\end{array} \right]
+)
+\end{array} \right] = vec(A^{\ast})
+\end{equation}
+o que implica $\frac{\partial vec(A^{\ast})}{\partial vec(A)^{'}} = \left[ \begin{array}{c}
+ R \\ R \cdot S
+\end{array} \right]$
+
+Pela regra da cadeia:
+\begin{equation}
+\frac{\partial h}{\partial a^{'}} = \frac{\partial h}{\partial vec(A^{\ast})^{'}} \cdot \frac{\partial vec(A^{\ast})}{\partial vec(A)^{'}} = 
+R \cdot B \cdot \left[ \begin{array}{c}
+ R \\ R \cdot S
+\end{array} \right]
+\end{equation}
+
+A matriz $R$ é obtida por:
+\begin{equation}
+R_{1} = I_{n} \otimes (\left[ \begin{array}{c} 1 \\ 0 \end{array} \right] \otimes I_{n})
+\end{equation}
+\begin{equation}
+R_{2} = I_{n} \otimes (\left[ \begin{array}{c} 0 \\ 1 \end{array} \right] \otimes I_{n})
+\end{equation}
+\begin{equation}
+R = [R_{1} R_{2}]
+\end{equation}
+e matriz $S$ por:
+\begin{equation}
+S = \left[ \begin{array}{cc}
+ 0 & -I_{n^{2}} \\
+I_{n^{2}} & 0
+\end{array} \right]
+\end{equation}
+
+\section{Coerência, coerência parcial e densidade espectral}
+
+\subsection{Coerencia parcial}
+
+A coerência parcial é matricialmente definida por:
+\begin{equation}
+PC_{num_{ij}} = \left( a^{'} k_{1}^{ij} a \right)^{2} + \left( a^{'} k_{2}^{ij} a \right)^{2}
+\end{equation}
+\begin{equation}
+PC_{den_{ij}} = \left( a^{'} k_{1}^{ii} a \right) \cdot \left( a^{'} k_{1}^{jj} a \right)
+\end{equation}
+\begin{equation}
+PC_{ij} = \frac{PC_{num_{ij}}}{PC_{den_{ij}}}
+\end{equation}
+\begin{equation}
+k_{1}^{ij} = \left[ \begin{array}{cc}
+ c_{i} & 0 \\ 0 & c_{i}
+\end{array} \right] \Sigma_{2}^{-1} \left[ \begin{array}{cc}
+ c_{j} & 0 \\ 0 & c_{j}
+\end{array} \right]^{'}
+\end{equation}
+\begin{equation}
+k_{2}^{ij} = \left[ \begin{array}{cc}
+ c_{i} & 0 \\ 0 & c_{i}
+\end{array} \right] \Sigma_{2}^{-1} \left[ \begin{array}{cc}
+ 0 & c_{j} \\ -c_{j} & 0
+\end{array} \right]^{'} 
+\end{equation}
+onde $c_i$ seleciona a coluna $i$. Em outras palavras é a norma do produto vetorial da coluna $i$ pelo conjugado da coluna $j$, normalizado por $\Sigma^{-1}$, dividido pelo produto vetorial da coluna $i$ pelo seu conjugado, multiplicado pelo produto vetorial da coluna $j$ pelo seu conjugado, também normalizados por $\Sigma^{-1}$.
+
+A matriz $c_i$ é dada por:
+
+\begin{equation}
+v_{i} = [0 \dots 0 1 0 \dots 0]^{'}; (n \times 1)
+\end{equation}
+com apenas elemento $i$ não nulo.
+\begin{equation}
+c_{i} = v_{i} \otimes I_{n}; (n^{2} \times n)
+\end{equation}
+e $\Sigma_{2} = I_{2} \otimes \Sigma$.
+
+Assim temos as derivadas em relação ao $a$:
+\begin{equation}
+G_{PC_1} = \frac{\partial PC_{ij}}{\partial a^{'}} = \frac{2 (a^{'} k_{1}^{ij} a) a^{'} (k_{1}^{ij} + k_{1}^{ij^{'}}) + 2 (a^{'} k_{2}^{ij} a) a^{'} (k_{2}^{ij} + k_{2}^{ij^{'}}) } 
+{PC_{den_{ij}}} - 
+\end{equation}
+\begin{equation}
+\frac{PC_{num_{ij}}}{PC_{den_{ij}}^{2}} \cdot (2 a^{'} k_{1}^{ii} (a^{'} k_{1}^{jj} a) + 2 a^{'} k_{1}^{jj} ( a^{'} k_{1}^{ii} a))
+\end{equation}
+\begin{equation}
+G_{PC_2} = \frac{\partial PC_{ij}}{\partial a \partial a^{'}} = \frac{2}{PC_{den_{ij}}} \cdot ((k_{1}^{ij} + k_{1}^{ij^{'}}) a a^{'} (k_{1}^{ij} + k_{1}^{ij^{'}}) + (k_{2}^{ij} + k_{2}^{ij^{'}}) a a^{'} (k_{2}^{ij} + k_{2}^{ij^{'}}))
+\end{equation}
+
+Para a derivada em relação ao $\varepsilon$, reescrevemos a PC como:
+\begin{equation}
+a_{11}^{i} = a^{'} \left[ \begin{array}{cc}
+ c_{i} & 0 \\ 0 c_{i}
+\end{array} \right]
+\end{equation}
+\begin{equation}
+a_{12}^{i} = \left[ \begin{array}{cc}
+ c_{i} & 0 \\ 0 & c_{i}
+\end{array} \right]^{'} a
+\end{equation}
+\begin{equation}
+a_{21}^{i} = a^{'} \left[ \begin{array}{cc}
+ c_{i} & 0 \\ 0 c_{i}
+\end{array} \right]
+\end{equation}
+\begin{equation}
+a_{22}^{i} = \left[ \begin{array}{cc}
+ 0 & c_{i} \\ -c_{i} & 0
+\end{array} \right]^{'} a
+\end{equation}
+\begin{equation}
+num_{PC} = (a_{11}^{i} \Sigma_{2}^{-1} a_{12}^{j})^{2} + (a_{21}^{i} \Sigma_{2}^{-1} a_{22}^{j})^{2}
+\end{equation}
+\begin{equation}
+den_{PC_{1}} = a_{11}^{i} \Sigma_{2}^{-1} a_{12}^{i}
+\end{equation}
+\begin{equation}
+den_{PC_{2}} = a_{11}^{j} \Sigma_{2}^{-1} a_{12}^{j}
+\end{equation}
+\begin{equation}
+PC_{ij} = \frac{num_{PC}}{den_{PC_{1}} \cdot den_{PC_{2}}}
+\end{equation}
+
+de forma que pela regra da cadeia:
+\begin{equation}
+\frac{\partial PC_{ij}}{\partial \varepsilon^{'}} = \frac{\frac{\partial num_{PC}}{\partial \varepsilon^{'}}}{den_{PC_{1}} \cdot den_{PC_{2}}} -
+\frac{num_{PC}}{den_{PC_{1}} \cdot den_{PC_{2}}} \left( \frac{1}{den_{PC_{2}}} \frac{\partial den_{PC_{2}}}{\partial \varepsilon^{'}} +
+ \frac{1}{den_{PC_{1}}} \frac{\partial den_{PC_{1}}}{\partial \varepsilon^{'}}  \right) 
+\end{equation}
+
+Seja $\varepsilon_{2} = vec(\Sigma_{2})$, temos:
+\begin{equation}
+\frac{\partial num_{PC}}{\partial \varepsilon^{'}} = (2 (a_{11}^{i} \Sigma_{2}^{-1} a_{12}^{j}) (a_{12}^{j^{'}} \otimes a_{11}^{i}) +
+2 (a_{21}^{i} \Sigma_{2}^{-1} a_{22}^{j}) (a_{22}^{j^{'}} \otimes a_{21}^{i}) )
+\frac{\partial vec(\Sigma_{2}^{-1})}{\partial \varepsilon^{'}}
+\end{equation}
+\begin{equation}
+\frac{\partial den_{PC_{1}}}{\partial \varepsilon^{'}} = (a_{12}^{i^{'}} \otimes a_{11}^{i}) 
+\frac{\partial vec(\Sigma_{2}^{-1})}{\partial \varepsilon^{'}}
+\end{equation}
+\begin{equation}
+\frac{\partial den_{PC_{2}}}{\partial \varepsilon^{'}} = (a_{12}^{j^{'}} \otimes a_{11}^{j}) )
+\frac{\partial vec(\Sigma_{2}^{-1})}{\partial \varepsilon^{'}}
+\end{equation}
+
+Como $\varepsilon_{2} = vec(I_{2} \otimes \Sigma)$, temos
+\begin{equation}
+\frac{\partial \varepsilon_{2}}{\partial \varepsilon^{'}} = (T_{2,n} \otimes I_{n \cdot 2}) \cdot (I_{n} \otimes vec(I_{2}) \otimes I_{n}); (4n^{2} \times n^{2})
+\end{equation}
+e
+\begin{equation}
+\frac{\partial vec(\Sigma_{2}^{-1})}{\partial vec(\Sigma_{2})^{'}} = -\Sigma_{2}^{-1^{'}} \otimes \Sigma_{2}^{-1}
+\end{equation}
+de onde temos:
+\begin{equation}
+\frac{\partial vec(\Sigma_{2}^{-1})}{\partial \varepsilon^{'}} = \frac{\partial vec(\Sigma_{2}^{-1})}{\partial vec(\Sigma_{2})^{'}} \cdot \frac{\partial \varepsilon_{2}}{\partial \varepsilon^{'}}
+\end{equation}
+
+Sob $H_0$ teremos $num_{PC} = 0$. Desta vez a derivada segunda não é nula. Primeiramente $\frac{\partial PC_{ij}}{\partial \varepsilon \partial \varepsilon^{'}}$:
+\begin{equation}
+\frac{\partial num_{PC_{1}}}{\partial \varepsilon^{'}} = \frac{\partial (a_{11}^{i} \Sigma_{2}^{-1} a_{12}^{j})}{\partial \varepsilon^{'}} = a_{12}^{j^{'}} \otimes a_{11}^{i}
+\end{equation}
+\begin{equation}
+\frac{\partial num_{PC_{2}}}{\partial \varepsilon^{'}} = \frac{\partial (a_{21}^{i} \Sigma_{2}^{-1} a_{22}^{j})}{\partial \varepsilon^{'}} = a_{22}^{j^{'}} \otimes a_{21}^{i}
+\end{equation}
+\begin{equation}
+\frac{\partial PC_{ij}}{\partial \varepsilon \partial \varepsilon^{'}} = \frac{2 \frac{\partial num_{PC_{1}}}{\partial \varepsilon} \frac{\partial num_{PC_{1}}}{\partial \varepsilon^{'}} + 2 \frac{\partial num_{PC_{2}}}{\partial \varepsilon} \frac{\partial num_{PC_{2}}}{\partial \varepsilon^{'}}}{den_{PC_{1}} \cdot den_{PC_{2}}}
+\end{equation}
+
+Também precisamos calcular $\frac{\partial PC_{ij}}{\partial \alpha \partial \varepsilon^{'}}$:
+\begin{equation}
+\frac{\partial PC_{ij}}{\partial \alpha \partial \varepsilon^{'}} = \frac{2 \frac{\partial num_{PC_{1}}}{\partial \alpha} \frac{\partial num_{PC_{1}}}{\partial \varepsilon^{'}} + 2 \frac{\partial num_{PC_{2}}}{\partial \alpha} \frac{\partial num_{PC_{2}}}{\partial \varepsilon^{'}}}{den_{PC_{1}} \cdot den_{PC_{2}}}
+\end{equation}
+onde
+\begin{equation}
+\frac{\partial num_{PC_{1}}}{\partial \alpha} = (k_{1}^{ij} + k_{1}^{ij^{'}}) a
+\end{equation}
+\begin{equation}
+\frac{\partial num_{PC_{2}}}{\partial \alpha} = (k_{2}^{ij} + k_{2}^{ij^{'}}) a
+\end{equation}
+
+Assim sendo $\Omega_{big} = \left[ \begin{array}{cc} 
+ \Omega_{\alpha} & 0 \\ 0 & \Omega_{\varepsilon}
+\end{array} \right]$, $par = \left[ \begin{array}{c} 
+ \alpha \\ \varepsilon
+\end{array} \right]$ e $G_{PC_{par}} = \frac{\partial PC_{ij}}{\partial par^{'}} = \left[ \begin{array}{cc} 
+\frac{\partial PC_{ij}}{\partial \alpha \partial \alpha^{'}} & 
+\frac{\partial PC_{ij}}{\partial \alpha \partial \varepsilon^{'}} \\ 
+\frac{\partial PC_{ij}}{\partial \varepsilon \partial \alpha^{'}} & 
+\frac{\partial PC_{ij}}{\partial \varepsilon \partial \varepsilon^{'}}
+\end{array} \right]$, temos que sob $H_0$
+\begin{equation}
+N (\hat{PC_{ij}} - PC_{ij}) \to \frac{1}{2} \cdot x^{'} \cdot G_{PC_{par}} \cdot x
+\end{equation}
+com $x \to N(0, \Omega_{big})$.
+
+Assim devemos aplicar o mesmo procedimento da fatoração de $\Omega_{alpha}$ para $\Omega_{big}$, chegando à soma de chi-quadrados.
+
+\subsection{Coerência}
+
+A coerência (coh) é definida de modo análogo á PC, mas para a matriz inversa $H$, assim $h$ substitui $a$ e $\Sigma_{2}$ substitui $\Sigma_{2}^{-1}$:
+\begin{equation}
+coh_{num_{ij}} = \left( h^{'} k_{coh_{1}}^{ij} h \right)^{2} + \left( h^{'} k_{coh_{2}}^{ij} h \right)^{2}
+\end{equation}
+\begin{equation}
+coh_{den_{ij}} = \left( h^{'} k_{coh_{1}}^{ii} h \right) \cdot \left( h^{'} k_{coh_{1}}^{jj} h \right)
+\end{equation}
+\begin{equation}
+coh_{ij} = \frac{PC_{num_{ij}}}{PC_{den_{ij}}}
+\end{equation}
+\begin{equation}
+k_{coh_{1}}^{ij} = \left[ \begin{array}{cc}
+ l_{i} & 0 \\ 0 & l_{i}
+\end{array} \right] \Sigma \left[ \begin{array}{cc}
+ l_{j} & 0 \\ 0 & l_{j}
+\end{array} \right]^{'}
+\end{equation}
+\begin{equation}
+k_{coh_{2}}^{ij} = \left[ \begin{array}{cc}
+ l_{i} & 0 \\ 0 & l_{i}
+\end{array} \right] \Sigma \left[ \begin{array}{cc}
+ 0 & l_{j} \\ -l_{j} & 0
+\end{array} \right]^{'}
+\end{equation}
+onde $l_{i} = I_{n} \otimes v_{i}$ seleciona a linha $i$ de $h$.
+
+O resto das contas é análogo, acrescentando apenas $\frac{\partial h}{\partial a^{'}}$ na regra da cadeia da derivada em relação a $\alpha$, como para o DTF.
+
+
+\subsection{Densidade espectral}
+
+A densidade espectral (SS) é semelhante à coerência, mas sem normalização:
+\begin{equation}
+SS_{ij} = \left( h^{'} k_{coh_{1}}^{ij} h \right)^{2} + \left( h^{'} k_{coh_2}^{ij} h \right)^{2}
+\end{equation}
+
+As contas serão as mesmas, substituindo $SS_{den}$ por 1.
+
+\end{document}
+
+
+
