@@ -89,11 +89,11 @@ def test_coh():
     
     er = identity(3)
     #er = array([[0.7,0.3, 0], [0.3, 1.2, 0.4], [0, 0.4, 2]], dtype = float)
-    pdc, th, ic1, ic2, h0, h11, h12, pdcr = test_asymp(ass_.asymp_pdc, pdc_.pdc_alg, nm = 100, nd = 10000, A = A, er = er, 
-                                                       nf = 10, alpha = 0.05, metric = 'diag')
-    #coh, th, ic1, ic2, h0, h11, h12, cohr = test_asymp(ass_.asymp_coh, pdc_.coh_alg, nm = 100, nd = 10000, A = A, er = er, 
-    #                                                   nf = 10, alpha = 0.05)
+    coh, th, ic1, ic2, h0, h11, h12, cohr = test_asymp(ass_.asymp_coh, pdc_.coh_alg, nm = 100, nd = 10000, A = A, er = er, 
+                                                       nf = 10, alpha = 0.05)
 
+    #pdc, th, ic1, ic2, h0, h11, h12, pdcr = test_asymp(ass_.asymp_pdc, pdc_.pdc_alg, nm = 100, nd = 10000, A = A, er = er, 
+    #                                                   nf = 10, alpha = 0.05, metric = 'diag')
     print h0
     print h11+h12
     
@@ -130,7 +130,7 @@ def teste_simples():
                    [[0, 0],[0.8,-0.1],[0.4,-0.1]],
                    [[0, 0],[0.3,0.2],[0.4,0.1]]], dtype = float) 
     er = identity(3)
-    nd = 500
+    nd = 100
     nf = 20
     alpha = 0.05
     n = A.shape[0]
@@ -144,15 +144,9 @@ def teste_simples():
     #Calculate the connectivity and statistics
     mes, th, ic1, ic2 = ass_.asymp_pdc(data, Aest, nf, erest, 
                                    maxp, alpha = alpha, metric = metric)
-    x = arange(nf)/(2.0*nf)
     
     plot_all(mes, th, ic1, ic2, nf = nf)
-    #pp.plot(x, mes[0,2], 'k-', x, th[0,2], 'r-', x, ic1[0,2], 'b-', x, ic2[0,2], 'b-')
-    #pp.show()
-
-    
 
 if __name__ == "__main__":
-    #test_coh()
-    teste_simples()
-    
+    test_coh()
+    #teste_simples()

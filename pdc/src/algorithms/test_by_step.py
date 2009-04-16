@@ -13,6 +13,7 @@ from scipy.stats import cov as cov
 from scipy.linalg import cholesky
 from scipy.linalg import eigh
 from scipy.linalg import inv as inv
+from scipy.stats import chi2
 
 def compare_matlab_pdc_one(nd = 100, nf = 5, metric = 'euc'):
     ''' Compara resultado do pdc e assym pdc com o matlab '''
