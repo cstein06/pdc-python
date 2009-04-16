@@ -98,29 +98,16 @@ def bigautocorr(x, p):
         y = concatenate((y, xlag(y, i)), axis=0)
     return dot(y, y.T)/nd
     #return cov(y.T)
-
-    
-def ftR(n):
-    tR1 = kron(I(n), kron(array([[1], [0]]), I(n)))
-    tR2 = kron(I(n), kron(array([[0], [1]]), I(n)))
-    return mat(cat(tR1, tR2, 1)).T
     
 def fdh_da(Af, n):
     '''Derivada de vec(H) por vec(A), com H = A^-1 e A complexo.'''
+    ha = Af.I
+    h = -kron(ha.T, ha)
     
-    aa1 = cat(Af.real, -Af.imag, 1)
-    aa2 = cat(Af.imag, Af.real, 1)
-    aa = cat(aa1, aa2, 0)
-    ha = aa.I
-    dvechda = -kron(ha.T, ha)
-    dhdaa = dvechda[:2*n**2, :]
-    tR = ftR(n)
-    
-    tS = mat(kron(array([[0, -1], [1, 0]]), I(n**2)))
-    
-    daada = cat(tR.T, dot(tR.T, tS), 0)
-    dhda = tR*dhdaa*daada
-    return dhda
+    h1 = cat(h.real, -h.imag, 1)
+    h2 = cat(h.imag, h.real, 1)
+    hh = cat(h1, h2, 0)
+    return hh
     
 def fIij(i, j, n):
     Iij = zeros(n**2)
