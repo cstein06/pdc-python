@@ -95,7 +95,7 @@ def bigautocorr(x, p):
     y = x[:]
     nd = x.shape[1]
     for i in arange(1, p):
-        y = concatenate((y, xlag(y, i)), axis=0)
+        y = concatenate((y, xlag(x, i)), axis=0)
     return dot(y, y.T)/nd
     #return cov(y.T)
     
@@ -252,7 +252,7 @@ def asymp_pdc(x, A, nf, e_var, p, metric = 'gen', alpha = 0.05):
                 G1 = -G1a*Ca
                 
                 omega_evar = 2*Dup(n).I*kron(e_var, e_var)*Dup(n).I.T
-            
+
                 varalpha = G1*omega*G1.T
                 varevar = dpdc_dev*omega_evar*dpdc_dev.T
                 varass1[i, j, ff] = (varalpha + varevar)/nd
