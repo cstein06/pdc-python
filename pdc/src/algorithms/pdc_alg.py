@@ -7,14 +7,18 @@ import cProfile
 
 from data_simulation.ar_data import ar_data
 import algorithms.ar_fit as ar_fit
+import algorithms.asymp as as_
+
+def list_to_array(data):
+    d = data[0].reshape(1,-1)
+    for i in range(1,len(data)):
+        d = concatenate([d, data[i].reshape(1,-1)], axis = 0)
+    return d
 
 def pdc_ss_coh(data, maxp = 30, nf = 64, detrend = True):
 
     if(type(data) == 'list'):
-        d = data[0].reshape(1,-1)
-        for i in range(size(data)):
-            d = concatenate(d, data[i].reshape(1,-1, axis = 0))
-        data = d
+        data = list_to_array(data)
         
     if (detrend):
         data = data - mean(data, axis = 1).reshape(-1,1) #TODO: usar signal.detrend?
@@ -23,7 +27,7 @@ def pdc_ss_coh(data, maxp = 30, nf = 64, detrend = True):
     return abs(pdc_alg(A, er, nf))**2, abs(ss_alg(A, er, nf))**2, abs(coh_alg(A, er, nf))**2
 
 
-def pdc(data, maxp = 30, nf = 64, detrend = True, SS = True):
+def pdc(data, maxp = 30, nf = 64, detrend = True, SS = True, metric = 'gen'):
     '''Generates spectral PDC matrix from data array
     
       Input: 
@@ -39,16 +43,17 @@ def pdc(data, maxp = 30, nf = 64, detrend = True, SS = True):
     if(type(data) == 'list'):
         d = data[0].reshape(1,-1)
         for i in range(size(data)):
-            d = concatenate(d, data[i].reshape(1,-1, axis = 0))
+            d = concatenate([d, data[i].reshape(1,-1)], axis = 0)
         data = d
         
     if (detrend):
         data = data - mean(data, axis = 1).reshape(-1,1) #TODO: usar signal.detrend?
     A, er = ar_fit.nstrand(data, maxp)
+    print A
     if (SS):
-        return pdc_alg(A, er, nf), ss(A, er, nf)
+        return pdc_alg(A, er, nf, metric = metric), ss_alg(A, er, nf)
     else:
-        return pdc_alg(A, er, nf)
+        return pdc_alg(A, er, nf, metric = metric)
 
 
 
@@ -165,6 +170,7 @@ def pdc_alg(A, e_cov, nf = 64, metric = 'gen'):
     AL = A_to_f(A, nf)
     
     ALT = AL.transpose([0,2,1])
+    #dPDC = sum(dot(ALT,norden)*ALT.conj(), axis = -1).reshape(nf,-1)
     dPDC = sum(dot(ALT,norden)*ALT.conj(), axis = -1).reshape(nf,-1)
     nPDC = AL*sqrt(nornum).reshape(-1,1)
     PDC = nPDC/sqrt(abs(dPDC)).reshape(nf,1,n).repeat(n, axis = 1)
@@ -197,6 +203,34 @@ def dtf_one_alg(A, er, nf = 64):
     
     return DTF.transpose(1,2,0)
 
+def plot_all(mes, th, ic1, ic2, nf = 64, sample_f = 1.0):
+    
+    x = sample_f*arange(nf)/(2.0*nf)
+    n = mes.shape[0]
+    for i in range(n):
+        for j in range(n):
+            pp.subplot(n,n,i*n+j+1)
+            #over = mes[i,j][mes[i,j]>th[i,j]]
+            #overx = x[mes[i,j]>th[i,j]]
+            over = mes[i,j]
+            overx = x
+            under = mes[i,j][mes[i,j]<=th[i,j]]
+            underx = x[mes[i,j]<=th[i,j]]
+            pp.plot(x, th[i,j], 'r:', x, ic1[i,j], 'k:', x, ic2[i,j], 'k:', 
+                    overx, over, 'b-', underx, under, 'r-')
+            pp.ylim(-0.05,1.05)
+            if (i < n-1):
+                pp.xticks([])
+            if (j > 0):
+                pp.yticks([])
+        #if (ss != None):
+        #    ax = pp.subplot(n,n,i*n+i+1).twinx()
+        #    ax.plot(sample_f*arange(nf)/(2.0*nf), ss[i,i,:], color='g')
+        #    ax.set_ylim(ymin = 0, ymax = ss[i,i,:].max())
+        #    if (i < n-1):
+        #        ax.set_xticks([])
+    pp.show()
+    
 def pdc_plot(pdc, ss = None, nf = 64, sample_f = 1.0):
     
     n = pdc.shape[0]
@@ -218,8 +252,28 @@ def pdc_plot(pdc, ss = None, nf = 64, sample_f = 1.0):
                 ax.set_xticks([])
     pp.show()
 
-def pdc_and_plot(data, maxp = 30, nf = 64, sample_f = 1, ss = True):
-    pdc_, ss_ = pdc(data, maxp, nf)
+def pdc_ass_and_plot(data, maxp = 5, nf = 64, sample_f = 1, 
+                     ss = True, alpha = 0.05, metric = 'gen'):
+ 
+    if(type(data) == type([])):
+        data = list_to_array(data)
+        
+    #Estimate AR parameters with Nuttall-Strand
+    Aest, erest = ar_fit.nstrand(data, maxp = maxp)
+    print  'A:', Aest
+    print 'evar:', erest
+    #Calculate the connectivity and statistics
+    mes, th, ic1, ic2 = as_.asymp_pdc(data, Aest, nf, erest, 
+                                   maxp, alpha = alpha, metric = metric)
+    
+    plot_all(mes, th, ic1, ic2, nf = nf)
+
+def pdc_and_plot(data, maxp = 30, nf = 64, sample_f = 1, ss = True, metric = 'gen'):
+    
+    if(type(data) == type([])):
+        data = list_to_array(data)
+    
+    pdc_, ss_ = pdc(data, maxp, nf, metric = metric)
     if(not ss):
         ss_ = None
     pdc_plot(pdc_, ss_, nf, sample_f)

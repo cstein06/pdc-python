@@ -157,7 +157,7 @@ def nstrand(u, maxp = 30):
             A=-A
             B=-B
             break
-    return A.transpose(1,2,0), pf/N #pf,A,pb,B,ef,eb,ISTAT
+    return A.transpose(1,2,0), abs(pf)/N #pf,A,pb,B,ef,eb,ISTAT #TODO: conferir o pf
 
 def ar_fit(u,MaxIP=0,alg=1,criterion=1):
     '''

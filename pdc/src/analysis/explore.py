@@ -26,6 +26,7 @@ def seed_to_all_mask(nii, seed, f, mask, default):
             resp[i] = f(seed, nii_[i])
             cont = cont+1
             if (cont%1000 == 0):
+               # print resp[i], seed, nii_[i]
                 print cont
         else:
             resp[i] = default
