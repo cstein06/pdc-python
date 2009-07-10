@@ -203,7 +203,7 @@ def dtf_one_alg(A, er, nf = 64):
     
     return DTF.transpose(1,2,0)
 
-def plot_all(mes, th, ic1, ic2, nf = 64, sample_f = 1.0):
+def plot_all(mes, th, ic1, ic2, ss = None, nf = 64, sample_f = 1.0):
     
     x = sample_f*arange(nf)/(2.0*nf)
     n = mes.shape[0]
@@ -223,12 +223,12 @@ def plot_all(mes, th, ic1, ic2, nf = 64, sample_f = 1.0):
                 pp.xticks([])
             if (j > 0):
                 pp.yticks([])
-        #if (ss != None):
-        #    ax = pp.subplot(n,n,i*n+i+1).twinx()
-        #    ax.plot(sample_f*arange(nf)/(2.0*nf), ss[i,i,:], color='g')
-        #    ax.set_ylim(ymin = 0, ymax = ss[i,i,:].max())
-        #    if (i < n-1):
-        #        ax.set_xticks([])
+        if (ss != None):
+            ax = pp.subplot(n,n,i*n+i+1).twinx()
+            ax.plot(sample_f*arange(nf)/(2.0*nf), ss[i,i,:], color='g')
+            ax.set_ylim(ymin = 0, ymax = ss[i,i,:].max())
+            if (i < n-1):
+                ax.set_xticks([])
     pp.show()
     
 def pdc_plot(pdc, ss = None, nf = 64, sample_f = 1.0):
@@ -251,22 +251,56 @@ def pdc_plot(pdc, ss = None, nf = 64, sample_f = 1.0):
             if (i < n-1):
                 ax.set_xticks([])
     pp.show()
+    
+def plot_hbm09(mes, th, ic1, ic2, ss = None, nf = 64, sample_f = 1.0):
+    
+    x = sample_f*arange(nf)/(2.0*nf)
+    n = mes.shape[0]
+    for i in range(n):
+        for j in range(n):
+            if (i == j): continue
+            pp.subplot(1,2,j+1)
+            #over = mes[i,j][mes[i,j]>th[i,j]]
+            #overx = x[mes[i,j]>th[i,j]]
+            over = mes[i,j]
+            overx = x
+            under = mes[i,j][mes[i,j]<=th[i,j]]
+            underx = x[mes[i,j]<=th[i,j]]
+            pp.plot(x, th[i,j], 'r:', 
+                    overx, over, 'b-', underx, under, 'r-')
+            pp.ylim(-0.05,1.05)
+            pp.ylabel ('PDC')
+            pp.xlabel('Frequency (Hz)')
+            if (j == 0):
+                pp.title('Parietal -> Occipital')
+            else:
+                pp.title('Occipital -> Parietal')
+    pp.show()
 
 def pdc_ass_and_plot(data, maxp = 5, nf = 64, sample_f = 1, 
-                     ss = True, alpha = 0.05, metric = 'gen'):
+                     ss = True, alpha = 0.05, metric = 'gen', detrend = True):
  
     if(type(data) == type([])):
         data = list_to_array(data)
         
+    if (detrend):
+        data = data - mean(data, axis = 1).reshape(-1,1) #TODO: usar signal.detrend?
+        
     #Estimate AR parameters with Nuttall-Strand
     Aest, erest = ar_fit.nstrand(data, maxp = maxp)
     print  'A:', Aest
+    erest = (erest+erest.T)/2
     print 'evar:', erest
     #Calculate the connectivity and statistics
     mes, th, ic1, ic2 = as_.asymp_pdc(data, Aest, nf, erest, 
                                    maxp, alpha = alpha, metric = metric)
+    if (ss == True):
+        ssm = ss_alg(Aest, erest, nf)
+    else:
+        ssm = None
     
-    plot_all(mes, th, ic1, ic2, nf = nf)
+    #plot_all(mes, th, ic1, ic2, nf = nf, ss = ssm, sample_f = sample_f)
+    plot_hbm09(mes, th, ic1, ic2, nf = nf, ss = None, sample_f = sample_f)
 
 def pdc_and_plot(data, maxp = 30, nf = 64, sample_f = 1, ss = True, metric = 'gen'):
     

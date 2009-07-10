@@ -7,6 +7,22 @@ import time
 from scipy import weave
 from scipy.weave import converters
 
+def ar_models(id):
+
+    models = [
+              #0
+    [array([[[0.2, 0],[0, 0],[0.3,-0.2]], 
+              [[0, 0],[0.8,-0.1],[0.4,-0.1]],
+               [[0, 0],[-0.1,0.2],[0.4,0.1]]], dtype = float), 
+     identity(3)],
+             #1
+    [array([[[4,-4],[3,3]],[[0,0],[0,3]]], dtype=float).reshape(2,2,2)/20,
+     array([[0.7,0],[0,2]], dtype = float)]
+    
+    ]
+    
+    return models[id]
+
 def ar_data_R(A, er = None, m = 1000):
  #   from rpy2.robjects import r as r_
  #   import rpy2.rinterface as ri_
