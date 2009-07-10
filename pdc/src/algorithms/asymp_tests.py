@@ -3,11 +3,13 @@
 from numpy import *
 import matplotlib.pyplot as pp
 from scipy.stats import chi2
+import scipy.stats as st
 import time
 
 import algorithms.asymp as ass_
 import algorithms.pdc_alg as pdc_
 from data_simulation.ar_data import ar_data
+from data_simulation.ar_data import ar_models
 from algorithms.ar_fit import nstrand
 
 def test_asymp(asymp_func, method_func, nm = 100, nd = 100, A = None, er = None, 
@@ -121,6 +123,178 @@ def teste_simples():
     
     pdc_.plot_all(mes, th, ic1, ic2, nf = nf)
 
+def bootstrap(method_func, nd, nm, A, er, 
+              nf, alpha = 0.05, metric = None):
+    '''Faz histograma e estatistica bootstrap'''
+    
+    n = A.shape[0]
+    mes = empty([nm, n, n, nf])
+    #th  = empty([nm, n, n, nf])
+    #ic1 = empty([nm, n, n, nf])
+    #ic2 = empty([nm, n, n, nf])
+    maxp = A.shape[2]
+    tbegin = time.clock()
+    for i in range(nm):
+        if (i%100 == 0):
+            print 'nm:', i, 'time:', time.clock()-tbegin
+        #Generate data from AR
+        data = ar_data(A, er, nd)
+        #Estimate AR parameters with Nuttall-Strand
+        Aest, erest = nstrand(data, maxp = maxp)
+        #Calculate the connectivity and statistics
+        if (metric == None):
+            mes[i] = abs(method_func(Aest, erest, nf = nf))**2
+        else:
+            mes[i] = abs(method_func(Aest, erest, nf = nf, metric = metric))**2
+
+    
+    so = sort(mes, axis = 0)
+    ic1 = so[(alpha/2)*nm]
+    ic2 = so[(1-alpha/2)*nm]
+    bvar = var(mes, axis = 0)
+    
+    return mes, bvar, ic1, ic2
+
+def compare_bootstrap_asymp():
+    
+    A, er = ar_models(1)
+    maxp = A.shape[2]    
+    nd = 200
+    nm = 500
+    nf = 5
+    alpha = 0.05
+    meth = pdc_.pdc_alg
+    asymp_func = ass_.asymp_pdc
+    metric = 'gen'
+    
+    #Generate data from AR
+    data = ar_data(A, er, nd)
+    #Estimate AR parameters with Nuttall-Strand
+    Aest, erest = nstrand(data, maxp = maxp)
+    
+    #Generate data from AR
+    data2 = ar_data(A, er, nd)
+    #Estimate AR parameters with Nuttall-Strand
+    Aest2, erest2 = nstrand(data2, maxp = maxp)
+    
+    mes = abs(meth(A, er, nf))**2
+    mesest = abs(meth(Aest, erest, nf))**2
+    
+    #er = array([[0.7,0.3, 0], [0.3, 1.2, 0.4], [0, 0.4, 2]], dtype = float)
+    mesb, bvar, ic1, ic2 = bootstrap(meth, nd = nd, nm = nm, A = A, er = er, 
+                                     nf = nf, alpha = alpha, metric = None)
+    mesa, tha, ic1a, ic2a = asymp_func(data, A, nf, er, 
+                                       maxp, alpha = alpha)
+    
+    mesa2, tha2, ic1a2, ic2a2 = asymp_func(data2, A, nf, er, 
+                                           maxp, alpha = alpha)
+    
+    
+    
+    print mes
+    print mesest
+    print 'ic1b', ic1
+    print 'ic1bv', mesest - sqrt(bvar)*st.norm.ppf(1-alpha/2.0)
+    print 'ic1a', ic1a
+    print 'ic2b', ic2
+    print 'ic2bv', mesest + sqrt(bvar)*st.norm.ppf(1-alpha/2.0)
+    print 'ic2a', ic2a
+    print bvar.shape
+    
+    
+
+def test_bootstrap():
+    #A = array([[[0.2, 0],[0, 0],[0.3,-0.2]], 
+    #           [[0, 0],[0.8,-0.1],[0.4,-0.1]],
+    #           [[0, 0],[-0.1,0.2],[0.4,0.1]]], dtype = float) 
+    
+    #er = identity(3)
+    
+    A = array([[[4,-4],[3,3]],[[0,0],[0,3]]], dtype=float).reshape(2,2,2)/20
+    er = array([[0.7,0],[0,2]], dtype = float)
+    
+    nd = 500
+    nm = 200
+    maxp = 2
+    nf = 4
+    alpha = 0.05
+    meth = pdc_.coh_alg
+    asymp_func = ass_.asymp_coh
+    
+    #Generate data from AR
+    data = ar_data(A, er, nd)
+    #Estimate AR parameters with Nuttall-Strand
+    Aest, erest = nstrand(data, maxp = maxp)
+    
+    mes = abs(meth(A, er, nf))**2
+    mesest = abs(meth(Aest, erest, nf))**2
+    
+    #er = array([[0.7,0.3, 0], [0.3, 1.2, 0.4], [0, 0.4, 2]], dtype = float)
+    coh, bvar, ic1, ic2 = bootstrap(meth, nd = nd, nm = nm, A = A, er = er, 
+                                     nf = nf, alpha = alpha, metric = None)
+    mesa, tha, ic1a, ic2a = asymp_func(data, Aest, nf, erest, 
+                                       maxp, alpha = alpha)
+    print mes
+    print mesest
+    print 'ic1b', ic1
+    print 'ic1bv', mesest - sqrt(bvar)*st.norm.ppf(1-alpha/2.0)
+    print 'ic1a', ic1a
+    print 'ic2b', ic2
+    print 'ic2bv', mesest + sqrt(bvar)*st.norm.ppf(1-alpha/2.0)
+    print 'ic2a', ic2a
+    print bvar.shape
+
+def test_bootstrap_MxN_loop(method_func, ns = None, ms = None, A = None, er = None, 
+                       nf = 10, alpha = 0.05, metric = None):
+    '''Testa qual M é necessário para bootstrap razoável'''
+    if A == None:
+        A = array([[[0.2, 0],[0, 0],[0.3,-0.2]], 
+                   [[0, 0],[0.8,-0.1],[0.4,-0.1]],
+                   [[0, 0],[0,0],[0.4,0.1]]], dtype = float) 
+    if er == None:
+        er = identity(3)
+        
+    if ns == None:
+        ns = array([10, 30, 50, 100, 200, 500, 1000])
+    if ms == None:
+        ms = array([100, 300, 1000, 3000])
+    
+    n = A.shape[0]
+        
+    bvar = empty([size(ns), size(ms), n, n, nf])
+    ic1 = empty([size(ns), size(ms), n, n, nf])
+    ic2 = empty([size(ns), size(ms), n, n, nf])
+    for i in range(size(ns)):
+        for j in range(size(ms)):
+            dummy, bvar[i,j], ic1[i,j], ic2[i,j] = bootstrap(method_func, ns[i], ms[j], 
+                                                             A, er, nf, alpha, metric)
+    
+    return bvar, ic1, ic2            
+            
+            
+def test_bootstrap_MxN():
+    '''Testa qual M é necessário para bootstrap razoável'''
+    
+    #ns = array([10, 30, 50, 100, 200, 500, 1000])
+    #ms = array([100, 300, 1000, 3000])
+    
+    ns = array([200])
+    ms = array([100, 300, 1000, 3000])
+    
+    A = array([[[4,-4],[3,3]],[[0,0],[0,3]]], dtype=float).reshape(2,2,2)/20
+    er = array([[0.7,0],[0,2]], dtype = float)
+    
+    nf = 4
+    
+    bvar, ic1, ic2 = test_bootstrap_MxN_loop(pdc_.pdc_alg, ns = ns, ms = ms, nf = nf, A = A, er = er, metric = 'gen')
+
+    print 'bvar', bvar.transpose([0,2,3,4,1])
+    #print 'ic1, ic1, ic2
+    
+
 if __name__ == "__main__":
-    test_coh()
+    #test_coh()
     #teste_simples()
+    #test_bootstrap()
+    #test_bootstrap_MxN()
+    compare_bootstrap_asymp()

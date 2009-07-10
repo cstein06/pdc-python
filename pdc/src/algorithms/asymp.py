@@ -264,6 +264,7 @@ def asymp_pdc(x, A, nf, e_var, p, metric = 'gen', alpha = 0.05):
                 G2a = 2*Iije/den
                 G2 = Ca.T*G2a*Ca
                 
+                #print omega, eigh(omega, eigvals_only=True)
                 d = fEig(omega, G2)
                 patdf = sum(d)**2/sum(d**2)
                 patden = sum(d)/sum(d**2)
