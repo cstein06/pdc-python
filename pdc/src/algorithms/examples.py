@@ -12,7 +12,38 @@ import algorithms.asymp as ass_
 import algorithms.pdc_alg as pdc_
 from data_simulation.ar_data import ar_data
 from data_simulation.ar_data import ar_models
-from algorithms.ar_fit import nstrand
+from algorithms.ar_fit import ar_fit
+
+def teste_simples():
+    A = array([[[0.2, 0],[0.3,-0.2],[0.3,-0.2]], 
+               [[0, 0],[0.8,-0.1],[0.4,-0.1]],
+               [[0, 0],[0.3,0.2],[0.4,0.1]]], dtype = float) 
+    er = identity(3)
+    nd = 500
+    nf = 20
+    alpha = 0.05
+    n = A.shape[0]
+    maxp = A.shape[2]
+    metric = 'gen'
+    
+    #Generate data from AR
+    data = ar_data(A, er, nd)
+    
+    pdc_.measure_and_plot(data, 'dtf', nf = nf, ss = True)
+    
+    #pdc_.pdc_and_plot(data, nf = nf, ss = True, metric = metric)
+    
+    #If you want step by step:
+    
+    #Estimate AR parameters with Nuttall-Strand
+    #Aest, erest = ar_fit(data, maxp)
+    
+    #Calculate the connectivity and statistics
+    #mes, th, ic1, ic2 = ass_.asymp_pdc(data, Aest, nf, erest, 
+    #                               maxp, alpha = alpha, metric = metric)
+    
+    #Plot result
+    #pdc_.plot_all(mes, th, ic1, ic2, nf = nf)
 
 def gen_data_Ding(m):
     p = 3
@@ -35,45 +66,21 @@ def teste_Ding():
     nf = 10
     alpha = 0.01
     n = 5
-    maxp = 3
+    maxp = 30
     metric = 'diag'
     
     #Generate data from AR
     data = gen_data_Ding(nd)
+    
+    pdc_.pdc_ass_and_plot(data, maxp = maxp, nf = nf, ss = False, 
+                          alpha = alpha, metric = metric)
+    
     #Estimate AR parameters with Nuttall-Strand
-    Aest, erest = nstrand(data, maxp = maxp)
+    #Aest, erest = ar_fit(data, maxp)
     #Calculate the connectivity and statistics
-    mes, th, ic1, ic2 = ass_.asymp_pdc(data, Aest, nf, erest, 
-                                   maxp, alpha = alpha, metric = metric)
-    pdc_.plot_all(mes, th, ic1, ic2, nf = nf)
-
-
-    
-def plot_hbm09(mes, th, ic1, ic2, ss = None, nf = 64, sample_f = 1.0):
-    
-    x = sample_f*arange(nf)/(2.0*nf)
-    n = mes.shape[0]
-    for i in range(n):
-        for j in range(n):
-            if (i == j): continue
-            pp.subplot(1,2,j+1)
-            #over = mes[i,j][mes[i,j]>th[i,j]]
-            #overx = x[mes[i,j]>th[i,j]]
-            over = mes[i,j]
-            overx = x
-            under = mes[i,j][mes[i,j]<=th[i,j]]
-            underx = x[mes[i,j]<=th[i,j]]
-            pp.plot(x, th[i,j], 'r:', 
-                    overx, over, 'b-', underx, under, 'r-')
-            pp.ylim(-0.05,1.05)
-            pp.ylabel ('PDC')
-            pp.xlabel('Frequency (Hz)')
-            if (j == 0):
-                pp.title('Parietal -> Occipital')
-            else:
-                pp.title('Occipital -> Parietal')
-    pp.show()
-
+    #mes, th, ic1, ic2 = ass_.asymp_pdc(data, Aest, nf, erest, 
+    #                               maxp, alpha = alpha, metric = metric)
+    #pdc_.plot_all(mes, th, ic1, ic2, nf = nf)
 
 def teste_sunspot_melanoma():
    nf = 40
@@ -126,4 +133,6 @@ def teste_sunspot_melanoma():
    
 
 if __name__ == "__main__":
-    teste_Ding()
+    #teste_Ding()
+    teste_sunspot_melanoma()
+    #teste_simples()

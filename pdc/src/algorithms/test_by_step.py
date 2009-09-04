@@ -1,3 +1,5 @@
+#rotinas que testam se implementacao esta correta.
+
 from numpy import *
 import matplotlib.pyplot as pp
 from scipy.stats import chi2
@@ -55,7 +57,7 @@ def test_alpha_var(montei = 100, nd = 100, A = None, er = None, maxp = 2):
     alpha = empty(montei, n, n, p)
     for i in arange(montei):
         data = ar_data(A, er, nd)
-        alpha[i], erest = nstrand(data, maxp = maxp)
+        alpha[i], erest = ar_fit.nstrand(data, maxp = maxp)
         
 def test_assym_pdc_semr():
     Aest = array([[4,3],[0,3]], dtype=float).reshape(2,2,1)/10
@@ -329,3 +331,37 @@ def test_patnaik(d, mci = 1000):
         for j in arange(ds):
             rpat[i] = rpat[i] + chi2.rvs(1)*d[j]
     return pat, rpat
+
+
+def test_AIC():
+    
+    A = array([[[0.2, 0],[0.3,-0.2],[0.3,-0.2]], 
+               [[0, 0],[0.8,-0.1],[0.4,-0.1]],
+               [[0, 0],[0.3,0.2],[0.4,0.1]]], dtype = float) 
+    er = identity(3)
+    nd = 5000
+    nf = 20
+    alpha = 0.05
+    n = A.shape[0]
+    maxp = A.shape[2]
+    metric = 'gen'
+    
+    #Generate data from AR
+    data = ar_data(A, er, nd)
+    
+    #If you want step by step:
+    
+    #Estimate AR parameters with Nuttall-Strand
+    Aest, erest = ar_fit.ar_fit(data, 2)
+    print Aest
+    #Calculate the connectivity and statistics
+    #mes, th, ic1, ic2 = ass_.asymp_pdc(data, Aest, nf, erest, 
+    #                               maxp, alpha = alpha, metric = metric)
+    
+    #Plot result
+    #pdc_.plot_all(mes, th, ic1, ic2, nf = nf)
+    
+    
+
+if __name__ == "__main__":
+    test_AIC()

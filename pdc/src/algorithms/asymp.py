@@ -1,10 +1,12 @@
+# In this file we calculate the asymptotic statistics for all measures, including 
+# first and second order asymptotic aproximations.
+
 from numpy import *
 import scipy.stats as st
 from scipy.stats import cov as cov
 from scipy.linalg import cholesky
 from scipy.linalg import eigh
 from scipy.linalg import inv as inv
-
 
 # These functions are used to make code more readable.
 vec = lambda x: mat(x.ravel('F')).T
@@ -41,6 +43,7 @@ def A_to_f(A, nf = 64):
     return AL
 
 def vech(a):
+    ''' Returns vech(v) '''
     n = a.shape[0]
     v = empty((n*(n+1))/2)
     cont = 0
@@ -52,7 +55,7 @@ def vech(a):
     return v
             
 def Dup(n):
-    '''D*vech(A) = vec(A), sendo A simetrica'''
+    '''D*vech(A) = vec(A), with symmetric A'''
     d = matrix(zeros([n*n, (n*(n+1))/2]))
     count = 0
     for j in range(n):
@@ -65,7 +68,7 @@ def Dup(n):
     return d
 
 def TT(a,b):
-    ''' TT(a,b)*vec(B) = vec(B.T), onde B eh axb.'''
+    ''' TT(a,b)*vec(B) = vec(B.T), where B is (a x b).'''
     t = O(a*b)
     for i in range(a):
         for j in range(b):
@@ -73,13 +76,13 @@ def TT(a,b):
     return t
 
 def fdebig_de(n):
-    '''Derivada de kron(I(2n), A) por A'''
+    '''Derivative of kron(I(2n), A) by A'''
     return dot(kron(TT(2*n, n), I(n*2*n)),
            kron(I(n), kron(vec(I(2*n)), I(n))))
     
 
 def fdebig_de_small(n):
-    '''Derivada de kron(I(2), A) por A'''
+    '''Derivative of kron(I(2), A) by A'''
     return dot(kron(TT(2, n), I(n*2)),
            kron(I(n), kron(vec(I(2)), I(n))))
 
@@ -101,7 +104,7 @@ def bigautocorr(x, p):
     #return cov(y.T)
     
 def fdh_da(Af, n):
-    '''Derivada de vec(H) por vec(A), com H = A^-1 e A complexo.'''
+    '''Derivative of vec(H) by vec(A), with H = A^-1 and complex A.'''
     ha = Af.I
     h = -kron(ha.T, ha)
     
@@ -111,12 +114,14 @@ def fdh_da(Af, n):
     return hh
     
 def fIij(i, j, n):
+    '''Returns Iij of the formula'''
     Iij = zeros(n**2)
     Iij[n*j+i] = 1
     Iij = diag(Iij)
     return mat(kron(I(2), Iij))
 
 def fIj(j, n):
+    '''Returns Ij of the formula'''
     Ij = zeros(n)
     Ij[j] = 1
     Ij = diag(Ij)
@@ -124,6 +129,7 @@ def fIj(j, n):
     return mat(kron(I(2), Ij))
 
 def fIi(i, n):
+    '''Returns Ii of the formula'''
     Ii = zeros(n)
     Ii[i] = 1
     Ii = diag(Ii)
@@ -131,22 +137,33 @@ def fIi(i, n):
     return mat(kron(I(2), Ii))
 
 def fCa(f, p, n):
+    '''Returns C* of the formula'''
     C1 = cos(-2*pi*f*mat(arange(1, p+1)))
     S1 = sin(-2*pi*f*mat(arange(1, p+1)))    
     C2 = cat(C1.reshape(1, -1), S1.reshape(1, -1), 0)
     return kron(C2, identity(n**2))    
 
 def fEig(omega, G2):
+    '''Returns the eigenvalues after the Choleski decomposition'''
     L = mat(cholesky(omega, lower=1))
     D = L.T*G2*L
     d = eigh(D, eigvals_only=True)
     d = d[abs(d) > 1E-8]
     if (d.size > 2):
-        print 'assym tem mais de 2 chi2:'
+        print 'more than two chi-square in the sum:'
         print d
     return d
 
 def asymp_pdc(x, A, nf, e_var, p, metric = 'gen', alpha = 0.05):
+    '''Asymptotic statistics for the three PDC formulations
+        x -> data
+        A -> autoregressive matrix
+        nf -> number of frequencies
+        e_var -> residues
+        p -> model order
+        metric -> witch PDC (gPDC = 'gen', dPDC = 'diag', PDC = 'euc')
+        alpha -> confidence margin
+    '''
     
     x = mat(x)
     e_var = mat(e_var)
@@ -276,6 +293,14 @@ def asymp_pdc(x, A, nf, e_var, p, metric = 'gen', alpha = 0.05):
 
 
 def asymp_dtf_one(x, A, nf, e_var, p, alpha = 0.05):
+    '''Asymptotic statistics for the DTF
+        x -> data
+        A -> autoregressive matrix
+        nf -> number of frequencies
+        e_var -> residues
+        p -> model order
+        alpha -> confidence margin
+    '''
     
     x = mat(x)
     e_var = mat(e_var)
@@ -354,6 +379,14 @@ def fk2(e_var_inv, i,j,n):
     
     
 def asymp_pc(x, A, nf, e_var, p, alpha = 0.05):
+    '''Asymptotic statistics for the Partial Coherence (PC)
+        x -> data
+        A -> autoregressive matrix
+        nf -> number of frequencies
+        e_var -> residues
+        p -> model order
+        alpha -> confidence margin
+    '''
        
     x = mat(x)
     e_var = mat(e_var)
@@ -507,6 +540,14 @@ def fkl2(evar_big, i,j,n):
     return kron(I(2), li)*evar_big*kron(array([[0,1],[-1,0]]),lj).T
 
 def asymp_coh(x, A, nf, e_var, p, alpha = 0.05):
+    '''Asymptotic statistics for the Coherence (coh)
+        x -> data
+        A -> autoregressive matrix
+        nf -> number of frequencies
+        e_var -> residues
+        p -> model order
+        alpha -> confidence margin
+    '''
        
     x = mat(x)
     e_var = mat(e_var)
@@ -643,6 +684,14 @@ def asymp_coh(x, A, nf, e_var, p, alpha = 0.05):
     return coh, th, ic1, ic2
 
 def asymp_ss(x, A, nf, e_var, p, alpha = 0.05):
+    '''Asymptotic statistics for the Spectral density (SS)
+        x -> data
+        A -> autoregressive matrix
+        nf -> number of frequencies
+        e_var -> residues
+        p -> model order
+        alpha -> confidence margin
+    '''
        
     x = mat(x)
     e_var = mat(e_var)

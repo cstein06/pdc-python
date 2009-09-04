@@ -69,7 +69,7 @@ def lyap(A, B, C=[]):
         X = X.real
     return X
 
-def nstrand(u, maxp = 30):
+def nstrand(u, maxp = 30, simplep = True):
     '''
     %   Calculate the coeficients of multi-channel auto-regressive matrix using
     %   Nuttall-Strand algorithm (a generalization of single channel harmonic
@@ -160,24 +160,23 @@ def nstrand(u, maxp = 30):
     
     #print 'pf:', pf
     pf = abs(pf) #TODO: conferir o pf
-    return A.transpose(1,2,0), abs(pf)/N #pf,A,pb,B,ef,eb,ISTAT 
+    
+    if (simplep):
+        return A.transpose(1,2,0), abs(pf)/N 
+    else:
+        return pf,A,pb,B,ef,eb,ISTAT 
 
-def ar_fit(u,MaxIP=0,alg=1,criterion=1):
+def ar_fit(u, MaxIP = 0, alg=0, criterion=0):
     '''
     %
     %[IP,pf,A,pb,B,ef,eb,vaic,Vaicv] = mvar(u,MaxIP,alg,criterion)
     %
     % input: u     - data rows
-    %        MaxIP - externaly defined maximum IP
-    %        alg   - for algorithm (=1 Nutall-Strand), (=2 - mlsm) ,
-    %                              (=3 - Vieira Morf), (=4 - QR artfit)
-    %        criterion for order choice - 1: AIC; 2: Hanna-Quinn, 3 Schwartz,
-    %                                     4 FPE, 5 - fixed order in MaxIP
-    %                                     6 - xdelay,  7,8 - Broersen
-    %                                     9 - derivative (future) (envelope)
-    %                                     10 - estimate up to max order
-    %                                     Negative - keep criterion changes
-    % output: See Data Structure Data base Base
+    %        MaxIP - externaly defined maximum IP (default = 30)
+    %        alg   - for algorithm (0: Nutall-Strand)
+    %        criterion for order choice - 0: AIC; 1: fixed order in MaxIP
+    %                                     2(not yet): estimate up to max order
+    %                                     Negative(not yet) - keep criterion changes
     %
     '''
     StopFlag=0
@@ -189,7 +188,7 @@ def ar_fit(u,MaxIP=0,alg=1,criterion=1):
     
     vaicv=0
     if MaxIP == 0:
-       MaxOrder=30;
+       MaxOrder = 30;
        print 'MaxOrder limited to ', MaxOrder
        UpperboundOrder = round(3*sqrt(nSegLength)/nChannels)
        #% Marple Jr. page 409
@@ -203,7 +202,7 @@ def ar_fit(u,MaxIP=0,alg=1,criterion=1):
     IP=1
     Vaicv=zeros((MaxOrder+1,1), float)
     while IP <= UpperboundOrder:
-        [npf, na, npb, nb, nef, neb, ISTAT]=nstrand(u,IP)
+        [npf, na, npb, nb, nef, neb, ISTAT]=nstrand(u,IP,False)
         
         vaic=max(u.shape)*log(det(npf))+2*nChannels*nChannels*IP;
         
@@ -218,15 +217,10 @@ def ar_fit(u,MaxIP=0,alg=1,criterion=1):
         pf = array(npf)
         A  = array(na)
         ef = array(nef)
-        if alg==1:
+        if alg==0:
            B  = array(nb)
            eb = array(neb)
            pb = array(npb)
-        else:
-           #% review status for backward prediction in clmsm
-           B  = []
-           eb = []
-           pb = []
         IP=IP+1
 
     IP=IP-1
@@ -234,7 +228,8 @@ def ar_fit(u,MaxIP=0,alg=1,criterion=1):
     Vaicv=Vaicv[range(1,IP+1),0]
     Vaicv.shape = (Vaicv.size,1)
 
-    return IP,pf,A,pb,B,ef,eb,vaic,Vaicv
+    #return IP,pf,A,pb,B,ef,eb,vaic,Vaicv
+    return A.transpose(1,2,0), abs(pf)/nSegLength
 
 def R_YW(data, maxp = 30):
     '''Estimates multivariate AR fit for data, using Yule-walker of R package.
