@@ -275,7 +275,7 @@ def pc(data, maxp = 30, nf = 64, detrend = True, ss = True):
     else:
         return pc_alg(A, er, nf)
 
-def pdc_ass_and_plot(data, maxp = 5, nf = 64, sample_f = 1, 
+def pdc_full(data, maxp = 5, nf = 64, sample_f = 1, 
                      ss = True, alpha = 0.05, metric = 'gen', detrend = True):
     '''Interface that calculates PDC from data, calculates asymptotics statistics and plots everything.'''
     
@@ -301,7 +301,7 @@ def pdc_ass_and_plot(data, maxp = 5, nf = 64, sample_f = 1,
     plot_all(mes, th, ic1, ic2, nf = nf, ss = ssm, sample_f = sample_f)
     
 
-def measure_ass_and_plot(data, measure, maxp = 5, nf = 64, sample_f = 1, 
+def measure_full(data, measure, maxp = 5, nf = 64, sample_f = 1, 
                  ss = True, alpha = 0.05, detrend = True):
     '''Interface that calculates measure from data, calculates asymptotics statistics and plots everything.
        measure: 'dtf', 'coh', 'ss', 'pc'
