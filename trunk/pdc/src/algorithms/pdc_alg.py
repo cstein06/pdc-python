@@ -11,13 +11,13 @@ import algorithms.ar_fit as ar_fit
 import algorithms.asymp as as_
 from algorithms.plotting import *
 
+
 def list_to_array(data):
+    '''Converts a list to an array'''
     d = data[0].reshape(1,-1)
     for i in range(1,len(data)):
         d = concatenate([d, data[i].reshape(1,-1)], axis = 0)
     return d
-
-
 
 def A_to_f(A, nf = 64):
     '''Calculates A(f), in the frequency domain
@@ -43,6 +43,11 @@ def A_to_f(A, nf = 64):
     return AL
     
 def pc_alg(A, e_cov, nf = 64):
+    '''Calculates the Partial Coherence
+        A -> autoregressive matrix
+        e_cov -> residues
+        nf -> number of frequencies
+        '''
     n, n, r = A.shape
     
     e_cov = mat(e_cov)
@@ -57,6 +62,11 @@ def pc_alg(A, e_cov, nf = 64):
     return pc.transpose(1,2,0)
     
 def ss_alg(A, e_cov, nf = 64):
+    '''Calculates the Spectral density (SS)
+        A -> autoregressive matrix
+        e_cov -> residues
+        nf -> number of frequencies
+        '''
     n, n, r = A.shape
     
     AL = A_to_f(A, nf)
@@ -67,6 +77,11 @@ def ss_alg(A, e_cov, nf = 64):
     return ss.transpose(1,2,0)
 
 def ss_coh_alg(A, e_cov, nf = 64):
+    '''Calculates the Spectral density (SS) and Coherence (coh)
+        A -> autoregressive matrix
+        e_cov -> residues
+        nf -> number of frequencies
+        '''
     n, n, r = A.shape
     
     AL = A_to_f(A, nf)
@@ -81,6 +96,11 @@ def ss_coh_alg(A, e_cov, nf = 64):
     return ss.transpose(1,2,0), coh.transpose(1,2,0)
 
 def coh_alg(A, e_cov, nf = 64):
+    '''Calculates the Coherence (coh)
+        A -> autoregressive matrix
+        e_cov -> residues
+        nf -> number of frequencies
+        '''
     n, n, r = A.shape
     
     AL = A_to_f(A, nf)
@@ -126,7 +146,7 @@ def pdc_alg(A, e_cov, nf = 64, metric = 'gen'):
     return PDC.transpose(1,2,0)
 
 def dtf_one_alg(A, er, nf = 64):
-    '''Generates spectral non-norm. DTF matrix from AR matrix
+    '''Generates spectral not normalized DTF matrix from AR matrix
     
       Input: 
         A(n, n, r) - recurrence matrix (n - number of signals, r - model order)
@@ -154,6 +174,7 @@ def dtf_one_alg(A, er, nf = 64):
 
 
 def pdc_ss_coh(data, maxp = 30, nf = 64, detrend = True):
+    '''Interface that returns the PDC, SS and coh'''
 
     if(type(data) == 'list'):
         data = list_to_array(data)
@@ -161,11 +182,11 @@ def pdc_ss_coh(data, maxp = 30, nf = 64, detrend = True):
     if (detrend):
         data = sig.detrend(data)
     
-    A, er = ar_fit.nstrand(data, maxp)
+    A, er = ar_fit.ar_fit(data, maxp)
     return abs(pdc_alg(A, er, nf))**2, abs(ss_alg(A, er, nf))**2, abs(coh_alg(A, er, nf))**2
 
 
-def pdc(data, maxp = 30, nf = 64, detrend = True, SS = True, metric = 'gen'):
+def pdc(data, maxp = 30, nf = 64, detrend = True, ss = True, metric = 'gen'):
     '''Generates spectral PDC matrix from data array
     
       Input: 
@@ -173,31 +194,91 @@ def pdc(data, maxp = 30, nf = 64, detrend = True, SS = True, metric = 'gen'):
         maxp - maximum order for estimated AR model
         nf - frequency resolution
         detrend - Shall the data be detrended
+        SS - Shall calculate the SS also
+        metric - which PDC to use ('euc', 'diag' or 'gen')
         
       Output:
         PDC(n, n, nf) - PDC matrix
         ss(n, n, nf) - Parametric cross spectral matrix
     '''
-    if(type(data) == 'list'):
-        d = data[0].reshape(1,-1)
-        for i in range(size(data)):
-            d = concatenate([d, data[i].reshape(1,-1)], axis = 0)
-        data = d
+    
+    if(type(data) == type([])):
+        data = list_to_array(data)
         
     if (detrend):
         data = sig.detrend(data) 
         
     A, er = ar_fit.nstrand(data, maxp)
-    print A
-    if (SS):
+    
+    if (ss):
         return pdc_alg(A, er, nf, metric = metric), ss_alg(A, er, nf)
     else:
         return pdc_alg(A, er, nf, metric = metric)
 
 
+
+def coh(data, maxp = 30, nf = 64, detrend = True, ss = True):
+    '''Interface that calculate the Coherence from data'''
+    
+    if(type(data) == type([])):
+        data = list_to_array(data)
+        
+    if (detrend):
+        data = sig.detrend(data)
+    A, er = ar_fit.ar_fit(data, maxp)
+    
+    if (ss):
+        return coh_alg(A, er, nf), ss_alg(A, er, nf)
+    else:
+        return coh_alg(A, er, nf)
+
+
+def dtf(data, maxp = 30, nf = 64, detrend = True, ss = True):
+    '''Interface that calculate the Coherence from data'''
+    
+    if(type(data) == type([])):
+        data = list_to_array(data)
+        
+    if (detrend):
+        data = sig.detrend(data)
+    A, er = ar_fit.ar_fit(data, maxp)
+    
+    
+    if (ss):
+        return dtf_one_alg(A, er, nf), ss_alg(A, er, nf)
+    else:
+        return dtf_one_alg(A, er, nf)
+
+def ss(data, maxp = 30, nf = 64, detrend = True, ss = True):
+    '''Interface that calculate the Coherence from data'''
+    
+    if(type(data) == type([])):
+        data = list_to_array(data)
+        
+    if (detrend):
+        data = sig.detrend(data)
+    A, er = ar_fit.ar_fit(data, maxp)
+    return ss_alg(A,er,nf)
+
+def pc(data, maxp = 30, nf = 64, detrend = True, ss = True):
+    '''Interface that calculate the Coherence from data'''
+    
+    if(type(data) == type([])):
+        data = list_to_array(data)
+        
+    if (detrend):
+        data = sig.detrend(data)
+    A, er = ar_fit.ar_fit(data, maxp)
+    
+    if (ss):
+        return pc_alg(A, er, nf), ss_alg(A, er, nf)
+    else:
+        return pc_alg(A, er, nf)
+
 def pdc_ass_and_plot(data, maxp = 5, nf = 64, sample_f = 1, 
                      ss = True, alpha = 0.05, metric = 'gen', detrend = True):
- 
+    '''Interface that calculates PDC from data, calculates asymptotics statistics and plots everything.'''
+    
     if(type(data) == type([])):
         data = list_to_array(data)
         
@@ -205,7 +286,7 @@ def pdc_ass_and_plot(data, maxp = 5, nf = 64, sample_f = 1,
         data = sig.detrend(data)
         
     #Estimate AR parameters with Nuttall-Strand
-    Aest, erest = ar_fit.nstrand(data, maxp = maxp)
+    Aest, erest = ar_fit.ar_fit(data, maxp)
     print  'A:', Aest
     erest = (erest+erest.T)/2   #TODO: conferir isso.
     print 'evar:', erest
@@ -220,8 +301,70 @@ def pdc_ass_and_plot(data, maxp = 5, nf = 64, sample_f = 1,
     plot_all(mes, th, ic1, ic2, nf = nf, ss = ssm, sample_f = sample_f)
     
 
-def pdc_and_plot(data, maxp = 30, nf = 64, sample_f = 1, ss = True, metric = 'gen'):
+def measure_ass_and_plot(data, measure, maxp = 5, nf = 64, sample_f = 1, 
+                 ss = True, alpha = 0.05, detrend = True):
+    '''Interface that calculates measure from data, calculates asymptotics statistics and plots everything.
+       measure: 'dtf', 'coh', 'ss', 'pc'
+       '''
     
+    if(type(data) == type([])):
+        data = list_to_array(data)
+        
+    if (detrend):
+        data = sig.detrend(data)
+        
+    #Estimate AR parameters with Nuttall-Strand
+    Aest, erest = ar_fit.ar_fit(data, maxp)
+    print  'A:', Aest
+    erest = (erest+erest.T)/2   #TODO: conferir isso.
+    print 'evar:', erest
+    #Calculate the connectivity and statistics
+    if (measure == 'dtf'):
+        mes, th, ic1, ic2 = as_.asymp_dtf_one(data, Aest, nf, erest, 
+                                          maxp, alpha = alpha)
+    if (measure == 'coh'):
+        mes, th, ic1, ic2 = as_.asymp_coh(data, Aest, nf, erest, 
+                                          maxp, alpha = alpha)
+    if (measure == 'ss'):
+        mes, th, ic1, ic2 = as_.asymp_ss(data, Aest, nf, erest, 
+                                          maxp, alpha = alpha)
+    if (measure == 'pc'):
+        mes, th, ic1, ic2 = as_.asymp_pc(data, Aest, nf, erest, 
+                                          maxp, alpha = alpha)
+        
+    if (ss == True):
+        ssm = ss_alg(Aest, erest, nf)
+    else:
+        ssm = None
+    
+    plot_all(mes, th, ic1, ic2, nf = nf, ss = ssm, sample_f = sample_f)
+
+
+def measure_and_plot(data, measure, maxp = 30, nf = 64, sample_f = 1, ss = True):
+    '''Interface that calculates PDC from data and plots it'''
+    if(type(data) == type([])):
+        data = list_to_array(data)
+        
+    
+    if (measure == 'dtf'):
+        alg = dtf
+    if (measure == 'coh'):
+        alg = coh
+    if (measure == 'ss'):
+        alg = ss
+    if (measure == 'pc'):
+        alg = pc
+    
+    if (ss):
+        mea, ss_ = alg(data, maxp, nf, ss = True)
+    else:
+        mea = alg(data, maxp, nf, ss = False)
+        ss_ = None
+        
+    pdc_plot(mea, ss_, nf, sample_f)
+
+def pdc_and_plot(data, maxp = 30, nf = 64, sample_f = 1, ss = True, metric = 'gen'):
+    '''Interface that calculates PDC from data and plots it'''
     if(type(data) == type([])):
         data = list_to_array(data)
     
@@ -230,16 +373,3 @@ def pdc_and_plot(data, maxp = 30, nf = 64, sample_f = 1, ss = True, metric = 'ge
         ss_ = None
     pdc_plot(pdc_, ss_, nf, sample_f)
     
-
-
-def coh(data, maxp = 30, nf = 64, detrend = True, SS = True):
-    if(type(data) == 'list'):
-        d = data[0].reshape(1,-1)
-        for i in range(size(data)):
-            d = concatenate(d, data[i].reshape(1,-1, axis = 0))
-        data = d
-        
-    if (detrend):
-        data = sig.detrend(data)
-    A, er = ar_fit.nstrand(data, maxp)
-    return coh_alg(A,er,nf)
