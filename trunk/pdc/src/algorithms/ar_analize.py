@@ -1,4 +1,4 @@
-from numpy import *
+rom numpy import *
 import matplotlib.pyplot as pp
 
 import cProfile
