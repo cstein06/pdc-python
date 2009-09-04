@@ -14,6 +14,9 @@ from data_simulation.ar_data import ar_data
 from data_simulation.ar_data import ar_models
 from algorithms.ar_fit import ar_fit
 
+def example_test():
+    teste_sunspot_melanoma()
+
 def teste_simples():
     A = array([[[0.2, 0],[0.3,-0.2],[0.3,-0.2]], 
                [[0, 0],[0.8,-0.1],[0.4,-0.1]],
@@ -72,7 +75,7 @@ def teste_Ding():
     #Generate data from AR
     data = gen_data_Ding(nd)
     
-    pdc_.pdc_ass_and_plot(data, maxp = maxp, nf = nf, ss = False, 
+    pdc_.pdc_full(data, maxp = maxp, nf = nf, ss = False, 
                           alpha = alpha, metric = metric)
     
     #Estimate AR parameters with Nuttall-Strand
@@ -128,7 +131,7 @@ def teste_sunspot_melanoma():
         [ 1972, 5.3, 4.8,  65]])
    data=y[:,[3,2]].transpose()
    
-   pdc_.pdc_ass_and_plot(data, maxp = maxp, nf = nf, ss = True, 
+   pdc_.pdc_full(data, maxp = maxp, nf = nf, ss = True, 
                          alpha = alpha, metric = metric)
    
 
