@@ -4,6 +4,7 @@ from numpy import *
 import matplotlib.pyplot as pp
 from scipy.stats import chi2
 import scipy.stats as st
+from scipy.signal import detrend
 import time
 
 import algorithms.asymp as ass_
@@ -115,17 +116,25 @@ def teste_simples():
     
     #Generate data from AR
     data = ar_data(A, er, nd)
-    #Estimate AR parameters with Nuttall-Strand
-    Aest, erest = nstrand(data, maxp = maxp)
-    #Calculate the connectivity and statistics
-    mes, th, ic1, ic2 = ass_.asymp_pdc(data, Aest, nf, erest, 
-                                   maxp, alpha = alpha, metric = metric)
     
-    pdc_.plot_all(mes, th, ic1, ic2, nf = nf)
+    pdc_.pdc_ass_and_plot(data, maxp = maxp, nf = nf, ss = False, 
+                          alpha = alpha, metric = metric)
+    
+    #If you want step by step:
+    
+    #Estimate AR parameters with Nuttall-Strand
+    #Aest, erest = nstrand(data, maxp = maxp)
+    
+    #Calculate the connectivity and statistics
+    #mes, th, ic1, ic2 = ass_.asymp_pdc(data, Aest, nf, erest, 
+    #                               maxp, alpha = alpha, metric = metric)
+    
+    #Plot result
+    #pdc_.plot_all(mes, th, ic1, ic2, nf = nf)
 
 def teste_sunspot_melanoma():
-   nf = 20
-   alpha = 0.1
+   nf = 40
+   alpha = 0.05
    
    metric = 'diag'
    maxp=3
@@ -168,18 +177,10 @@ def teste_sunspot_melanoma():
         [ 1971, 5.3, 4.8,  80],
         [ 1972, 5.3, 4.8,  65]])
    data=y[:,[3,2]].transpose()
-   #Estimate AR parameters with Nuttall-Strand
-   Aest, erest = nstrand(data, maxp = maxp)
-   print Aest
-   print erest
-   #Calculate the connectivity and statistics
-   mes, th, ic1, ic2 = ass_.asymp_pdc(data, Aest, nf, erest,
-                                  maxp, alpha = alpha, metric = metric)
-   x = arange(nf)/(2.0*nf)
-
-   pdc_.plot_all(mes, th, ic1, ic2, nf = nf)
-   #pp.plot(x, mes[0,2], 'k-', x, th[0,2], 'r-', x, ic1[0,2], 'b-', x, ic2[0,2], 'b-')
-   #pp.show()
+   
+   pdc_.pdc_ass_and_plot(data, maxp = maxp, nf = nf, ss = True, 
+                         alpha = alpha, metric = metric)
+   
 
 
 def bootstrap(method_func, nd, nm, A, er, 
@@ -353,8 +354,8 @@ def test_bootstrap_MxN():
 
 if __name__ == "__main__":
     #test_coh()
-    #teste_simples()
+    teste_simples()
     #test_bootstrap()
     #test_bootstrap_MxN()
     #compare_bootstrap_asymp()
-    teste_sunspot_melanoma()
+    #teste_sunspot_melanoma()
