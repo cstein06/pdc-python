@@ -335,70 +335,14 @@ G_{dtf_{2}}^{\ast} = \frac{\partial |dtf_{ij}(\lambda)|^{2}} {\partial h \partia
 G_{dtf_{2}} = \zeta^{\ast^{'}} \cdot (\frac{\partial h}{\partial a^{'}})^{'} \cdot G_{dtf_{2}}^{\ast} \cdot \frac{\partial h}{\partial a^{'}} \cdot \zeta^{\ast}
 \end{equation}
 
-Para o cálculo de $\frac{\partial h}{\partial a^{'}}$ definimos $A_{r} = \Re(A)$, $A_{i} = \Im(A)$, $H = A^{-1}$ e o mesmo para $H_{r}$ e $H_{i}$. Definimos as matrizes:
+Para o cálculo de $\frac{\partial h}{\partial a^{'}}$ temos $H = A^{-1}$, assim a derivada complexa será:
 \begin{equation}
-A^{\ast} = \left[ \begin{array}{cc} A_{r} & -A_{i} \\ A_{i} & A_{r} \end{array} \right]; (2n \times 2n)
-\end{equation}
-\begin{equation}
-H^{\ast} = \left[ \begin{array}{cc} H_{r} & -H_{i} \\ H_{i} & H_{r} \end{array} \right]; (2n \times 2n)
-\end{equation}
-de forma que $H^{\ast} = A^{\ast^{-1}}$.
-
-Temos:
-\begin{equation}
-\frac{\partial vec(H^{\ast})}{\partial vec(A^{\ast})^{'}} = -H^{\ast^{'}} \otimes H^{\ast} = \left[ \begin{array}{cc} B_{11} & B_{12} \\ B_{21} & B_{22}
-\end{array} \right]; (4n^{2} \times 4n^{2})
-\end{equation}
-onde cada $B_{ij}$ é um dos quatro quadrantes da matriz.
-
-Queremos calcular $\frac{vec([H_{r} H_{i})}{vec([A_{r} A_{i}])^{'}}$, de forma que utilizaremos:
-\begin{equation}
-B = [B_{11} B_{12}] = \frac{\partial vec( \left[ \begin{array}{c} H_{r} \\ H_{i} \end{array} \right])}{\partial vec(A^{\ast})^{'}}
+B = \frac{\partial vec(H)}{\partial vec(A)^{'}} = -H^{'} \otimes H
 \end{equation}
 
-Seja $R$ tal que $R \cdot vec(\left[ \begin{array}{c} M_{1} \\ M_{2} \end{array} \right]) = vec([M_{1} M_{2}])$, onde $M_{1}, M_{2}$ são $(n \times n)$. Assim $R \cdot B = \frac{vec([H_{r} H_{i}])}{vec(A^{\ast})^{'}} = \frac{\partial h}{\partial vec(A^{\ast})^{'}}$.
-
-Seja $S$ tal que $S \cdot vec([M_{1} M_{2}]) = vec([-M_{2} M_{1}])$. Onde $M_{1}, M_{2}$ são $(n \times n)$. Assim:
+De forma que a derivada decompondo as partes reais e imaginárias será:
 \begin{equation}
-\left[ \begin{array}{c}
- R^{'} \\ R^{'} \cdot S
-\end{array} \right] vec([A_{r} A_{i}]) = \left[ \begin{array}{c}
- vec(\left[ \begin{array}{c}
- A_{r} \\ A_{i}
-\end{array} \right]
-) \\ vec(\left[ \begin{array}{c}
- -A_{i} \\ A_{r}
-\end{array} \right]
-)
-\end{array} \right] = vec(A^{\ast})
-\end{equation}
-o que implica $\frac{\partial vec(A^{\ast})}{\partial vec(A)^{'}} = \left[ \begin{array}{c}
- R^{'} \\ R^{'} \cdot S
-\end{array} \right]$
-
-Pela regra da cadeia:
-\begin{equation}
-\frac{\partial h}{\partial a^{'}} = \frac{\partial h}{\partial vec(A^{\ast})^{'}} \cdot \frac{\partial vec(A^{\ast})}{\partial vec(A)^{'}} = 
-R \cdot B \cdot \left[ \begin{array}{c}
- R^{'} \\ R^{'} \cdot S
-\end{array} \right]
-\end{equation}
-
-A matriz $R$ é obtida por:
-\begin{equation}
-R_{1} = I_{n} \otimes (\left[ \begin{array}{c} 1 \\ 0 \end{array} \right] \otimes I_{n})
-\end{equation}
-\begin{equation}
-R_{2} = I_{n} \otimes (\left[ \begin{array}{c} 0 \\ 1 \end{array} \right] \otimes I_{n})
-\end{equation}
-\begin{equation}
-R = [R_{1} R_{2}]^{'}
-\end{equation}
-e matriz $S$ por:
-\begin{equation}
-S = \left[ \begin{array}{cc}
- 0 & -I_{n^{2}} \\
-I_{n^{2}} & 0
+\frac{\partial h}{\partial a^{'}} = \left[ \begin{array}{cc} \Re(B) & -\Im(B) \\ \Im(B) & \Re(B)
 \end{array} \right]
 \end{equation}
 
