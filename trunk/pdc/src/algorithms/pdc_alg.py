@@ -2,58 +2,20 @@
 from numpy import *
 import matplotlib.pyplot as pp
 from scipy.linalg import inv
+import scipy.signal as sig
 
 import cProfile
 
 from data_simulation.ar_data import ar_data
 import algorithms.ar_fit as ar_fit
 import algorithms.asymp as as_
+from algorithms.plotting import *
 
 def list_to_array(data):
     d = data[0].reshape(1,-1)
     for i in range(1,len(data)):
         d = concatenate([d, data[i].reshape(1,-1)], axis = 0)
     return d
-
-def pdc_ss_coh(data, maxp = 30, nf = 64, detrend = True):
-
-    if(type(data) == 'list'):
-        data = list_to_array(data)
-        
-    if (detrend):
-        data = data - mean(data, axis = 1).reshape(-1,1) #TODO: usar signal.detrend?
-    
-    A, er = ar_fit.nstrand(data, maxp)
-    return abs(pdc_alg(A, er, nf))**2, abs(ss_alg(A, er, nf))**2, abs(coh_alg(A, er, nf))**2
-
-
-def pdc(data, maxp = 30, nf = 64, detrend = True, SS = True, metric = 'gen'):
-    '''Generates spectral PDC matrix from data array
-    
-      Input: 
-        data(n, m) - data matrix (n - number of signals, m - data length)
-        maxp - maximum order for estimated AR model
-        nf - frequency resolution
-        detrend - Shall the data be detrended
-        
-      Output:
-        PDC(n, n, nf) - PDC matrix
-        ss(n, n, nf) - Parametric cross spectral matrix
-    '''
-    if(type(data) == 'list'):
-        d = data[0].reshape(1,-1)
-        for i in range(size(data)):
-            d = concatenate([d, data[i].reshape(1,-1)], axis = 0)
-        data = d
-        
-    if (detrend):
-        data = data - mean(data, axis = 1).reshape(-1,1) #TODO: usar signal.detrend?
-    A, er = ar_fit.nstrand(data, maxp)
-    print A
-    if (SS):
-        return pdc_alg(A, er, nf, metric = metric), ss_alg(A, er, nf)
-    else:
-        return pdc_alg(A, er, nf, metric = metric)
 
 
 
@@ -104,7 +66,7 @@ def ss_alg(A, e_cov, nf = 64):
         ss[i] = H*e_cov*H.T.conj()
     return ss.transpose(1,2,0)
 
-def ss_coh():
+def ss_coh_alg(A, e_cov, nf = 64):
     n, n, r = A.shape
     
     AL = A_to_f(A, nf)
@@ -130,19 +92,6 @@ def coh_alg(A, e_cov, nf = 64):
         m = kron(d,d).reshape(n,n)
         coh[i] = ss/sqrt(m)
     return coh.transpose(1,2,0)
-
-def coh(data, maxp = 30, nf = 64, detrend = True, SS = True):
-    if(type(data) == 'list'):
-        d = data[0].reshape(1,-1)
-        for i in range(size(data)):
-            d = concatenate(d, data[i].reshape(1,-1, axis = 0))
-        data = d
-        
-    if (detrend):
-        data = data - mean(data, axis = 1).reshape(-1,1) #TODO: usar signal.detrend?
-    A, er = ar_fit.nstrand(data, maxp)
-    return coh_alg(A,er,nf)
-
 
 def pdc_alg(A, e_cov, nf = 64, metric = 'gen'):
     '''Generates spectral general (estatis. norm) PDC matrix from AR matrix
@@ -203,79 +152,48 @@ def dtf_one_alg(A, er, nf = 64):
     
     return DTF.transpose(1,2,0)
 
-def plot_all(mes, th, ic1, ic2, ss = None, nf = 64, sample_f = 1.0):
+
+def pdc_ss_coh(data, maxp = 30, nf = 64, detrend = True):
+
+    if(type(data) == 'list'):
+        data = list_to_array(data)
+        
+    if (detrend):
+        data = sig.detrend(data)
     
-    x = sample_f*arange(nf)/(2.0*nf)
-    n = mes.shape[0]
-    for i in range(n):
-        for j in range(n):
-            pp.subplot(n,n,i*n+j+1)
-            #over = mes[i,j][mes[i,j]>th[i,j]]
-            #overx = x[mes[i,j]>th[i,j]]
-            over = mes[i,j]
-            overx = x
-            under = mes[i,j][mes[i,j]<=th[i,j]]
-            underx = x[mes[i,j]<=th[i,j]]
-            pp.plot(x, th[i,j], 'r:', x, ic1[i,j], 'k:', x, ic2[i,j], 'k:', 
-                    overx, over, 'b-', underx, under, 'r-')
-            pp.ylim(-0.05,1.05)
-            if (i < n-1):
-                pp.xticks([])
-            if (j > 0):
-                pp.yticks([])
-        if (ss != None):
-            ax = pp.subplot(n,n,i*n+i+1).twinx()
-            ax.plot(sample_f*arange(nf)/(2.0*nf), ss[i,i,:], color='g')
-            ax.set_ylim(ymin = 0, ymax = ss[i,i,:].max())
-            if (i < n-1):
-                ax.set_xticks([])
-    pp.show()
+    A, er = ar_fit.nstrand(data, maxp)
+    return abs(pdc_alg(A, er, nf))**2, abs(ss_alg(A, er, nf))**2, abs(coh_alg(A, er, nf))**2
+
+
+def pdc(data, maxp = 30, nf = 64, detrend = True, SS = True, metric = 'gen'):
+    '''Generates spectral PDC matrix from data array
     
-def pdc_plot(pdc, ss = None, nf = 64, sample_f = 1.0):
-    
-    n = pdc.shape[0]
-    pdc = pdc*pdc.conj()
-    for i in range(n):
-        for j in range(n):
-            pp.subplot(n,n,i*n+j+1)
-            pp.plot(sample_f*arange(nf)/(2.0*nf), pdc[i,j,:])
-            pp.ylim(-0.05,1.05)
-            if (i < n-1):
-                pp.xticks([])
-            if (j > 0):
-                pp.yticks([])
-        if (ss != None):
-            ax = pp.subplot(n,n,i*n+i+1).twinx()
-            ax.plot(sample_f*arange(nf)/(2.0*nf), ss[i,i,:], color='g')
-            ax.set_ylim(ymin = 0, ymax = ss[i,i,:].max())
-            if (i < n-1):
-                ax.set_xticks([])
-    pp.show()
-    
-def plot_hbm09(mes, th, ic1, ic2, ss = None, nf = 64, sample_f = 1.0):
-    
-    x = sample_f*arange(nf)/(2.0*nf)
-    n = mes.shape[0]
-    for i in range(n):
-        for j in range(n):
-            if (i == j): continue
-            pp.subplot(1,2,j+1)
-            #over = mes[i,j][mes[i,j]>th[i,j]]
-            #overx = x[mes[i,j]>th[i,j]]
-            over = mes[i,j]
-            overx = x
-            under = mes[i,j][mes[i,j]<=th[i,j]]
-            underx = x[mes[i,j]<=th[i,j]]
-            pp.plot(x, th[i,j], 'r:', 
-                    overx, over, 'b-', underx, under, 'r-')
-            pp.ylim(-0.05,1.05)
-            pp.ylabel ('PDC')
-            pp.xlabel('Frequency (Hz)')
-            if (j == 0):
-                pp.title('Parietal -> Occipital')
-            else:
-                pp.title('Occipital -> Parietal')
-    pp.show()
+      Input: 
+        data(n, m) - data matrix (n - number of signals, m - data length)
+        maxp - maximum order for estimated AR model
+        nf - frequency resolution
+        detrend - Shall the data be detrended
+        
+      Output:
+        PDC(n, n, nf) - PDC matrix
+        ss(n, n, nf) - Parametric cross spectral matrix
+    '''
+    if(type(data) == 'list'):
+        d = data[0].reshape(1,-1)
+        for i in range(size(data)):
+            d = concatenate([d, data[i].reshape(1,-1)], axis = 0)
+        data = d
+        
+    if (detrend):
+        data = sig.detrend(data) 
+        
+    A, er = ar_fit.nstrand(data, maxp)
+    print A
+    if (SS):
+        return pdc_alg(A, er, nf, metric = metric), ss_alg(A, er, nf)
+    else:
+        return pdc_alg(A, er, nf, metric = metric)
+
 
 def pdc_ass_and_plot(data, maxp = 5, nf = 64, sample_f = 1, 
                      ss = True, alpha = 0.05, metric = 'gen', detrend = True):
@@ -284,12 +202,12 @@ def pdc_ass_and_plot(data, maxp = 5, nf = 64, sample_f = 1,
         data = list_to_array(data)
         
     if (detrend):
-        data = data - mean(data, axis = 1).reshape(-1,1) #TODO: usar signal.detrend?
+        data = sig.detrend(data)
         
     #Estimate AR parameters with Nuttall-Strand
     Aest, erest = ar_fit.nstrand(data, maxp = maxp)
     print  'A:', Aest
-    erest = (erest+erest.T)/2
+    erest = (erest+erest.T)/2   #TODO: conferir isso.
     print 'evar:', erest
     #Calculate the connectivity and statistics
     mes, th, ic1, ic2 = as_.asymp_pdc(data, Aest, nf, erest, 
@@ -299,8 +217,8 @@ def pdc_ass_and_plot(data, maxp = 5, nf = 64, sample_f = 1,
     else:
         ssm = None
     
-    #plot_all(mes, th, ic1, ic2, nf = nf, ss = ssm, sample_f = sample_f)
-    plot_hbm09(mes, th, ic1, ic2, nf = nf, ss = None, sample_f = sample_f)
+    plot_all(mes, th, ic1, ic2, nf = nf, ss = ssm, sample_f = sample_f)
+    
 
 def pdc_and_plot(data, maxp = 30, nf = 64, sample_f = 1, ss = True, metric = 'gen'):
     
@@ -312,3 +230,16 @@ def pdc_and_plot(data, maxp = 30, nf = 64, sample_f = 1, ss = True, metric = 'ge
         ss_ = None
     pdc_plot(pdc_, ss_, nf, sample_f)
     
+
+
+def coh(data, maxp = 30, nf = 64, detrend = True, SS = True):
+    if(type(data) == 'list'):
+        d = data[0].reshape(1,-1)
+        for i in range(size(data)):
+            d = concatenate(d, data[i].reshape(1,-1, axis = 0))
+        data = d
+        
+    if (detrend):
+        data = sig.detrend(data)
+    A, er = ar_fit.nstrand(data, maxp)
+    return coh_alg(A,er,nf)

@@ -5,19 +5,20 @@ from scipy.linalg import cholesky
 from scipy.linalg import eigh
 from scipy.linalg import inv as inv
 
-#corrlag = lambda a,b,lag: cov(a[k:],b[:-k])/a.size
 
+# These functions are used to make code more readable.
 vec = lambda x: mat(x.ravel('F')).T
 O = lambda n: mat(zeros([n, n], dtype=float))
 I = lambda n: mat(identity(n, dtype=float))
 cat = lambda a, b, ax: concatenate((a, b), axis = ax)
 mdiag = lambda a: mat(diag(diag(a)))
 diagtom = lambda a: mat(diag(array(a).reshape(-1)))
-
+#corrlag = lambda a,b,lag: cov(a[k:],b[:-k])/a.size
 #GInv = lambda a: dot(inv(dot(a.T, a)),a.T)
 
+
 def A_to_f(A, nf = 64):
-    '''Calculates A(f), in the frequency domain
+    '''Calculates A(f), in the frequency domain.
     
     Input:
         A(n, n, r) - recurrence matrix (n - number of signals, r - model order)
