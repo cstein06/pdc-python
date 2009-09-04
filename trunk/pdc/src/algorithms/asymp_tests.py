@@ -103,10 +103,10 @@ def test_coh():
     
 def teste_simples():
     A = array([[[0.2, 0],[0.3,-0.2],[0.3,-0.2]], 
-                   [[0, 0],[0.8,-0.1],[0.4,-0.1]],
-                   [[0, 0],[0.3,0.2],[0.4,0.1]]], dtype = float) 
+               [[0, 0],[0.8,-0.1],[0.4,-0.1]],
+               [[0, 0],[0.3,0.2],[0.4,0.1]]], dtype = float) 
     er = identity(3)
-    nd = 100
+    nd = 500
     nf = 20
     alpha = 0.05
     n = A.shape[0]
@@ -122,6 +122,65 @@ def teste_simples():
                                    maxp, alpha = alpha, metric = metric)
     
     pdc_.plot_all(mes, th, ic1, ic2, nf = nf)
+
+def teste_sunspot_melanoma():
+   nf = 20
+   alpha = 0.1
+   
+   metric = 'diag'
+   maxp=3
+   #Generate data from AR
+   y=array([[1936,  1.0, 0.9,  40],
+        [ 1937, 0.8, 0.8, 115],
+        [ 1938, 0.8, 0.8, 100],
+        [ 1939, 1.4, 1.3,  80],
+        [ 1940, 1.2, 1.4,  60],
+        [ 1941, 1.0, 1.2,  40],
+        [ 1942, 1.5, 1.7,  23],
+        [ 1943, 1.9, 1.8,  10],
+        [ 1944, 1.5, 1.6,  10],
+        [ 1945, 1.5, 1.5,  25],
+        [ 1946, 1.5, 1.5,  75],
+        [ 1947, 1.6, 2.0, 145],
+        [ 1948, 1.8, 2.5, 130],
+        [ 1949, 2.8, 2.7, 130],
+        [ 1950, 2.5, 2.9,  80],
+        [ 1951, 2.5, 2.5,  65],
+        [ 1952, 2.4, 3.1,  20],
+        [ 1953, 2.1, 2.4,  10],
+        [ 1954, 1.9, 2.2,   5],
+        [ 1955, 2.4, 2.9,  10],
+        [ 1956, 2.4, 2.5,  60],
+        [ 1957, 2.6, 2.6, 190],
+        [ 1958, 2.6, 3.2, 180],
+        [ 1959, 4.4, 3.8, 175],
+        [ 1960, 4.2, 4.2, 120],
+        [ 1961, 3.8, 3.9,  50],
+        [ 1962, 3.4, 3.7,  35],
+        [ 1963, 3.6, 3.3,  20],
+        [ 1964, 4.1, 3.7,  10],
+        [ 1965, 3.7, 3.9,  15],
+        [ 1966, 4.2, 4.1,  30],
+        [ 1967, 4.1, 3.8,  60],
+        [ 1968, 4.1, 4.7, 105],
+        [ 1969, 4.0, 4.4, 105],
+        [ 1970, 5.2, 4.8, 105],
+        [ 1971, 5.3, 4.8,  80],
+        [ 1972, 5.3, 4.8,  65]])
+   data=y[:,[3,2]].transpose()
+   #Estimate AR parameters with Nuttall-Strand
+   Aest, erest = nstrand(data, maxp = maxp)
+   print Aest
+   print erest
+   #Calculate the connectivity and statistics
+   mes, th, ic1, ic2 = ass_.asymp_pdc(data, Aest, nf, erest,
+                                  maxp, alpha = alpha, metric = metric)
+   x = arange(nf)/(2.0*nf)
+
+   pdc_.plot_all(mes, th, ic1, ic2, nf = nf)
+   #pp.plot(x, mes[0,2], 'k-', x, th[0,2], 'r-', x, ic1[0,2], 'b-', x, ic2[0,2], 'b-')
+   #pp.show()
+
 
 def bootstrap(method_func, nd, nm, A, er, 
               nf, alpha = 0.05, metric = None):
@@ -297,4 +356,5 @@ if __name__ == "__main__":
     #teste_simples()
     #test_bootstrap()
     #test_bootstrap_MxN()
-    compare_bootstrap_asymp()
+    #compare_bootstrap_asymp()
+    teste_sunspot_melanoma()
