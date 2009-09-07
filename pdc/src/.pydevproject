@@ -39,44 +39,9 @@
   
   
   <pydev_pathproperty name="org.python.pydev.PROJECT_SOURCE_PATH">
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
     <path>/pdc/src</path>
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
     <path>/pdc</path>
-    
-    
-    
-    
-    
-    
-  
-  
-  
-  
-  
-  
+    <path>/pdc/algorithms</path>
   </pydev_pathproperty>
   
   
