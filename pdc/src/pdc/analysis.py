@@ -288,7 +288,7 @@ def pdc_full(data, maxp = 5, nf = 64, sample_f = 1,
     #Estimate AR parameters with Nuttall-Strand
     Aest, erest = ar_fit.ar_fit(data, maxp)
     print  'A:', Aest
-    erest = (erest+erest.T)/2   #TODO: conferir isso.
+    #erest = (erest+erest.T)/2   #TODO: conferir isso. porque nao eh sempre simetrico?
     print 'evar:', erest
     #Calculate the connectivity and statistics
     mes, th, ic1, ic2 = as_.asymp_pdc(data, Aest, nf, erest, 
