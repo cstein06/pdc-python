@@ -86,7 +86,7 @@ def teste_sunspot_melanoma():
    nf = 40
    alpha = 0.05
    
-   metric = 'diag'
+   metric = 'euc'
    maxp=3
    #Generate data from AR
    y=array([[1936,  1.0, 0.9,  40],
@@ -127,6 +127,8 @@ def teste_sunspot_melanoma():
         [ 1971, 5.3, 4.8,  80],
         [ 1972, 5.3, 4.8,  65]])
    data=y[:,[3,2]].transpose()
+   
+   data = data/std(data, axis = 1).reshape(-1,1)
    
    pdc_.pdc_full(data, maxp = maxp, nf = nf, ss = True, 
                          alpha = alpha, metric = metric)

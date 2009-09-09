@@ -159,7 +159,7 @@ def nstrand(u, maxp = 30, simplep = True):
             break
     
     #print 'pf:', pf
-    pf = abs(pf) #TODO: conferir o pf
+    #pf = abs(pf) #TODO: conferir o pf, pq as vezes da matriz toda negativa?
     
     if (simplep):
         return A.transpose(1,2,0), abs(pf)/N 
