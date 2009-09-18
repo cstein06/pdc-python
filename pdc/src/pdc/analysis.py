@@ -19,6 +19,15 @@ def list_to_array(data):
         d = concatenate([d, data[i].reshape(1,-1)], axis = 0)
     return d
 
+def pre_data(data, normalize = True, detrend = True):
+    if (detrend):
+        data = sig.detrend(data)
+        
+    if (normalize):
+        data = data/std(data, axis = 1).reshape(-1,1)
+        
+    return data
+
 def A_to_f(A, nf = 64):
     '''Calculates A(f), in the frequency domain
     
@@ -282,11 +291,14 @@ def pdc_full(data, maxp = 5, nf = 64, sample_f = 1,
     if(type(data) == type([])):
         data = list_to_array(data)
         
-    if (detrend):
-        data = sig.detrend(data)
         
-    if (normalize):
-        data = data/std(data, axis = 1).reshape(-1,1)
+    data = pre_data(data)
+        
+    #if (detrend):
+    #    data = sig.detrend(data)
+        
+    #if (normalize):
+    #    data = data/std(data, axis = 1).reshape(-1,1)
         
     #Estimate AR parameters with Nuttall-Strand
     Aest, erest = ar_fit.ar_fit(data, maxp)
@@ -301,8 +313,8 @@ def pdc_full(data, maxp = 5, nf = 64, sample_f = 1,
     else:
         ssm = None
     
-    #print 'pdc', mes
-    #print 'th', th
+    print 'pdc', mes
+    print 'th', th
     
     plot_all(mes, th, ic1, ic2, nf = nf, ss = ssm, sample_f = sample_f)
     

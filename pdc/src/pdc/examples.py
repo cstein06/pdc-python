@@ -83,7 +83,7 @@ def teste_Ding():
     #pdc_.plot_all(mes, th, ic1, ic2, nf = nf)
 
 def teste_sunspot_melanoma():
-   nf = 64
+   nf = 20
    alpha = 0.05
    
    metric = 'euc'
