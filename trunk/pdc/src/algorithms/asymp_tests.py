@@ -96,11 +96,11 @@ def test_coh():
     
     er = identity(3)
     #er = array([[0.7,0.3, 0], [0.3, 1.2, 0.4], [0, 0.4, 2]], dtype = float)
-    coh, th, ic1, ic2, h0, h11, h12, cohr = test_asymp(ass_.asymp_coh, pdc_.coh_alg, nm = 100, nd = 10000, A = A, er = er, 
-                                                       nf = 10, alpha = 0.05)
+    #coh, th, ic1, ic2, h0, h11, h12, cohr = test_asymp(ass_.asymp_coh, pdc_.coh_alg, nm = 100, nd = 10000, A = A, er = er, 
+    #                                                   nf = 10, alpha = 0.05)
 
-    #pdc, th, ic1, ic2, h0, h11, h12, pdcr = test_asymp(ass_.asymp_pdc, pdc_.pdc_alg, nm = 100, nd = 10000, A = A, er = er, 
-    #                                                   nf = 10, alpha = 0.05, metric = 'diag')
+    pdc, th, ic1, ic2, h0, h11, h12, pdcr = test_asymp(ass_.asymp_pdc, pdc_.pdc_alg, nm = 1000, nd = 1000, A = A, er = er, 
+                                                       nf = 10, alpha = 0.05, metric = 'euc')
     print h0
     print h11+h12
     
@@ -194,15 +194,15 @@ def plot_all_test_ic(mes, tha, ic1a, ic1b, ic1c, ic2a, ic2b, ic2c, nf = 64, samp
 
 def compare_bootstrap_asymp():
     
-    A, er = ar_models(1)
+    A, er = ar_models(0)
     maxp = A.shape[2]    
-    nd = 5000
-    nm = 3000
-    nf = 10
+    nd = 10000
+    nm = 1000
+    nf = 20
     alpha = 0.05
     meth = pdc_.pdc_alg
     asymp_func = ass_.asymp_pdc
-    metric = 'euc'
+    metric = 'gen'
     
     #Generate data from AR
     data = ar_data(A, er, nd)
