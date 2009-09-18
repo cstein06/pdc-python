@@ -83,10 +83,10 @@ def teste_Ding():
     #pdc_.plot_all(mes, th, ic1, ic2, nf = nf)
 
 def teste_sunspot_melanoma():
-   nf = 40
+   nf = 10
    alpha = 0.05
    
-   metric = 'euc'
+   metric = 'diag'
    maxp=3
    #Generate data from AR
    y=array([[1936,  1.0, 0.9,  40],
@@ -128,10 +128,10 @@ def teste_sunspot_melanoma():
         [ 1972, 5.3, 4.8,  65]])
    data=y[:,[3,2]].transpose()
    
-   data = data/std(data, axis = 1).reshape(-1,1)
+   #data = data/std(data, axis = 1).reshape(-1,1)
    
    pdc_.pdc_full(data, maxp = maxp, nf = nf, ss = True, 
-                         alpha = alpha, metric = metric)
+                 alpha = alpha, metric = metric, normalize = True)
    
 
 if __name__ == "__main__":

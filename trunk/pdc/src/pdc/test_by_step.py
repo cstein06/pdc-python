@@ -6,7 +6,7 @@ from scipy.stats import chi2
 import time
 from scipy import randn
 
-import pdc.pdc_alg as pdc_
+import pdc.analysis as pdc_
 import pdc.asymp as ass_
 from pdc.ar_data import ar_data
 import pdc.ar_fit as ar_fit
@@ -28,15 +28,12 @@ def compare_matlab_pdc_one(nd = 100, nf = 5, metric = 'euc'):
     u2 = sin(linspace(0,13,nd)).reshape(1,-1)
     u = concatenate((u1, u2), axis = 0)
     
-    pdc = pdc_.pdc_alg(A, er, nf, metric = metric)
-    #print abs(pdc)**2
+    pdc, th, ic1, ic2 = ass_.asymp_pdc(u, A, nf, er, IP, alpha = 0.05, metric = metric)
     
-    Af = pdc_.A_to_f(A, nf = nf)
-    th, ic1, ic2 = ass_.assym_pdc(u, Af, er, IP, alpha = 0.05, metric = metric)
-    print 'pdc', abs(pdc)**2
-    print 'th', th
-    print 'ic1', ic1
-    print 'ic2', ic2
+    print 'pdc', pdc
+    #print 'th', th
+    #print 'ic1', ic1
+    #print 'ic2', ic2
 
 def test_pdc():
     A = array([[[4,-4],[3,3]],[[0,0],[0,3]]], dtype=float).reshape(2,2,2)/20
@@ -364,4 +361,5 @@ def test_AIC():
     
 
 if __name__ == "__main__":
-    test_AIC()
+    #test_AIC()
+    compare_matlab_pdc_one()
