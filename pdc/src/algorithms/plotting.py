@@ -51,6 +51,10 @@ def plot_all(mes, th, ic1, ic2, ss = None, nf = 64, sample_f = 1.0):
                 ax.set_xticks([])
     pp.show()
     
+
+
+
+
 def pdc_plot(pdc, ss = None, nf = 64, sample_f = 1.0):
     '''Plots nxn graphics. 
        If ss == True, plots ss in the diagonal.'''

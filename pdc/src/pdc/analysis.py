@@ -301,6 +301,9 @@ def pdc_full(data, maxp = 5, nf = 64, sample_f = 1,
     else:
         ssm = None
     
+    #print 'pdc', mes
+    #print 'th', th
+    
     plot_all(mes, th, ic1, ic2, nf = nf, ss = ssm, sample_f = sample_f)
     
 def coh_full(data, maxp = 5, nf = 64, sample_f = 1, 

@@ -45,6 +45,28 @@ def teste_simples():
     #Plot result
     #pdc_.plot_all(mes, th, ic1, ic2, nf = nf)
 
+def compare_matlab_pdc_euc(nd = 100, nf = 5, metric = 'euc'):
+    ''' Compara resultado do pdc e assym pdc com o matlab 
+    Tem que gerar dados estaticos para não ter fator variável.'''
+    
+    A = array([[4,3],[0,3]], dtype=float).reshape(2,2,1)/10
+    #A = array([[[4,-4],[3,3]],[[0,0],[0,3]]], dtype=float).reshape(2,2,2)/20
+    er = array([[0.7,0.1],[0.1,2]], dtype = float)
+    IP = A.shape[2]
+    u1 = sin(linspace(0,10,nd)).reshape(1,-1)
+    u2 = sin(linspace(0,13,nd)).reshape(1,-1)
+    u = concatenate((u1, u2), axis = 0)
+    
+    pdc = pdc_.pdc_alg(A, er, nf, metric = metric)
+    #print abs(pdc)**2
+    
+    Af = pdc_.A_to_f(A, nf = nf)
+    th, ic1, ic2 = ass_.assym_pdc(u, Af, er, IP, alpha = 0.05, metric = metric)
+    print 'pdc', abs(pdc)**2
+    print 'th', th
+    print 'ic1', ic1
+    print 'ic2', ic2
+
 def gen_data_Ding(m):
     p = 3
     x = zeros([5,m])
@@ -83,7 +105,7 @@ def teste_Ding():
     #pdc_.plot_all(mes, th, ic1, ic2, nf = nf)
 
 def teste_sunspot_melanoma():
-   nf = 40
+   nf = 64
    alpha = 0.05
    
    metric = 'diag'
