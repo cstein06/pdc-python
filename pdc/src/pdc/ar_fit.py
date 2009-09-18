@@ -141,10 +141,11 @@ def nstrand(u, maxp = 30, simplep = True):
         #%  Update forward and backward covariance error  - Eqs. (15.75),(15.76)
         pf=pf-dot(dot(AM,BM),pf)
         pb=pb-dot(dot(BM,AM),pb)
+        
         #%  Update forward and backward predictor coeficients - Eqs.(15.84),(15.85)
         if not (M == 1):
           for K in range(1,M):
-             temp1=A[K-1,:,:]
+             temp1=A[K-1,:,:].copy()
              A[K-1,:,:]=A[K-1,:,:]+dot(AM,B[M-K-1,:,:])
              B[M-K-1,:,:]=B[M-K-1,:,:]+dot(BM,temp1)
         #%  Update residues
@@ -152,6 +153,7 @@ def nstrand(u, maxp = 30, simplep = True):
         Tef=array(ef)
         ef[0:NUMCHS,range(N-1,M-1,-1)]=ef[:,range(N-1,M-1,-1)]+dot(AM,eb[:,range(N-2,M-2,-1)])
         eb[0:NUMCHS,range(N-1,M-1,-1)]=eb[:,range(N-2,M-2,-1)]+dot(BM,Tef[:,range(N-1,M-1,-1)])
+        
         #%  Verify if model order is adequate
         if M == IP:
             A=-A
@@ -229,7 +231,7 @@ def ar_fit(u, MaxIP = 0, alg=0, criterion=0):
     Vaicv.shape = (Vaicv.size,1)
 
     #return IP,pf,A,pb,B,ef,eb,vaic,Vaicv
-    return A.transpose(1,2,0), abs(pf)/nSegLength
+    return A.transpose(1,2,0), pf/nSegLength
 
 def R_YW(data, maxp = 30):
     '''Estimates multivariate AR fit for data, using Yule-walker of R package.

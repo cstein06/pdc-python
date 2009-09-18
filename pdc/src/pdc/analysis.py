@@ -276,7 +276,7 @@ def pc(data, maxp = 30, nf = 64, detrend = True, ss = True):
         return pc_alg(A, er, nf)
 
 def pdc_full(data, maxp = 5, nf = 64, sample_f = 1, 
-                     ss = True, alpha = 0.05, metric = 'gen', detrend = True):
+                     ss = True, alpha = 0.05, metric = 'gen', detrend = True, normalize = False):
     '''Interface that calculates PDC from data, calculates asymptotics statistics and plots everything.'''
     
     if(type(data) == type([])):
@@ -284,6 +284,9 @@ def pdc_full(data, maxp = 5, nf = 64, sample_f = 1,
         
     if (detrend):
         data = sig.detrend(data)
+        
+    if (normalize):
+        data = data/std(data, axis = 1).reshape(-1,1)
         
     #Estimate AR parameters with Nuttall-Strand
     Aest, erest = ar_fit.ar_fit(data, maxp)
@@ -301,23 +304,23 @@ def pdc_full(data, maxp = 5, nf = 64, sample_f = 1,
     plot_all(mes, th, ic1, ic2, nf = nf, ss = ssm, sample_f = sample_f)
     
 def coh_full(data, maxp = 5, nf = 64, sample_f = 1, 
-             ss = True, alpha = 0.05, detrend = True):
-    measure_full(data, 'coh', maxp, nf, sample_f, ss, alpha, detrend)
+             ss = True, alpha = 0.05, detrend = True, normalize = False):
+    measure_full(data, 'coh', maxp, nf, sample_f, ss, alpha, detrend, normalize)
 
 def dtf_full(data, maxp = 5, nf = 64, sample_f = 1, 
-             ss = True, alpha = 0.05, detrend = True):
-    measure_full(data, 'dtf', maxp, nf, sample_f, ss, alpha, detrend)
+             ss = True, alpha = 0.05, detrend = True, normalize = False):
+    measure_full(data, 'dtf', maxp, nf, sample_f, ss, alpha, detrend, normalize)
 
 def ss_full(data, maxp = 5, nf = 64, sample_f = 1, 
-             ss = True, alpha = 0.05, detrend = True):
-    measure_full(data, 'ss', maxp, nf, sample_f, ss, alpha, detrend)
+             ss = True, alpha = 0.05, detrend = True, normalize = False):
+    measure_full(data, 'ss', maxp, nf, sample_f, ss, alpha, detrend, normalize)
 
 def pc_full(data, maxp = 5, nf = 64, sample_f = 1, 
-             ss = True, alpha = 0.05, detrend = True):
-    measure_full(data, 'pc', maxp, nf, sample_f, ss, alpha, detrend)
+             ss = True, alpha = 0.05, detrend = True, normalize = False):
+    measure_full(data, 'pc', maxp, nf, sample_f, ss, alpha, detrend, normalize)
 
 def measure_full(data, measure, maxp = 5, nf = 64, sample_f = 1, 
-                 ss = True, alpha = 0.05, detrend = True):
+                 ss = True, alpha = 0.05, detrend = True, normalize = False):
     '''Interface that calculates measure from data, calculates asymptotics statistics and plots everything.
        measure: 'dtf', 'coh', 'ss', 'pc'
        '''
@@ -328,10 +331,13 @@ def measure_full(data, measure, maxp = 5, nf = 64, sample_f = 1,
     if (detrend):
         data = sig.detrend(data)
         
+    if (normalize):
+        data = data/std(data, axis = 1).reshape(-1,1)
+        
     #Estimate AR parameters with Nuttall-Strand
     Aest, erest = ar_fit.ar_fit(data, maxp)
     print  'A:', Aest
-    erest = (erest+erest.T)/2   #TODO: conferir isso.
+    #erest = (erest+erest.T)/2   #TODO: conferir isso.
     print 'evar:', erest
     #Calculate the connectivity and statistics
     if (measure == 'dtf'):
