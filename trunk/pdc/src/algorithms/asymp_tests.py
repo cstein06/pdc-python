@@ -194,25 +194,27 @@ def plot_all_test_ic(mes, tha, ic1a, ic1b, ic1c, ic2a, ic2b, ic2c, nf = 64, samp
 
 def compare_bootstrap_asymp():
     
-    A, er = ar_models(0)
-    maxp = A.shape[2]    
-    nd = 10000
+    data = ar_models(2)
+    data = pdc_.pre_data(data)
+    maxp = 3
+    A, er = nstrand(data, maxp = maxp)
+    nd = data.shape[1]
+    
+    
+    #A, er = ar_models(0)
+    #maxp = A.shape[2]   
+    #nd = 1000
+    #Generate data from AR
+    #data = ar_data(A, er, nd)
+    
     nm = 1000
     nf = 20
-    alpha = 0.05
+    alpha = 0.01
     meth = pdc_.pdc_alg
     asymp_func = ass_.asymp_pdc
-    metric = 'gen'
+    metric = 'euc'
     
-    #Generate data from AR
-    data = ar_data(A, er, nd)
-    #Estimate AR parameters with Nuttall-Strand
-    #Aest, erest = nstrand(data, maxp = maxp)
     
-    #mes = abs(meth(A, er, nf))**2
-    #mesest = abs(meth(Aest, erest, nf))**2
-    
-    #er = array([[0.7,0.3, 0], [0.3, 1.2, 0.4], [0, 0.4, 2]], dtype = float)
     mesb, bvar, ic1, ic2 = bootstrap(meth, nd = nd, nm = nm, A = A, er = er, 
                                      nf = nf, alpha = alpha, metric = metric)
     mesa, tha, ic1a, ic2a = asymp_func(data, A, nf, er, 

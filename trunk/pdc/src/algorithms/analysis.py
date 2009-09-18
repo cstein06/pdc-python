@@ -19,6 +19,15 @@ def list_to_array(data):
         d = concatenate([d, data[i].reshape(1,-1)], axis = 0)
     return d
 
+def pre_data(data, normalize = True, detrend = True):
+    if (detrend):
+        data = sig.detrend(data)
+        
+    if (normalize):
+        data = data/std(data, axis = 1).reshape(-1,1)
+        
+    return data
+
 def A_to_f(A, nf = 64):
     '''Calculates A(f), in the frequency domain
     

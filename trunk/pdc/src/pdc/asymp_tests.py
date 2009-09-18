@@ -92,11 +92,11 @@ def test_coh():
     
     er = identity(3)
     #er = array([[0.7,0.3, 0], [0.3, 1.2, 0.4], [0, 0.4, 2]], dtype = float)
-    coh, th, ic1, ic2, h0, h11, h12, cohr = test_asymp(ass_.asymp_coh, pdc_.coh_alg, nm = 100, nd = 10000, A = A, er = er, 
-                                                       nf = 10, alpha = 0.05)
+    #coh, th, ic1, ic2, h0, h11, h12, cohr = test_asymp(ass_.asymp_coh, pdc_.coh_alg, nm = 100, nd = 10000, A = A, er = er, 
+    #                                                   nf = 10, alpha = 0.05)
 
-    #pdc, th, ic1, ic2, h0, h11, h12, pdcr = test_asymp(ass_.asymp_pdc, pdc_.pdc_alg, nm = 100, nd = 10000, A = A, er = er, 
-    #                                                   nf = 10, alpha = 0.05, metric = 'diag')
+    pdc, th, ic1, ic2, h0, h11, h12, pdcr = test_asymp(ass_.asymp_pdc, pdc_.pdc_alg, nm = 1000, nd = 1000, A = A, er = er, 
+                                                       nf = 10, alpha = 0.05, metric = 'euc')
     print h0
     print h11+h12
     
@@ -166,51 +166,73 @@ def bootstrap(method_func, nd, nm, A, er,
     
     return mes, bvar, ic1, ic2
 
+def plot_all_test_ic(mes, tha, ic1a, ic1b, ic1c, ic2a, ic2b, ic2c, nf = 64, sample_f = 1.0):
+    '''Plots nxn graphics, with confidence intervals and threshold. 
+       If ss == True, plots ss in the diagonal.'''
+    x = sample_f*arange(nf)/(2.0*nf)
+    n = mes.shape[0]
+    for i in range(n):
+        for j in range(n):
+            pp.subplot(n,n,i*n+j+1)
+            
+            pp.plot(x, ic1a[i,j], 'k:', x, ic2a[i,j], 'k:', x, ic1b[i,j], 'r:', x, ic2b[i,j], 'r:', 
+                    x, ic1c[i,j], 'g:', x, ic2c[i,j], 'g:', x, tha[i,j], 'y+',
+                    x, mes[i,j], 'b-')
+            
+            pp.ylim(-0.05,1.05)
+            if (i < n-1):
+                pp.xticks([])
+            if (j > 0):
+                pp.yticks([])
+                
+    pp.show()
+
+
 def compare_bootstrap_asymp():
     
-    A, er = ar_models(1)
-    maxp = A.shape[2]    
-    nd = 200
-    nm = 500
-    nf = 5
-    alpha = 0.05
+    data = ar_models(2)
+    data = pdc_.pre_data(data)
+    maxp = 3
+    A, er = nstrand(data, maxp = maxp)
+    nd = data.shape[1]
+    
+    
+    #A, er = ar_models(0)
+    #maxp = A.shape[2]   
+    #nd = 1000
+    #Generate data from AR
+    #data = ar_data(A, er, nd)
+    
+    nm = 1000
+    nf = 20
+    alpha = 0.01
     meth = pdc_.pdc_alg
     asymp_func = ass_.asymp_pdc
-    metric = 'gen'
+    metric = 'euc'
     
-    #Generate data from AR
-    data = ar_data(A, er, nd)
-    #Estimate AR parameters with Nuttall-Strand
-    Aest, erest = nstrand(data, maxp = maxp)
     
-    #Generate data from AR
-    data2 = ar_data(A, er, nd)
-    #Estimate AR parameters with Nuttall-Strand
-    Aest2, erest2 = nstrand(data2, maxp = maxp)
-    
-    mes = abs(meth(A, er, nf))**2
-    mesest = abs(meth(Aest, erest, nf))**2
-    
-    #er = array([[0.7,0.3, 0], [0.3, 1.2, 0.4], [0, 0.4, 2]], dtype = float)
     mesb, bvar, ic1, ic2 = bootstrap(meth, nd = nd, nm = nm, A = A, er = er, 
-                                     nf = nf, alpha = alpha, metric = None)
+                                     nf = nf, alpha = alpha, metric = metric)
     mesa, tha, ic1a, ic2a = asymp_func(data, A, nf, er, 
-                                       maxp, alpha = alpha)
-    
-    mesa2, tha2, ic1a2, ic2a2 = asymp_func(data2, A, nf, er, 
-                                           maxp, alpha = alpha)
+                                       maxp, alpha = alpha, metric = metric)
     
     
     
-    print mes
-    print mesest
+    print mesa
+    
+    #print mes
+    #print mesest
     print 'ic1b', ic1
-    print 'ic1bv', mesest - sqrt(bvar)*st.norm.ppf(1-alpha/2.0)
+    ic1bv = mesa - sqrt(bvar)*st.norm.ppf(1-alpha/2.0)
+    print 'ic1bv', mesa - sqrt(bvar)*st.norm.ppf(1-alpha/2.0)
     print 'ic1a', ic1a
     print 'ic2b', ic2
-    print 'ic2bv', mesest + sqrt(bvar)*st.norm.ppf(1-alpha/2.0)
+    ic2bv = mesa + sqrt(bvar)*st.norm.ppf(1-alpha/2.0)
+    print 'ic2bv', mesa + sqrt(bvar)*st.norm.ppf(1-alpha/2.0)
     print 'ic2a', ic2a
-    print bvar.shape
+    #print bvar.shape
+    
+    plot_all_test_ic(mesa, tha, ic1, ic1bv, ic1a, ic2, ic2bv, ic2a, nf = nf)
     
     
 
