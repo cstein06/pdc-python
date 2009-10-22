@@ -3,12 +3,14 @@
 from numpy import *
 import matplotlib.pyplot as pp
 from scipy.stats import chi2
+from pdc.analysis import pdc, gci
 import time
 from scipy import randn
 
 import pdc.analysis as pdc_
 import pdc.asymp as ass_
-from pdc.ar_data import ar_data
+from pdc.asymp import *
+from pdc.ar_data import ar_data, ar_models
 import pdc.ar_fit as ar_fit
 
 from scipy.stats import cov as cov
@@ -18,7 +20,7 @@ from scipy.linalg import inv as inv
 from scipy.stats import chi2
 
 def compare_matlab_pdc_one(nd = 100, nf = 5, metric = 'euc'):
-    ''' Compara resultado do pdc e assym pdc com o matlab '''
+    ''' Compara resultado do pdc e asymp pdc com o matlab '''
     
     A = array([[4,3],[0,3]], dtype=float).reshape(2,2,1)/10
     #A = array([[[4,-4],[3,3]],[[0,0],[0,3]]], dtype=float).reshape(2,2,2)/20
@@ -38,7 +40,7 @@ def compare_matlab_pdc_one(nd = 100, nf = 5, metric = 'euc'):
 def test_pdc():
     A = array([[[4,-4],[3,3]],[[0,0],[0,3]]], dtype=float).reshape(2,2,2)/20
     er = array([[0.7,0],[0,2]], dtype = float)
-    pdc = pdc_.pdc_one_alg(A, er, nf = 5)
+    pdc = pdc_.pdc_alg(A, er, nf = 5, metric = 'euc')
     #pdc_plot(pdc)
     #print abs(pdc)**2
     return pdc
@@ -56,7 +58,7 @@ def test_alpha_var(montei = 100, nd = 100, A = None, er = None, maxp = 2):
         data = ar_data(A, er, nd)
         alpha[i], erest = ar_fit.nstrand(data, maxp = maxp)
         
-def test_assym_pdc_semr():
+def test_asymp_pdc_semr():
     Aest = array([[4,3],[0,3]], dtype=float).reshape(2,2,1)/10
     erest = array([[0.7,0],[0,2]], dtype = float)
     data = ar_data(Aest, erest, 1000)
@@ -64,7 +66,7 @@ def test_assym_pdc_semr():
     nf = 5
     Af = pdc_.A_to_f(Aest, nf = nf)
     pdc = pdc_.pdc_alg(Aest, erest)
-    th, ic1, ic2 = ass_.assym_pdc(data, Af, erest, maxp)
+    th, ic1, ic2 = ass_.asymp_pdc(data, Af, erest, maxp)
     print 'pdc', pdc
     print 'th', th
     print 'ic1', ic1
@@ -256,7 +258,7 @@ def test_pc():
     nf = 2
     Af = pdc_.A_to_f(Aest, nf = nf)
     pc = pdc_.pc(Aest, erest, nf = nf)
-    th, ic1, ic2, v1, v2 = ass_.assym_pc(data, Af, erest, maxp)
+    th, ic1, ic2, v1, v2 = ass_.asymp_pc(data, Af, erest, maxp)
     print 'pc', abs(pc)**2
     print 'th', th
     print 'ic1', ic1
@@ -273,7 +275,7 @@ def test_coh():
     nf = 2
     Af = pdc_.A_to_f(Aest, nf = nf)
     coh = pdc_.coh_alg(Aest, erest, nf = nf)
-    th, ic1, ic2, v1, v2 = ass_.assym_coh(data, Af, erest, maxp)
+    th, ic1, ic2, v1, v2 = ass_.asymp_coh(data, Af, erest, maxp)
     print 'pc', abs(coh)**2
     print 'th', th
     print 'ic1', ic1
@@ -292,7 +294,7 @@ def test_ss():
     nf = 2
     Af = pdc_.A_to_f(Aest, nf = nf)
     ss = pdc_.ss(Aest, erest, nf = nf)
-    th, ic1, ic2, v1, v2 = ass_.assym_ss(data, Af, erest, maxp)
+    th, ic1, ic2, v1, v2 = ass_.asymp_ss(data, Af, erest, maxp)
     print 'ss', abs(ss)**2
     print 'th', th
     print 'ic1', ic1
@@ -311,7 +313,7 @@ def test_pdc_normalizations():
     print pdc_.pdc_alg(A, er, metric = 'diag', nf = nf)
     print pdc_.pdc_alg(A, er, metric = 'gen', nf = nf)
 
-def test_patnaik(d, mci = 1000):
+def test_patnaik(d, mci = 10000):
     ''' Gera varias amostras sob a distribuicao patnaik e sobre a 
     distribuicao exata, a fim de comparar as distribuicoes '''
     
@@ -329,6 +331,18 @@ def test_patnaik(d, mci = 1000):
             rpat[i] = rpat[i] + chi2.rvs(1)*d[j]
     return pat, rpat
 
+def test_patnaik2():
+    
+    p, rp = test_patnaik(array([0.1, 0.8]), 100000)
+    p.sort()
+    rp.sort()
+    li = rp[ceil(size(rp)*0.95)]
+    ind = (p>li).argmax()
+    print ceil(size(p)*0.95), li
+    print ind, p[ind]
+    pp.plot(p, rp)
+    pp.plot([0,10], [0,10])
+    pp.show()
 
 def test_AIC():
     
@@ -359,7 +373,54 @@ def test_AIC():
     #pdc_.plot_all(mes, th, ic1, ic2, nf = nf)
     
     
+def test_gci():
+    
+    A = array([[[0.2, 0],[0, 0],[0.3,-0.2]], 
+              [[0, 0],[0.8,-0.1],[0.4,-0.1]],
+               [[0, 0],[-0.7,0.2],[0,0]]], dtype = float) 
+    er = identity(3)
+    data = ar_data(A, er, 10000, 10)
+    g = gci(data, 1)
+    print g
+    
+def test_gct():
+    
+    A = array([[[0.2, 0],[0, 0],[0.3,-0.2]], 
+              [[0, 0],[0.8,-0.1],[0.4,-0.1]],
+               [[0, 0],[-0.7,0.2],[0,0]]], dtype = float) 
+    er =  array([[0.7,0.3,0.0],[0.3,0.9,0.0],[0.0,0.0,2]], dtype = float)
+    data = ar_data(A, er, 1000, 10)
+    
+    maxp = 2
+    
+    a, b = ass_.igct(data, maxp)
+    #a, b = ass_.gct(data, maxp)
+    print a
+    print b
+    
+        
+def test_white():
+    
+    A = array([[[0.2, 0],[0, 0],[0.3,-0.2]], 
+              [[0, 0],[0.8,-0.1],[0.4,-0.1]],
+               [[0, 0],[-0.7,0.2],[0,0]]], dtype = float) 
+    er =  array([[0.7,0.3,0.0],[0.3,0.9,0.0],[0.0,0.0,2]], dtype = float)
+    data = ar_data(A, er, 1000, 10)
+    
+    maxp = 2
+
+    a, b = ass_.white_test(data, maxp, 10)
+    print a
+    print b
+    
+    
 
 if __name__ == "__main__":
     #test_AIC()
-    compare_matlab_pdc_one()
+    #compare_matlab_pdc_one()
+    test_patnaik2()
+    
+    #tes#t_gci()
+    #test_gct()
+    #test_white()
+

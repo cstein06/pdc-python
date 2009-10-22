@@ -1,4 +1,6 @@
 
+from numpy import *
+from matplotlib import pyplot as pp
     
 def plot_hbm09(mes, th, ic1, ic2, ss = None, nf = 64, sample_f = 1.0):
     

@@ -8,7 +8,7 @@ from scipy.signal import detrend
 import time
 
 import pdc.asymp as ass_
-import pdc.pdc_alg as pdc_
+import pdc.analysis as pdc_
 from pdc.ar_data import ar_data
 from pdc.ar_data import ar_models
 from pdc.ar_fit import nstrand
@@ -117,7 +117,7 @@ def teste_simples():
     #Generate data from AR
     data = ar_data(A, er, nd)
     
-    pdc_.pdc_ass_and_plot(data, maxp = maxp, nf = nf, ss = False, 
+    pdc_.pdc_full(data, maxp = maxp, nf = nf, ss = False, 
                           alpha = alpha, metric = metric)
     
     #If you want step by step:
@@ -132,6 +132,30 @@ def teste_simples():
     #Plot result
     #pdc_.plot_all(mes, th, ic1, ic2, nf = nf)
 
+
+
+
+
+def plot_all_test_ic(mes, tha, ic1a, ic1b, ic1c, ic2a, ic2b, ic2c, nf = 64, sample_f = 1.0):
+    '''Plots nxn graphics, with confidence intervals and threshold. 
+       If ss == True, plots ss in the diagonal.'''
+    x = sample_f*arange(nf)/(2.0*nf)
+    n = mes.shape[0]
+    for i in range(n):
+        for j in range(n):
+            pp.subplot(n,n,i*n+j+1)
+            
+            pp.plot(x, ic1a[i,j], 'k:', x, ic2a[i,j], 'k:', x, ic1b[i,j], 'r:', x, ic2b[i,j], 'r:', 
+                    x, ic1c[i,j], 'g:', x, ic2c[i,j], 'g:', x, tha[i,j], 'y+',
+                    x, mes[i,j], 'b-')
+            
+            pp.ylim(-0.05,1.05)
+            if (i < n-1):
+                pp.xticks([])
+            if (j > 0):
+                pp.yticks([])
+                
+    pp.show()
 
 
 def bootstrap(method_func, nd, nm, A, er, 
@@ -165,28 +189,6 @@ def bootstrap(method_func, nd, nm, A, er,
     bvar = var(mes, axis = 0)
     
     return mes, bvar, ic1, ic2
-
-def plot_all_test_ic(mes, tha, ic1a, ic1b, ic1c, ic2a, ic2b, ic2c, nf = 64, sample_f = 1.0):
-    '''Plots nxn graphics, with confidence intervals and threshold. 
-       If ss == True, plots ss in the diagonal.'''
-    x = sample_f*arange(nf)/(2.0*nf)
-    n = mes.shape[0]
-    for i in range(n):
-        for j in range(n):
-            pp.subplot(n,n,i*n+j+1)
-            
-            pp.plot(x, ic1a[i,j], 'k:', x, ic2a[i,j], 'k:', x, ic1b[i,j], 'r:', x, ic2b[i,j], 'r:', 
-                    x, ic1c[i,j], 'g:', x, ic2c[i,j], 'g:', x, tha[i,j], 'y+',
-                    x, mes[i,j], 'b-')
-            
-            pp.ylim(-0.05,1.05)
-            if (i < n-1):
-                pp.xticks([])
-            if (j > 0):
-                pp.yticks([])
-                
-    pp.show()
-
 
 def compare_bootstrap_asymp():
     
@@ -332,3 +334,4 @@ if __name__ == "__main__":
     #test_bootstrap_MxN()
     #compare_bootstrap_asymp()
     #teste_sunspot_melanoma()
+    
