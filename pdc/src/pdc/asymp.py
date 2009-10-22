@@ -7,6 +7,8 @@ from scipy.stats import cov as cov
 from scipy.linalg import cholesky
 from scipy.linalg import eigh
 from scipy.linalg import inv as inv
+from matplotlib.pyplot import xcorr
+from pdc import ar_fit
 
 # These functions are used to make code more readable.
 vec = lambda x: mat(x.ravel('F')).T
@@ -292,7 +294,7 @@ def asymp_pdc(x, A, nf, e_var, p, metric = 'gen', alpha = 0.05):
     return pdc, th, ic1, ic2
 
 
-def asymp_dtf_one(x, A, nf, e_var, p, alpha = 0.05):
+def asymp_dtf(x, A, nf, e_var, p, alpha = 0.05):
     '''Asymptotic statistics for the DTF
         x -> data
         A -> autoregressive matrix
@@ -815,3 +817,102 @@ def asymp_ss(x, A, nf, e_var, p, alpha = 0.05):
                 varass2[i, j, ff] = 2*patdf/(patden*2*nd)**2
                 
     return ss, th, ic1, ic2
+
+def fCij(i, j, n, p):
+    '''Returns Cij of the formula'''
+    Cij = mat(zeros([1,n*n]))
+    Cij[0,i*n + j] = 1
+    Cij = kron(Cij, I(p))
+    return mat(Cij)
+
+def gct(x):
+    '''Asymptotic statistics for Wald statistic of the GC in time
+        x -> data
+        A -> autoregressive matrix
+        e_var -> residues
+        alpha -> confidence margin
+    '''
+
+    A, e_var = ar_fit.ar_fit(x, 2)
+    
+    x = mat(x)
+    e_var = mat(e_var)
+    
+    n, nd = x.shape
+    n, n, p = A.shape
+    
+    wt = empty([n, n])
+    
+    gammai = inv(bigautocorr(x, p))
+    omega = kron(gammai, e_var)
+    
+    a = mat(ravel(A)).T
+    
+    for i in range(n):
+        for j in range(n):
+            Cij = fCij(i,j,n,p)
+            wt[i,j] = (nd*1.0/p)*(Cij*a).T*((Cij*omega*Cij.T).I)*(Cij*a)
+            
+    pv = 1-st.f.cdf(wt, p, nd-n*p-1)
+    
+    return pv, wt
+
+def igct(x):
+    '''Asymptotic statistics for Wald statistic of instantaneous GC
+        x -> data
+        A -> autoregressive matrix
+        e_var -> residues
+        alpha -> confidence margin
+    '''
+
+    A, e_var = ar_fit.ar_fit(x, 2)
+    
+    e_var = mat(e_var)
+    
+    n, nd = x.shape
+    n, n, p = A.shape
+    
+    wt = zeros([n, n])
+    
+    a = mat(ravel(A)).T
+    
+    for i in arange(n):
+        for j in arange(n):
+            Cij = zeros([n,n])
+            Cij[i,j] = 1
+            Cij[j,i] = 1
+            Cij = mat(vech(Cij))
+            eij = e_var[i,j]
+            Di = Dup(n).I
+            wt[i,j] = nd*eij*(2*Cij*Di*kron(e_var,e_var)*Di.T*Cij.T).I*eij
+            
+            
+    pv = 1-st.chi2.cdf(wt, 1)
+    
+    return pv, wt
+
+
+def white_test(x, maxp = 30, h = 10):
+    
+    A, res = ar_fit.ar_fit(x, maxp, return_ef=True)
+    
+    n,nd = res.shape
+    n,n,p = A.shape
+    
+    x = empty([n,n,h+1])
+    
+    for i in arange(n):
+        for j in arange(n):
+            dum, aux, dum, dum = xcorr(res[i], res[j], maxlags = h, normed = False)
+            x[i,j] = aux[h:]
+    
+    s0 = mat(inv(x[:,:,0]))
+    s = 0
+    for i in arange(1,h+1):
+        s = s + (1.0/(nd-i))*trace(x[:,:,i].T*s0*x[:,:,i]*s0)
+    s = s*nd**2
+    pv = 1-st.chi2.cdf(s,(h-p)*n**2)
+    
+    return pv, s
+
+    

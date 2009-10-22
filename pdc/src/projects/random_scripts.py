@@ -2,7 +2,7 @@ from numpy import *
 import matplotlib.pyplot as pp
 
 from data_simulation.ar_data import ar_data
-import algorithms.pdc_alg as pdc_
+import pdc.analysis as pdc_
 
 def test_subsample():
     

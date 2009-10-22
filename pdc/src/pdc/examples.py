@@ -1,3 +1,4 @@
+
 from numpy import *
 import matplotlib.pyplot as pp
 from scipy.stats import chi2
@@ -131,10 +132,12 @@ def teste_sunspot_melanoma():
    #data = data/std(data, axis = 1).reshape(-1,1)
    
    pdc_.pdc_full(data, maxp = maxp, nf = nf, ss = True, 
-                 alpha = alpha, metric = metric, normalize = True)
+                 alpha = alpha, metric = metric, normalize = True, stat = 'boot', n_boot = 300)
+   pdc_.coh_full(data, maxp = maxp, nf = nf, ss = True, 
+                 alpha = alpha, normalize = False, stat = 'asymp', n_boot = 300)
    
 
 if __name__ == "__main__":
     #teste_Ding()
     teste_sunspot_melanoma()
-    #teste_simples()
+    

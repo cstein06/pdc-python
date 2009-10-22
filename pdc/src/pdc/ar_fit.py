@@ -168,7 +168,7 @@ def nstrand(u, maxp = 30, simplep = True):
     else:
         return pf,A,pb,B,ef,eb,ISTAT 
 
-def ar_fit(u, MaxIP = 0, alg=0, criterion=0):
+def ar_fit(u, MaxIP = 0, alg=0, criterion=0, return_ef = False):
     '''
     %
     %[IP,pf,A,pb,B,ef,eb,vaic,Vaicv] = mvar(u,MaxIP,alg,criterion)
@@ -231,35 +231,38 @@ def ar_fit(u, MaxIP = 0, alg=0, criterion=0):
     Vaicv.shape = (Vaicv.size,1)
 
     #return IP,pf,A,pb,B,ef,eb,vaic,Vaicv
-    return A.transpose(1,2,0), pf/nSegLength
+    if (not return_ef):
+        return A.transpose(1,2,0), pf/nSegLength
+    else:
+        return A.transpose(1,2,0), ef
 
-def R_YW(data, maxp = 30):
-    '''Estimates multivariate AR fit for data, using Yule-walker of R package.
-    
-      Input: 
-        data(n, m) - data matrix (n - number of signals, m - data length)
-        maxp - maximum order for estimated AR model
-    
-      Output:
-        A(n, n, p) - estimated AR model
-        er(n, n) - covariance of residuals
-    '''
-    
-    from rpy2.robjects import r as r_
-    import rpy2.rinterface as ri_
-    import rpy2.robjects as ro_
-
-    if (data.ndim == 1):
-        data.resize(1, data.shape[0])
-    
-    ri_.initr()
-    
-    ri_.globalEnv["data"] = ri_.FloatSexpVector(data.ravel())
-    ri_.globalEnv["dim"] = ri_.IntSexpVector(data.shape[::-1])
-    ro_.globalEnv["maxp"] = maxp
-    r_('data <- ar(array(data, dim), order.max = maxp)')
-    
-    A = array(r_('data$ar')).transpose(1,2,0) #TODO: conferir A e A.T em todos.
-    er = array(r_('cov(data$resid[-seq(data$order),])'))
-    #print 'Model order: ', array(r_('data$order'))[0]
-    return A, er
+#def R_YW(data, maxp = 30):
+#    '''Estimates multivariate AR fit for data, using Yule-walker of R package.
+#    
+#      Input: 
+#        data(n, m) - data matrix (n - number of signals, m - data length)
+#        maxp - maximum order for estimated AR model
+#    
+#      Output:
+#        A(n, n, p) - estimated AR model
+#        er(n, n) - covariance of residuals
+#    '''
+#    
+#    from rpy2.robjects import r as r_
+#    import rpy2.rinterface as ri_
+#    import rpy2.robjects as ro_
+#
+#    if (data.ndim == 1):
+#        data.resize(1, data.shape[0])
+#    
+#    ri_.initr()
+#    
+#    ri_.globalEnv["data"] = ri_.FloatSexpVector(data.ravel())
+#    ri_.globalEnv["dim"] = ri_.IntSexpVector(data.shape[::-1])
+#    ro_.globalEnv["maxp"] = maxp
+#    r_('data <- ar(array(data, dim), order.max = maxp)')
+#    
+#    A = array(r_('data$ar')).transpose(1,2,0) #TODO: conferir A e A.T em todos.
+#    er = array(r_('cov(data$resid[-seq(data$order),])'))
+#    #print 'Model order: ', array(r_('data$order'))[0]
+#    return A, er

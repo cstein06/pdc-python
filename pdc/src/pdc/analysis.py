@@ -3,6 +3,7 @@ from numpy import *
 import matplotlib.pyplot as pp
 from scipy.linalg import inv
 import scipy.signal as sig
+from scipy.stats import f
 
 import cProfile
 
@@ -10,7 +11,7 @@ from pdc.ar_data import ar_data
 import pdc.ar_fit as ar_fit
 import pdc.asymp as as_
 from pdc.plotting import *
-
+import pdc.bootstrap as bt_
 
 def list_to_array(data):
     '''Converts a list to an array'''
@@ -50,7 +51,12 @@ def A_to_f(A, nf = 64):
     AL = eye(n) - sum(Af, axis = 3)
     
     return AL
+
+
     
+    
+
+
 def pc_alg(A, e_cov, nf = 64):
     '''Calculates the Partial Coherence
         A -> autoregressive matrix
@@ -154,7 +160,7 @@ def pdc_alg(A, e_cov, nf = 64, metric = 'gen'):
     PDC = nPDC/sqrt(abs(dPDC)).reshape(nf,1,n).repeat(n, axis = 1)
     return PDC.transpose(1,2,0)
 
-def dtf_one_alg(A, er, nf = 64):
+def dtf_alg(A, er, nf = 64):
     '''Generates spectral not normalized DTF matrix from AR matrix
     
       Input: 
@@ -254,9 +260,9 @@ def dtf(data, maxp = 30, nf = 64, detrend = True, ss = True):
     
     
     if (ss):
-        return dtf_one_alg(A, er, nf), ss_alg(A, er, nf)
+        return dtf_alg(A, er, nf), ss_alg(A, er, nf)
     else:
-        return dtf_one_alg(A, er, nf)
+        return dtf_alg(A, er, nf)
 
 def ss(data, maxp = 30, nf = 64, detrend = True, ss = True):
     '''Interface that calculate the Coherence from data'''
@@ -277,28 +283,111 @@ def pc(data, maxp = 30, nf = 64, detrend = True, ss = True):
         
     if (detrend):
         data = sig.detrend(data)
+        
     A, er = ar_fit.ar_fit(data, maxp)
     
     if (ss):
         return pc_alg(A, er, nf), ss_alg(A, er, nf)
     else:
         return pc_alg(A, er, nf)
+    
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#%
+#%  Computes granger causality index
+#%
+#%  Input: 
+#%    D(n, N) - data (n channels)
+#%    MaxIP - externaly defined maximum IP
+#%
+#%  Output:
+#%    Gr(n, n) - Granger causalit index
+#%    
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#
+#function [Gr] = alg_ganger(u, maxIP)
+#
+#[n N] = size(u);
+#
+#[IP,pf,A,pb,B,ef,eb,vaic,Vaicv] = mvar(u,maxIP,[0 0]);
+#
+#va = diag(pf);
+#
+#va_n = zeros(n, n);
+#
+#for iu = 1:n
+#  aux_u = u;
+#  aux_u(iu,:) = [];
+#  [IP,pf,A,pb,B,ef,eb,vaic,Vaicv] = mvar(aux_u,maxIP,[0 0]);
+#  aux = diag(pf)';
+#  va_n(iu,:) = cat(2, aux(1:iu-1), 0, aux(iu:n-1));
+#end
+#
+#Gr = zeros(n, n);
+#for iu = 1:n
+#  for ju = 1:n
+#    if (iu == ju) continue; end
+#    Gr(iu,ju) = log(va_n(ju,iu)/va(iu));
+#  end
+#end
+
+def gci(data, maxp = 30, detrend = True):
+    
+    n = data.shape[0]
+    
+    if (detrend):
+        data = sig.detrend(data)
+        
+    A0, er0 = ar_fit.ar_fit(data, maxp)
+    va0 = diag(er0)
+    
+    gci = zeros([n,n])
+    for i in arange(n): 
+        aux_data = delete(data, i, 0)
+        A1, er1 = ar_fit.ar_fit(aux_data, maxp)
+        va1 = diag(er1) 
+        va1 = insert(va1, i, 0)
+        gci[:,i] = log(float64(va1)/va0)
+        
+    return gci
+
+#def gct(data, maxp = 30, detrend = True):
+#    #TODO: esta errado.
+#    n,T = data.shape
+#    
+#    if (detrend):
+#        data = sig.detrend(data)
+#        
+#    A0, er0 = ar_fit.ar_fit(data, maxp)
+#    va0 = diag(er0)
+#    
+#    p = A0.shape[2] #TODO: p pode variar depois. fixar para A1?
+#    print p 
+#    
+#    gci = zeros([n,n])
+#    for i in arange(n): 
+#        aux_data = delete(data, i, 0)
+#        A1, er1 = ar_fit.ar_fit(aux_data, maxp)
+#        va1 = float64(diag(er1)) 
+#        va1 = insert(va1, i, 0)
+#        gci[:,i] = ((va1-va0)/(n*p))/(va0/(T-n*p-1))
+#    
+#    gct = f.cdf(gci, n*p, T-n*p-1)
+#        
+#    return gct
+        
 
 def pdc_full(data, maxp = 5, nf = 64, sample_f = 1, 
-                     ss = True, alpha = 0.05, metric = 'gen', detrend = True, normalize = False):
+                   ss = True, alpha = 0.05, metric = 'gen', 
+                   detrend = True, normalize = False, stat = 'asymp', n_boot = 1000):
     '''Interface that calculates PDC from data, calculates asymptotics statistics and plots everything.'''
     
     if(type(data) == type([])):
         data = list_to_array(data)
+    
+    n,nd = data.shape
         
-        
-    data = pre_data(data)
-        
-    #if (detrend):
-    #    data = sig.detrend(data)
-        
-    #if (normalize):
-    #    data = data/std(data, axis = 1).reshape(-1,1)
+    data = pre_data(data, normalize, detrend)
         
     #Estimate AR parameters with Nuttall-Strand
     Aest, erest = ar_fit.ar_fit(data, maxp)
@@ -306,48 +395,54 @@ def pdc_full(data, maxp = 5, nf = 64, sample_f = 1,
     #erest = (erest+erest.T)/2   #TODO: conferir isso. porque nao eh sempre simetrico?
     print 'evar:', erest
     #Calculate the connectivity and statistics
-    mes, th, ic1, ic2 = as_.asymp_pdc(data, Aest, nf, erest, 
+    if stat == 'asymp':
+        mes, th, ic1, ic2 = as_.asymp_pdc(data, Aest, nf, erest, 
                                    maxp, alpha = alpha, metric = metric)
+    elif stat == 'boot':
+        mes, th, ic1, ic2 = bt_.bootstrap(pdc_alg, nd, n_boot, Aest, erest, 
+                                          nf, alpha = alpha, metric = metric)
+    else:
+        mes = pdc_alg(Aest, erest, nf, metric)
+        th = zeros(mes.shape)
+        ic1 = zeros(mes.shape)
+        ic2 = zeros(mes.shape)
+         
     if (ss == True):
         ssm = ss_alg(Aest, erest, nf)
     else:
         ssm = None
-    
-    print 'pdc', mes
-    print 'th', th
-    
+        
     plot_all(mes, th, ic1, ic2, nf = nf, ss = ssm, sample_f = sample_f)
     
 def coh_full(data, maxp = 5, nf = 64, sample_f = 1, 
-             ss = True, alpha = 0.05, detrend = True, normalize = False):
-    measure_full(data, 'coh', maxp, nf, sample_f, ss, alpha, detrend, normalize)
+             ss = True, alpha = 0.05, detrend = True, normalize = False, stat = 'asymp', n_boot = 1000):
+    measure_full(data, 'coh', maxp, nf, sample_f, ss, alpha, detrend, normalize, stat = stat, n_boot = n_boot)
 
 def dtf_full(data, maxp = 5, nf = 64, sample_f = 1, 
-             ss = True, alpha = 0.05, detrend = True, normalize = False):
-    measure_full(data, 'dtf', maxp, nf, sample_f, ss, alpha, detrend, normalize)
+             ss = True, alpha = 0.05, detrend = True, normalize = False, stat = 'asymp', n_boot = 1000):
+    measure_full(data, 'dtf', maxp, nf, sample_f, ss, alpha, detrend, normalize, stat = stat, n_boot = n_boot)
 
 def ss_full(data, maxp = 5, nf = 64, sample_f = 1, 
-             ss = True, alpha = 0.05, detrend = True, normalize = False):
-    measure_full(data, 'ss', maxp, nf, sample_f, ss, alpha, detrend, normalize)
+             ss = True, alpha = 0.05, detrend = True, normalize = False, stat = 'asymp', n_boot = 1000):
+    measure_full(data, 'ss', maxp, nf, sample_f, ss, alpha, detrend, normalize, stat = stat, n_boot = n_boot)
 
 def pc_full(data, maxp = 5, nf = 64, sample_f = 1, 
-             ss = True, alpha = 0.05, detrend = True, normalize = False):
-    measure_full(data, 'pc', maxp, nf, sample_f, ss, alpha, detrend, normalize)
+             ss = True, alpha = 0.05, detrend = True, normalize = False, stat = 'asymp', n_boot = 1000):
+    measure_full(data, 'pc', maxp, nf, sample_f, ss, alpha, detrend, normalize, stat = stat, n_boot = n_boot)
 
 def measure_full(data, measure, maxp = 5, nf = 64, sample_f = 1, 
-                 ss = True, alpha = 0.05, detrend = True, normalize = False):
+                 ss = True, alpha = 0.05, detrend = True, 
+                 normalize = False, stat = 'asymp', n_boot = 1000):
     '''Interface that calculates measure from data, calculates asymptotics statistics and plots everything.
        measure: 'dtf', 'coh', 'ss', 'pc'
        '''
     
     if(type(data) == type([])):
         data = list_to_array(data)
+    
+    n,nd = data.shape
         
-    if (detrend):
-        data = sig.detrend(data)
-        
-    if (normalize):
-        data = data/std(data, axis = 1).reshape(-1,1)
+    data = pre_data(data, normalize, detrend)
         
     #Estimate AR parameters with Nuttall-Strand
     Aest, erest = ar_fit.ar_fit(data, maxp)
@@ -355,18 +450,31 @@ def measure_full(data, measure, maxp = 5, nf = 64, sample_f = 1,
     #erest = (erest+erest.T)/2   #TODO: conferir isso.
     print 'evar:', erest
     #Calculate the connectivity and statistics
-    if (measure == 'dtf'):
-        mes, th, ic1, ic2 = as_.asymp_dtf_one(data, Aest, nf, erest, 
-                                          maxp, alpha = alpha)
-    if (measure == 'coh'):
-        mes, th, ic1, ic2 = as_.asymp_coh(data, Aest, nf, erest, 
-                                          maxp, alpha = alpha)
-    if (measure == 'ss'):
-        mes, th, ic1, ic2 = as_.asymp_ss(data, Aest, nf, erest, 
-                                          maxp, alpha = alpha)
-    if (measure == 'pc'):
-        mes, th, ic1, ic2 = as_.asymp_pc(data, Aest, nf, erest, 
-                                          maxp, alpha = alpha)
+    
+    
+    if stat == 'asymp': 
+        if (measure == 'dtf'):
+            mes, th, ic1, ic2 = as_.asymp_dtf(data, Aest, nf, erest, 
+                                              maxp, alpha = alpha)
+        if (measure == 'coh'):
+            mes, th, ic1, ic2 = as_.asymp_coh(data, Aest, nf, erest, 
+                                              maxp, alpha = alpha)
+        if (measure == 'ss'):
+            mes, th, ic1, ic2 = as_.asymp_ss(data, Aest, nf, erest, 
+                                              maxp, alpha = alpha)
+        if (measure == 'pc'):
+            mes, th, ic1, ic2 = as_.asymp_pc(data, Aest, nf, erest, 
+                                              maxp, alpha = alpha)
+    elif stat == 'boot':
+        methcall = globals()[measure + '_alg']
+        mes, th, ic1, ic2 = bt_.bootstrap(methcall, nd, n_boot, Aest, erest, 
+                                          nf, alpha = alpha)
+    else:
+        methcall = var()[measure + '_alg']
+        mes = methcall(Aest, erest, nf)
+        th = zeros(mes.shape)
+        ic1 = zeros(mes.shape)
+        ic2 = zeros(mes.shape)
         
     if (ss == True):
         ssm = ss_alg(Aest, erest, nf)
