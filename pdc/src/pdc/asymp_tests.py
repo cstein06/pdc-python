@@ -1,3 +1,5 @@
+# -*- coding:utf-8 -*-
+
 #Routines that tests the asymptotic calculations, comparing with bootstrap
 
 from numpy import *
@@ -326,12 +328,39 @@ def test_bootstrap_MxN():
     print 'bvar', bvar.transpose([0,2,3,4,1])
     #print 'ic1, ic1, ic2
     
+    
+def test_gct(m = 1000, n = 1000):
+    
+    A = array([[[0.2, 0],[0, 0],[0.3,-0.2]], 
+              [[0, 0],[0.8,-0.1],[0.4,-0.1]],
+               [[0, 0],[-0.7,0.2],[0,0]]], dtype = float) 
+    er =  array([[0.7,0.3,0.0],[0.3,0.9,0.0],[0.0,0.0,2]], dtype = float)
+    
+    sum = 0.0
+    tbegin = time.clock()
+    for i in range(m):
+        if (i%40 == 0):
+            print 'm:', i, 'time:', time.clock()-tbegin
+            
+        data = ar_data(A, er, n)
+    
+        maxp = 2
 
+        #a, b = pdc_.white_test(data, maxp)
+        #a, b = pdc_.gct(data, maxp)
+        a, b = pdc_.igct(data, maxp)
+                
+        
+        sum = (a>0.05)+sum
+        
+    print sum/m
+    
+    
 if __name__ == "__main__":
     #test_coh()
-    teste_simples()
+    #teste_simples()
     #test_bootstrap()
     #test_bootstrap_MxN()
     #compare_bootstrap_asymp()
     #teste_sunspot_melanoma()
-    
+    test_gct(1000)

@@ -1,3 +1,5 @@
+# -*- coding:utf-8 -*-
+
 # In this file we calculate the asymptotic statistics for all measures, including 
 # first and second order asymptotic aproximations.
 
@@ -9,6 +11,8 @@ from scipy.linalg import eigh
 from scipy.linalg import inv as inv
 from matplotlib.pyplot import xcorr
 from pdc import ar_fit
+from numpy.dual import eig
+from numpy.linalg.linalg import LinAlgError
 
 # These functions are used to make code more readable.
 vec = lambda x: mat(x.ravel('F')).T
@@ -145,9 +149,27 @@ def fCa(f, p, n):
     C2 = cat(C1.reshape(1, -1), S1.reshape(1, -1), 0)
     return kron(C2, identity(n**2))    
 
-def fEig(omega, G2):
-    '''Returns the eigenvalues after the Choleski decomposition'''
-    L = mat(cholesky(omega, lower=1))
+def fChol(omega):
+    # Try Cholesky factorization
+    try:
+        L = mat(cholesky(omega, lower=1))
+    # If there's a small negative eigenvalue, diagonalize
+    except LinAlgError:
+        val, vec = eigh(omega)
+        print 'negative eig. in omega: ', val[val<0]
+        L = zeros(vec.shape)
+        for i in range(len(val)):
+            if val[i]<0.:
+                val[i]=0.
+            L[:,i] = vec[:,i]*sqrt(val[i])
+        #print 'L', L
+        
+    return L
+
+def fEig(L, G2):
+    '''Returns the eigenvalues'''
+
+    #L = mat(cholesky(omega, lower=1))
     D = L.T*G2*L
     d = eigh(D, eigvals_only=True)
     d = d[abs(d) > 1E-8]
@@ -183,6 +205,10 @@ def asymp_pdc(x, A, nf, e_var, p, metric = 'gen', alpha = 0.05):
     gammai = inv(bigautocorr(x, p))
     omega = kron(gammai, e_var)
     #print bigautocorr(x, p)
+    
+    omega_evar = 2*Dup(n).I*kron(e_var, e_var)*Dup(n).I.T
+    
+    L = fChol(omega)
     
     for ff in range(nf):
         f = ff/(2.0*nf)
@@ -271,7 +297,6 @@ def asymp_pdc(x, A, nf, e_var, p, metric = 'gen', alpha = 0.05):
                 G1a = 2*a.T*Iije/den - 2*num*a.T*Ije/(den**2)
                 G1 = -G1a*Ca
                 
-                omega_evar = 2*Dup(n).I*kron(e_var, e_var)*Dup(n).I.T
 
                 varalpha = G1*omega*G1.T
                 varevar = dpdc_dev*omega_evar*dpdc_dev.T
@@ -285,7 +310,7 @@ def asymp_pdc(x, A, nf, e_var, p, metric = 'gen', alpha = 0.05):
                 G2 = Ca.T*G2a*Ca
                 
                 #print omega, eigh(omega, eigvals_only=True)
-                d = fEig(omega, G2)
+                d = fEig(L, G2)
                 patdf = sum(d)**2/sum(d**2)
                 patden = sum(d)/sum(d**2)
                 th[i, j, ff] = st.chi2.ppf(1-alpha, patdf)/(patden*2*nd)
@@ -319,6 +344,7 @@ def asymp_dtf(x, A, nf, e_var, p, alpha = 0.05):
     
     gammai = inv(bigautocorr(x, p))
     omega = kron(gammai, e_var)
+    L = fChol(omega)
     
     for ff in range(nf):
         f = ff/(2.0*nf)
@@ -352,7 +378,7 @@ def asymp_dtf(x, A, nf, e_var, p, alpha = 0.05):
                 G2a = 2*Iij/den
                 G2 = Ca.T*dhda.T*G2a*dhda*Ca 
                 
-                d = fEig(omega, G2)
+                d = fEig(L, G2)
                 patdf = sum(d)**2/sum(d**2)
                 patden = sum(d)/sum(d**2)
                 
@@ -406,6 +432,15 @@ def asymp_pc(x, A, nf, e_var, p, alpha = 0.05):
     gammai = inv(bigautocorr(x, p))
     omega = kron(gammai, e_var)
     #print bigautocorr(x, p)
+    
+    omega_evar = 2*Dup(n).I*kron(e_var, e_var)*Dup(n).I.T
+     
+    ehs = omega_evar.shape[0]
+    oas = omega.shape[0]
+    omegabig = cat(cat(omega, zeros([oas, ehs]), 1),
+                               cat(zeros([ehs, oas]), omega_evar, 1), 0) 
+    
+    L = fChol(omegabig)
     
     for ff in range(nf):
         f = ff/(2.0*nf)
@@ -488,7 +523,6 @@ def asymp_pc(x, A, nf, e_var, p, alpha = 0.05):
                 G1a = dnum_da/den - num*dden_da/den**2
                 G1 = -G1a*Ca
                 
-                omega_evar = 2*Dup(n).I*kron(e_var, e_var)*Dup(n).I.T
             
                 varalpha = G1*omega*G1.T 
                 varevar = dpc_dev*omega_evar*dpc_dev.T
@@ -506,11 +540,8 @@ def asymp_pc(x, A, nf, e_var, p, alpha = 0.05):
                 
                 Gbig = cat(cat(G2, d2pc_dade, 1),
                            cat(d2pc_deda, d2pc_dev2, 1), 0) 
-                ehs = omega_evar.shape[0]
-                oas = omega.shape[0]
-                omegabig = cat(cat(omega, zeros([oas, ehs]), 1),
-                               cat(zeros([ehs, oas]), omega_evar, 1), 0) 
-                d = fEig(omegabig, Gbig)
+                
+                d = fEig(L, Gbig)
                 
                 #d1 = fEig(omega, G2)
                 #d2 = fEig(omega_evar, d2pc_dev2)
@@ -567,6 +598,14 @@ def asymp_coh(x, A, nf, e_var, p, alpha = 0.05):
     gammai = inv(bigautocorr(x, p))
     omega = kron(gammai, e_var)
     #print bigautocorr(x, p)
+    
+    omega_evar = 2*Dup(n).I*kron(e_var, e_var)*Dup(n).I.T
+    ehs = omega_evar.shape[0]
+    oas = omega.shape[0]
+    omegabig = cat(cat(omega, zeros([oas, ehs]), 1),
+                   cat(zeros([ehs, oas]), omega_evar, 1), 0) 
+    
+    L = fChol(omegabig)
     
     for ff in range(nf):
         f = ff/(2.0*nf)
@@ -650,7 +689,6 @@ def asymp_coh(x, A, nf, e_var, p, alpha = 0.05):
                 G1a = dnum_dh/den - num*dden_dh/den**2
                 G1 = -G1a*dhda*Ca
                 
-                omega_evar = 2*Dup(n).I*kron(e_var, e_var)*Dup(n).I.T
             
                 varalpha = G1*omega*G1.T 
                 varevar = dcoh_dev*omega_evar*dcoh_dev.T
@@ -669,11 +707,9 @@ def asymp_coh(x, A, nf, e_var, p, alpha = 0.05):
                 
                 Gbig = cat(cat(G2, d2coh_dhde, 1),
                            cat(d2coh_dedh, d2coh_dev2, 1), 0) 
-                ehs = omega_evar.shape[0]
-                oas = omega.shape[0]
-                omegabig = cat(cat(omega, zeros([oas, ehs]), 1),
-                               cat(zeros([ehs, oas]), omega_evar, 1), 0) 
-                d = fEig(omegabig, Gbig)
+               
+                
+                d = fEig(L, Gbig)
                 
                 #d1 = fEig(omega, G2)
                 #d2 = fEig(omega_evar, d2coh_dev2)
@@ -711,6 +747,14 @@ def asymp_ss(x, A, nf, e_var, p, alpha = 0.05):
     gammai = inv(bigautocorr(x, p))
     omega = kron(gammai, e_var)
     #print bigautocorr(x, p)
+    omega_evar = 2*Dup(n).I*kron(e_var, e_var)*Dup(n).I.T
+    
+    ehs = omega_evar.shape[0]
+    oas = omega.shape[0]
+    omegabig = cat(cat(omega, zeros([oas, ehs]), 1),
+                   cat(zeros([ehs, oas]), omega_evar, 1), 0)
+    
+    L = fChol(omegabig) 
     
     for ff in range(nf):
         f = ff/(2.0*nf)
@@ -784,7 +828,6 @@ def asymp_ss(x, A, nf, e_var, p, alpha = 0.05):
                 G1a = dnum_dh
                 G1 = -G1a*dhda*Ca
                 
-                omega_evar = 2*Dup(n).I*kron(e_var, e_var)*Dup(n).I.T
             
                 varalpha = G1*omega*G1.T 
                 varevar = dss_dev*omega_evar*dss_dev.T
@@ -801,11 +844,7 @@ def asymp_ss(x, A, nf, e_var, p, alpha = 0.05):
                 
                 Gbig = cat(cat(G2, d2ss_dhde, 1),
                            cat(d2ss_dedh, d2ss_dev2, 1), 0) 
-                ehs = omega_evar.shape[0]
-                oas = omega.shape[0]
-                omegabig = cat(cat(omega, zeros([oas, ehs]), 1),
-                               cat(zeros([ehs, oas]), omega_evar, 1), 0) 
-                d = fEig(omegabig, Gbig)
+                d = fEig(L, Gbig)
                 
                 #d1 = fEig(omega, G2)
                 #d2 = fEig(omega_evar, d2ss_dev2)
@@ -821,19 +860,16 @@ def asymp_ss(x, A, nf, e_var, p, alpha = 0.05):
 def fCij(i, j, n, p):
     '''Returns Cij of the formula'''
     Cij = mat(zeros([1,n*n]))
-    Cij[0,i*n + j] = 1
-    Cij = kron(Cij, I(p))
+    Cij[0,(j*n + i)] = 1
+    Cij = kron(I(p), Cij)
     return mat(Cij)
 
-def gct(x):
+def asymp_gct(x, A, e_var):
     '''Asymptotic statistics for Wald statistic of the GC in time
         x -> data
-        A -> autoregressive matrix
-        e_var -> residues
-        alpha -> confidence margin
+        A
+        e_var
     '''
-
-    A, e_var = ar_fit.ar_fit(x, 2)
     
     x = mat(x)
     e_var = mat(e_var)
@@ -846,7 +882,7 @@ def gct(x):
     gammai = inv(bigautocorr(x, p))
     omega = kron(gammai, e_var)
     
-    a = mat(ravel(A)).T
+    a = vec(A)
     
     for i in range(n):
         for j in range(n):
@@ -857,24 +893,17 @@ def gct(x):
     
     return pv, wt
 
-def igct(x):
+def asymp_igct(e_var, nd):
     '''Asymptotic statistics for Wald statistic of instantaneous GC
-        x -> data
-        A -> autoregressive matrix
-        e_var -> residues
-        alpha -> confidence margin
+        e_var
+        nd
     '''
-
-    A, e_var = ar_fit.ar_fit(x, 2)
     
     e_var = mat(e_var)
     
-    n, nd = x.shape
-    n, n, p = A.shape
+    n, n = e_var.shape
     
     wt = zeros([n, n])
-    
-    a = mat(ravel(A)).T
     
     for i in arange(n):
         for j in arange(n):
@@ -892,12 +921,9 @@ def igct(x):
     return pv, wt
 
 
-def white_test(x, maxp = 30, h = 10):
-    
-    A, res = ar_fit.ar_fit(x, maxp, return_ef=True)
-    
+def asymp_white(x, res, p, h = 20):
+
     n,nd = res.shape
-    n,n,p = A.shape
     
     x = empty([n,n,h+1])
     
@@ -915,4 +941,3 @@ def white_test(x, maxp = 30, h = 10):
     
     return pv, s
 
-    

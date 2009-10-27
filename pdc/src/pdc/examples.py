@@ -9,6 +9,7 @@ from numpy.random import rand
 from numpy.random import multivariate_normal as mnorm
 
 
+from utils import *
 import pdc.asymp as ass_
 import pdc.analysis as pdc_
 from pdc.ar_data import ar_data
@@ -132,12 +133,67 @@ def teste_sunspot_melanoma():
    #data = data/std(data, axis = 1).reshape(-1,1)
    
    pdc_.pdc_full(data, maxp = maxp, nf = nf, ss = True, 
-                 alpha = alpha, metric = metric, normalize = True, stat = 'boot', n_boot = 300)
-   pdc_.coh_full(data, maxp = maxp, nf = nf, ss = True, 
-                 alpha = alpha, normalize = False, stat = 'asymp', n_boot = 300)
+                 alpha = alpha, metric = metric, normalize = True, stat = 'asymp', n_boot = 300)
+#   pdc_.coh_full(data, maxp = maxp, nf = nf, ss = True, 
+#                 alpha = alpha, normalize = False, stat = 'asymp', n_boot = 300)
    
+
+def gen_winterhalter_2005_van_der_Pol(n, dummy = 30, dt = 0.01):
+    
+    w = array([1.5,1.48,1.53,1.44])
+    sg = 1.5
+    mi = 5
+    t = array([[0, 0.2, 0, 0],
+               [0.2, 0, 0, 0.2],
+               [0.2, 0, 0, 0.2],
+               [0, 0.2, 0, 0]])
+    
+    data = zeros([4, n+dummy])
+    x = zeros(4)
+    x1 = zeros(4)
+    x2 = zeros(4)
+    for j in arange(1,n+dummy):
+        n = randn(4)
+        x = x+x1*dt
+        x1 = x1+x2*dt
+        x2 = mi*(1 - x**2)*x1 - w**2 * x + \
+             sg*n + dot(t, x) - sum(t,1)*x
+        data[:,j] = x
+        #x = xn
+        #x1 = x1n
+        #x2 = x2n
+    
+    data = data[:,dummy:]
+    return data
+
+def teste_data():
+    subs = 50
+    nd = 50000*subs
+    nf = 64
+    alpha = 0.05
+    #n = 5
+    maxp = 100
+    metric = 'euc'
+    
+    #Generate data from AR
+    data = gen_winterhalter_2005_van_der_Pol(nd, dt = 0.5/subs)
+    data = subsample(data, subs)
+    
+    pdc_.pdc_full(data, maxp = maxp, nf = nf, ss = True, 
+                  metric = metric, 
+                  normalize = False, detrend = True, fixp = True)
+    
+    #Estimate AR parameters with Nuttall-Strand
+    #Aest, erest = ar_fit(data, maxp)
+    #Calculate the connectivity and statistics
+    #mes, th, ic1, ic2 = ass_.asymp_pdc(data, Aest, nf, erest, 
+    #                               maxp, alpha = alpha, metric = metric)
+    #pdc_.plot_all(mes, th, ic1, ic2, nf = nf)
 
 if __name__ == "__main__":
     #teste_Ding()
-    teste_sunspot_melanoma()
+    #teste_sunspot_melanoma()
+    teste_data()
+    #a = gen_winterhalter_2005_van_der_Pol(30, 30)
+    #print a
     
