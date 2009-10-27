@@ -1,3 +1,5 @@
+# -*- coding:utf-8 -*-
+
 #rotinas que testam se implementacao esta correta.
 
 from numpy import *
@@ -393,8 +395,18 @@ def test_gct():
     
     maxp = 2
     
-    a, b = ass_.igct(data, maxp)
-    #a, b = ass_.gct(data, maxp)
+    #a, b = ass_.igct(data, maxp)
+    a, b = pdc_.gct(data, maxp)
+    print a
+    print b
+    
+def test_igct_matlab():
+    
+    data = loadtxt('D:/work/dados/simulation/ardata1.txt')
+    
+    a, b = pdc_.igct(data)
+    #a, b = pdc_.gct(data)
+    #a,b = pdc_.white_test(data, h = 20)
     print a
     print b
     
@@ -409,7 +421,7 @@ def test_white():
     
     maxp = 2
 
-    a, b = ass_.white_test(data, maxp, 10)
+    a, b = pdc_.white_test(data, maxp, 10)
     print a
     print b
     
@@ -418,9 +430,10 @@ def test_white():
 if __name__ == "__main__":
     #test_AIC()
     #compare_matlab_pdc_one()
-    test_patnaik2()
+    #test_patnaik2()
     
     #tes#t_gci()
     #test_gct()
     #test_white()
 
+    test_igct_matlab()

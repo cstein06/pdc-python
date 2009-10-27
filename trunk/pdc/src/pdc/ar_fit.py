@@ -1,3 +1,5 @@
+# -*- coding:utf-8 -*-
+
 '''Feito pelo Gilson, precisa revisar. parece bater c matlab.'''
 
 from numpy import array,zeros,eye,kron,dot,exp,pi,cos,sin,diag,ones,tril,resize,finfo
@@ -188,10 +190,17 @@ def ar_fit(u, MaxIP = 0, alg=0, criterion=0, return_ef = False):
         stopFlag=1
         criterion=abs(criterion)
     
+    if criterion==1:
+        [npf, na, npb, nb, nef, neb, ISTAT]=nstrand(u,MaxIP,False)
+        if (not return_ef):
+            return na.transpose(1,2,0), npf/nSegLength
+        else:
+            return na.transpose(1,2,0), nef
+        
+    
     vaicv=0
     if MaxIP == 0:
        MaxOrder = 30;
-       print 'MaxOrder limited to ', MaxOrder
        UpperboundOrder = round(3*sqrt(nSegLength)/nChannels)
        #% Marple Jr. page 409
        #% Suggested by Nuttall, 1976.
@@ -199,7 +208,8 @@ def ar_fit(u, MaxIP = 0, alg=0, criterion=0, return_ef = False):
     else:
        MaxOrder=MaxIP
        UpperboundOrder=MaxIP
-       print 'MaxOrder limited to ', MaxOrder
+    
+    #print 'MaxOrder limited to ', MaxOrder
        
     IP=1
     Vaicv=zeros((MaxOrder+1,1), float)
