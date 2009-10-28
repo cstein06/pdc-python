@@ -468,6 +468,10 @@ def pdc_full(data, maxp = 5, nf = 64, sample_f = 1,
     #erest = (erest+erest.T)/2   #TODO: conferir isso. porque nao eh sempre simetrico?
     print 'evar:', erest
     #Calculate the connectivity and statistics
+    
+    print 'A:', Aest.shape
+    print 'data:', data.shape
+    
     if stat == 'asymp':
         mes, th, ic1, ic2 = as_.asymp_pdc(data, Aest, nf, erest, 
                                    maxp, alpha = alpha, metric = metric)
@@ -479,6 +483,8 @@ def pdc_full(data, maxp = 5, nf = 64, sample_f = 1,
         th = zeros(mes.shape)
         ic1 = zeros(mes.shape)
         ic2 = zeros(mes.shape)
+         
+    print 'th', th[0,1]
          
     if (ss == True):
         ssm = ss_alg(Aest, erest, nf)

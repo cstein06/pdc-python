@@ -7,7 +7,7 @@ import time
 from numpy.random import randn
 from numpy.random import rand
 from numpy.random import multivariate_normal as mnorm
-
+from scipy.integrate import odeint
 
 from utils import *
 import pdc.asymp as ass_
@@ -138,7 +138,7 @@ def teste_sunspot_melanoma():
 #                 alpha = alpha, normalize = False, stat = 'asymp', n_boot = 300)
    
 
-def gen_winterhalter_2005_van_der_Pol(n, dummy = 30, dt = 0.01):
+def gen_winterhalter_2005_van_der_Pol(n, dummy = 100, dt = 0.01):
     
     w = array([1.5,1.48,1.53,1.44])
     sg = 1.5
@@ -166,21 +166,54 @@ def gen_winterhalter_2005_van_der_Pol(n, dummy = 30, dt = 0.01):
     data = data[:,dummy:]
     return data
 
+t = array([[0, 0.2, 0, 0],
+           [0.2, 0, 0, 0.2],
+           [0.2, 0, 0, 0.2],
+           [0, 0.2, 0, 0]])
+w = array([1.5,1.48,1.53,1.44])
+sg = 1.5
+
+mi = 5
+
+n = 0
+
+def odewinter_der(y, tm):
+
+    print 'ytm', y, tm
+    y, y1 = y.reshape(2,4)
+    
+    #nr = n[:,]
+    y2 = mi*(1 - y**2)*y1 - w**2 * y + \
+         sg*n + dot(t, y) - sum(t,1)*y
+    newy = concatenate((y1,y2)) 
+    
+    print 'new', newy
+    return newy 
+    
+def gen_winterhalter_2005_van_der_Pol_odeint(np, dummy = 100, dt = 0.01):
+    #esta com problemas por causa do random, eu acho.
+    n = randn(4,np+dummy)
+    data = odeint(odewinter_der, zeros(8), [0,1], mxstep = 10)#linspace(0,(np+dummy)*dt,np+dummy))
+    print data[:4, 100:140]
+    return data[:4,dummy:]
+
 def teste_data():
     subs = 50
     nd = 50000*subs
-    nf = 64
+    nf = 10
     alpha = 0.05
     #n = 5
     maxp = 100
     metric = 'euc'
     
     #Generate data from AR
-    data = gen_winterhalter_2005_van_der_Pol(nd, dt = 0.5/subs)
-    data = subsample(data, subs)
+    #data = gen_winterhalter_2005_van_der_Pol_odeint(nd, dt = 0.5/subs)
+    data = loadtxt('D:/work/dados/simulation/pol50000_sub05_euler.txt')
+    #data = subsample(data, subs)
+       
     
     pdc_.pdc_full(data, maxp = maxp, nf = nf, ss = True, 
-                  metric = metric, 
+                  metric = metric, alpha = alpha,
                   normalize = False, detrend = True, fixp = True)
     
     #Estimate AR parameters with Nuttall-Strand

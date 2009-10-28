@@ -99,7 +99,7 @@ def xlag(x, lag):
     xl[:, lag:] = x[:, :-lag]
     return xl
 
-def bigautocorr(x, p):
+def bigautocorr_old(x, p):
     '''Autocorrelation. Data in rows. From order 0 to p-1.
     Output: nxn blocks of autocorr of lags i. (Nuttall Strand matrix)'''
     y = x[:]
@@ -108,6 +108,18 @@ def bigautocorr(x, p):
         y = concatenate((y, xlag(x, i)), axis=0)
     return dot(y, y.T)/nd
     #return cov(y.T)
+
+def bigautocorr(x, p):
+    '''Autocorrelation. Data in rows. From order 0 to p-1.
+    Output: nxn blocks of autocorr of lags i. (Nuttall Strand matrix)'''
+    n, nd = x.shape
+    gamma = zeros([n*p, n*p])
+    for i in arange(p):
+        print 'i', i
+        for j in arange(p):
+            gamma[i*n:i*n+n, j*n:j*n+n] = dot(xlag(x, i), xlag(x, j).T)/nd
+
+    return gamma
     
 def fdh_da(Af, n):
     '''Derivative of vec(H) by vec(A), with H = A^-1 and complex A.'''
@@ -171,7 +183,10 @@ def fEig(L, G2):
 
     #L = mat(cholesky(omega, lower=1))
     D = L.T*G2*L
+    print 'aqui 4.2', L.shape, G2.shape, D.shape
+    print 'aqui 4.21', sum(abs(L) > 0), sum(abs(G2) > 0)
     d = eigh(D, eigvals_only=True)
+    print 'aqui 4.3', d.shape
     d = d[abs(d) > 1E-8]
     if (d.size > 2):
         print 'more than two chi-square in the sum:'
@@ -202,18 +217,28 @@ def asymp_pdc(x, A, nf, e_var, p, metric = 'gen', alpha = 0.05):
     varass1 = empty([n, n, nf])
     varass2 = empty([n, n, nf])
     
+    print 'aqui'
     gammai = inv(bigautocorr(x, p))
     omega = kron(gammai, e_var)
     #print bigautocorr(x, p)
+    print 'depois'
     
     omega_evar = 2*Dup(n).I*kron(e_var, e_var)*Dup(n).I.T
     
-    L = fChol(omega)
+    
+    print 'aqui denovo'
+    
+    print 'alpha', alpha
     
     for ff in range(nf):
+        print 'f: ', ff
         f = ff/(2.0*nf)
         
         Ca = fCa(f, p, n)
+        
+        omega2 = Ca*omega*Ca.T
+        
+        L = fChol(omega2)
         
         a = vec(Af[ff, :, :])
         a = cat(a.real, a.imag, 0)
@@ -221,6 +246,8 @@ def asymp_pdc(x, A, nf, e_var, p, metric = 'gen', alpha = 0.05):
         
         for i in range(n):
             for j in range(n):
+                
+                print 'aqui 1', i, j
                 
                 Iij = fIij(i, j, n)
                 Ij = fIj(j, n)
@@ -248,6 +275,7 @@ def asymp_pdc(x, A, nf, e_var, p, metric = 'gen', alpha = 0.05):
                 den = a.T*Ije*a
                 pdc[i, j, ff] = num/den
                 
+                print 'aqui 2', num.shape
                 
                 'Acrescenta derivada em relacao a evar'
                 if metric == 'euc':
@@ -297,6 +325,7 @@ def asymp_pdc(x, A, nf, e_var, p, metric = 'gen', alpha = 0.05):
                 G1a = 2*a.T*Iije/den - 2*num*a.T*Ije/(den**2)
                 G1 = -G1a*Ca
                 
+                print 'aqui 3', Ca.shape, G1a.shape
 
                 varalpha = G1*omega*G1.T
                 varevar = dpdc_dev*omega_evar*dpdc_dev.T
@@ -307,14 +336,22 @@ def asymp_pdc(x, A, nf, e_var, p, metric = 'gen', alpha = 0.05):
                 ic2[i, j, ff] = pdc[i, j, ff] + sqrt(varass1[i, j, ff])*st.norm.ppf(1-alpha/2.0)
                 
                 G2a = 2*Iije/den
-                G2 = Ca.T*G2a*Ca
+                #G2 = Ca.T*G2a*Ca
+                
+                print 'aqui 4', G2a.shape#, G2.shape
                 
                 #print omega, eigh(omega, eigvals_only=True)
-                d = fEig(L, G2)
+                d = fEig(L, G2a)
+                
+                print 'aqui 4.5', d.shape
+                
+                
                 patdf = sum(d)**2/sum(d**2)
                 patden = sum(d)/sum(d**2)
                 th[i, j, ff] = st.chi2.ppf(1-alpha, patdf)/(patden*2*nd)
                 varass2[i, j, ff] = 2*patdf/(patden*2*nd)**2
+                
+                print 'aqui 5'
                 
     return pdc, th, ic1, ic2
 
@@ -344,7 +381,6 @@ def asymp_dtf(x, A, nf, e_var, p, alpha = 0.05):
     
     gammai = inv(bigautocorr(x, p))
     omega = kron(gammai, e_var)
-    L = fChol(omega)
     
     for ff in range(nf):
         f = ff/(2.0*nf)
@@ -356,6 +392,11 @@ def asymp_dtf(x, A, nf, e_var, p, alpha = 0.05):
         h = cat(h.real, h.imag, 0)
         
         dhda = fdh_da(mat(Af[ff, :, :]), n)
+        
+        #L = fChol(omega)
+        
+        omega2 = dhda*Ca*omega*Ca.T*dhda.T
+        L = fChol(omega2)
        
         for i in range(n):
             for j in range(n):
@@ -376,7 +417,8 @@ def asymp_dtf(x, A, nf, e_var, p, alpha = 0.05):
                 ic2[i, j, ff] = dtf[i, j, ff] + sqrt(varass1[i, j, ff])*st.norm.ppf(1-alpha/2)
                 
                 G2a = 2*Iij/den
-                G2 = Ca.T*dhda.T*G2a*dhda*Ca 
+                #G2 = Ca.T*dhda.T*G2a*dhda*Ca 
+                G2 = G2a
                 
                 d = fEig(L, G2)
                 patdf = sum(d)**2/sum(d**2)
@@ -422,6 +464,8 @@ def asymp_pc(x, A, nf, e_var, p, alpha = 0.05):
     
     n, nd = x.shape
     
+    print n, nd
+    
     th = empty([n, n, nf])
     ic1 = empty([n, n, nf])
     ic2 = empty([n, n, nf])
@@ -430,22 +474,25 @@ def asymp_pc(x, A, nf, e_var, p, alpha = 0.05):
     varass2 = empty([n, n, nf])
     
     gammai = inv(bigautocorr(x, p))
-    omega = kron(gammai, e_var)
+    omega_orig = kron(gammai, e_var)
     #print bigautocorr(x, p)
     
     omega_evar = 2*Dup(n).I*kron(e_var, e_var)*Dup(n).I.T
-     
-    ehs = omega_evar.shape[0]
-    oas = omega.shape[0]
-    omegabig = cat(cat(omega, zeros([oas, ehs]), 1),
-                               cat(zeros([ehs, oas]), omega_evar, 1), 0) 
-    
-    L = fChol(omegabig)
     
     for ff in range(nf):
         f = ff/(2.0*nf)
         
         Ca = fCa(f, p, n)
+        
+        
+        omega = Ca*omega_orig*Ca.T
+        
+        ehs = omega_evar.shape[0]
+        oas = omega.shape[0]
+        omegabig = cat(cat(omega, zeros([oas, ehs]), 1),
+                      cat(zeros([ehs, oas]), omega_evar, 1), 0) 
+
+        L = fChol(omegabig)
         
         a = vec(Af[ff, :, :])
         a = cat(a.real, a.imag, 0)
@@ -464,7 +511,7 @@ def asymp_pc(x, A, nf, e_var, p, alpha = 0.05):
                 
                 num = (a.T*k1ij*a)**2+(a.T*k2ij*a)**2
                 den = (a.T*k1ii*a)*(a.T*k1jj*a)
-                pc = num/den
+                pc[i, j, ff] = num/den
                 
                 #Acrescenta derivada em relacao a evar
                 ci = fc(i,n)
@@ -508,8 +555,10 @@ def asymp_pc(x, A, nf, e_var, p, alpha = 0.05):
                 #novas derivadas:
                 dnum1_deh = dnum1_dei*dedinv_deh
                 dnum2_deh = dnum2_dei*dedinv_deh
-                dnum1_da = a.T*(k1ij+k1ij.T)*Ca
-                dnum2_da = a.T*(k2ij+k2ij.T)*Ca
+                #dnum1_da = a.T*(k1ij+k1ij.T)*Ca
+                #dnum2_da = a.T*(k2ij+k2ij.T)*Ca
+                dnum1_da = a.T*(k1ij+k1ij.T)
+                dnum2_da = a.T*(k2ij+k2ij.T)
                 d2pc_dade = 2*(dnum1_da.T*dnum1_deh + dnum2_da.T*dnum2_deh)/den
                 d2pc_deda = d2pc_dade.T
                 
@@ -529,14 +578,14 @@ def asymp_pc(x, A, nf, e_var, p, alpha = 0.05):
                 
                 varass1[i, j, ff] = (varalpha + varevar)/nd
                 
-                
                 ic1[i, j, ff] = pc[i, j, ff] - sqrt(varass1[i, j, ff])*st.norm.ppf(1-alpha/2.0)
                 ic2[i, j, ff] = pc[i, j, ff] + sqrt(varass1[i, j, ff])*st.norm.ppf(1-alpha/2.0)
                 
                 d1 = (k1ij+k1ij.T)*a
                 d2 = (k2ij+k2ij.T)*a
                 G2a = 2*(d1*d1.T + d2*d2.T)/den
-                G2 = Ca.T*G2a*Ca 
+                #G2 = Ca.T*G2a*Ca
+                G2 = G2a 
                 
                 Gbig = cat(cat(G2, d2pc_dade, 1),
                            cat(d2pc_deda, d2pc_dev2, 1), 0) 
@@ -596,16 +645,11 @@ def asymp_coh(x, A, nf, e_var, p, alpha = 0.05):
     varass2 = empty([n, n, nf])
     
     gammai = inv(bigautocorr(x, p))
-    omega = kron(gammai, e_var)
+    omega_orig = kron(gammai, e_var)
     #print bigautocorr(x, p)
     
     omega_evar = 2*Dup(n).I*kron(e_var, e_var)*Dup(n).I.T
-    ehs = omega_evar.shape[0]
-    oas = omega.shape[0]
-    omegabig = cat(cat(omega, zeros([oas, ehs]), 1),
-                   cat(zeros([ehs, oas]), omega_evar, 1), 0) 
     
-    L = fChol(omegabig)
     
     for ff in range(nf):
         f = ff/(2.0*nf)
@@ -617,6 +661,15 @@ def asymp_coh(x, A, nf, e_var, p, alpha = 0.05):
         h = cat(h.real, h.imag, 0)
         
         dhda = fdh_da(mat(Af[ff, :, :]), n)
+        
+        omega = dhda*Ca*omega_orig*Ca.T*dhda.T
+        
+        ehs = omega_evar.shape[0]
+        oas = omega.shape[0]
+        omegabig = cat(cat(omega, zeros([oas, ehs]), 1),
+                   cat(zeros([ehs, oas]), omega_evar, 1), 0)
+         
+        L = fChol(omegabig)
         
         for i in range(n):
             for j in range(n):
@@ -675,8 +728,10 @@ def asymp_coh(x, A, nf, e_var, p, alpha = 0.05):
                 #novas derivadas:
                 dnum1_deh = dnum1_de*ded_deh
                 dnum2_deh = dnum2_de*ded_deh
-                dnum1_dh = h.T*(k1ij+k1ij.T)*dhda*Ca
-                dnum2_dh = h.T*(k2ij+k2ij.T)*dhda*Ca
+                dnum1_dh = h.T*(k1ij+k1ij.T)
+                dnum2_dh = h.T*(k2ij+k2ij.T)
+                #dnum1_dh = h.T*(k1ij+k1ij.T)*dhda*Ca
+                #dnum2_dh = h.T*(k2ij+k2ij.T)*dhda*Ca
                 d2coh_dhde = 2*(dnum1_dh.T*dnum1_deh + dnum2_dh.T*dnum2_deh)/den
                 d2coh_dedh = d2coh_dhde.T
                 
@@ -703,7 +758,8 @@ def asymp_coh(x, A, nf, e_var, p, alpha = 0.05):
                 d1 = (k1ij+k1ij.T)*h
                 d2 = (k2ij+k2ij.T)*h
                 G2a = 2*(d1*d1.T + d2*d2.T)/den
-                G2 = Ca.T*dhda.T*G2a*dhda*Ca 
+                #G2 = Ca.T*dhda.T*G2a*dhda*Ca 
+                G2 = G2a
                 
                 Gbig = cat(cat(G2, d2coh_dhde, 1),
                            cat(d2coh_dedh, d2coh_dev2, 1), 0) 
@@ -745,16 +801,9 @@ def asymp_ss(x, A, nf, e_var, p, alpha = 0.05):
     varass2 = empty([n, n, nf])
     
     gammai = inv(bigautocorr(x, p))
-    omega = kron(gammai, e_var)
+    omega_orig = kron(gammai, e_var)
     #print bigautocorr(x, p)
     omega_evar = 2*Dup(n).I*kron(e_var, e_var)*Dup(n).I.T
-    
-    ehs = omega_evar.shape[0]
-    oas = omega.shape[0]
-    omegabig = cat(cat(omega, zeros([oas, ehs]), 1),
-                   cat(zeros([ehs, oas]), omega_evar, 1), 0)
-    
-    L = fChol(omegabig) 
     
     for ff in range(nf):
         f = ff/(2.0*nf)
@@ -766,6 +815,16 @@ def asymp_ss(x, A, nf, e_var, p, alpha = 0.05):
         h = cat(h.real, h.imag, 0)
         
         dhda = fdh_da(mat(Af[ff, :, :]), n)
+        
+        omega = dhda*Ca*omega_orig*Ca.T*dhda.T
+        
+        ehs = omega_evar.shape[0]
+        oas = omega.shape[0]
+        omegabig = cat(cat(omega, zeros([oas, ehs]), 1),
+                   cat(zeros([ehs, oas]), omega_evar, 1), 0)
+    
+        L = fChol(omegabig) 
+    
         
         for i in range(n):
             for j in range(n):
@@ -816,8 +875,10 @@ def asymp_ss(x, A, nf, e_var, p, alpha = 0.05):
                 
                 dnum1_deh = dnum1_de*ded_deh
                 dnum2_deh = dnum2_de*ded_deh
-                dnum1_dh = h.T*(k1ij+k1ij.T)*dhda*Ca
-                dnum2_dh = h.T*(k2ij+k2ij.T)*dhda*Ca
+                dnum1_dh = h.T*(k1ij+k1ij.T)
+                dnum2_dh = h.T*(k2ij+k2ij.T)
+                #dnum1_dh = h.T*(k1ij+k1ij.T)*dhda*Ca
+                #dnum2_dh = h.T*(k2ij+k2ij.T)*dhda*Ca
                 d2ss_dhde = 2*(dnum1_dh.T*dnum1_deh + dnum2_dh.T*dnum2_deh)
                 d2ss_dedh = d2ss_dhde.T
                 
@@ -840,7 +901,8 @@ def asymp_ss(x, A, nf, e_var, p, alpha = 0.05):
                 d1 = (k1ij+k1ij.T)*h
                 d2 = (k2ij+k2ij.T)*h
                 G2a = 2*(d1*d1.T + d2*d2.T)
-                G2 = Ca.T*dhda.T*G2a*dhda*Ca 
+                #G2 = Ca.T*dhda.T*G2a*dhda*Ca
+                G2 = G2a 
                 
                 Gbig = cat(cat(G2, d2ss_dhde, 1),
                            cat(d2ss_dedh, d2ss_dev2, 1), 0) 
