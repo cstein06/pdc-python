@@ -13,6 +13,7 @@ from matplotlib.pyplot import xcorr
 from pdc import ar_fit
 from numpy.dual import eig
 from numpy.linalg.linalg import LinAlgError
+import sys
 
 # These functions are used to make code more readable.
 vec = lambda x: mat(x.ravel('F')).T
@@ -109,16 +110,27 @@ def bigautocorr_old(x, p):
     return dot(y, y.T)/nd
     #return cov(y.T)
 
+def bigautocorr_old2(x, p):
+    '''Autocorrelation. Data in rows. From order 0 to p-1.
+    Output: nxn blocks of autocorr of lags i. (Nuttall Strand matrix)'''
+    n, nd = x.shape
+    gamma = zeros([n*p, n*p])
+    for i in arange(p):
+        for j in arange(p):
+            gamma[i*n:i*n+n, j*n:j*n+n] = dot(xlag(x, i), xlag(x, j).T)/nd
+
+    return gamma
+
 def bigautocorr(x, p):
     '''Autocorrelation. Data in rows. From order 0 to p-1.
     Output: nxn blocks of autocorr of lags i. (Nuttall Strand matrix)'''
     n, nd = x.shape
     gamma = zeros([n*p, n*p])
     for i in arange(p):
-        print 'i', i
-        for j in arange(p):
-            gamma[i*n:i*n+n, j*n:j*n+n] = dot(xlag(x, i), xlag(x, j).T)/nd
-
+        g = dot(x, xlag(x, i).T)/(nd-i)
+        for j in arange(p-i):
+            gamma[(i+j)*n:(i+j)*n+n, j*n:j*n+n] = g.T
+            gamma[j*n:j*n+n, (i+j)*n:(i+j)*n+n] = g
     return gamma
     
 def fdh_da(Af, n):
@@ -168,7 +180,7 @@ def fChol(omega):
     # If there's a small negative eigenvalue, diagonalize
     except LinAlgError:
         val, vec = eigh(omega)
-        print 'negative eig. in omega: ', val[val<0]
+        print 'non-positive eig. in omega:', val[val<=0]
         L = zeros(vec.shape)
         for i in range(len(val)):
             if val[i]<0.:
@@ -183,10 +195,7 @@ def fEig(L, G2):
 
     #L = mat(cholesky(omega, lower=1))
     D = L.T*G2*L
-    print 'aqui 4.2', L.shape, G2.shape, D.shape
-    print 'aqui 4.21', sum(abs(L) > 0), sum(abs(G2) > 0)
     d = eigh(D, eigvals_only=True)
-    print 'aqui 4.3', d.shape
     d = d[abs(d) > 1E-8]
     if (d.size > 2):
         print 'more than two chi-square in the sum:'
@@ -217,21 +226,15 @@ def asymp_pdc(x, A, nf, e_var, p, metric = 'gen', alpha = 0.05):
     varass1 = empty([n, n, nf])
     varass2 = empty([n, n, nf])
     
-    print 'aqui'
     gammai = inv(bigautocorr(x, p))
     omega = kron(gammai, e_var)
-    #print bigautocorr(x, p)
-    print 'depois'
     
     omega_evar = 2*Dup(n).I*kron(e_var, e_var)*Dup(n).I.T
-    
-    
-    print 'aqui denovo'
-    
+
     print 'alpha', alpha
     
     for ff in range(nf):
-        print 'f: ', ff
+        
         f = ff/(2.0*nf)
         
         Ca = fCa(f, p, n)
@@ -246,8 +249,6 @@ def asymp_pdc(x, A, nf, e_var, p, metric = 'gen', alpha = 0.05):
         
         for i in range(n):
             for j in range(n):
-                
-                print 'aqui 1', i, j
                 
                 Iij = fIij(i, j, n)
                 Ij = fIj(j, n)
@@ -274,8 +275,6 @@ def asymp_pdc(x, A, nf, e_var, p, metric = 'gen', alpha = 0.05):
                 num = a.T*Iije*a
                 den = a.T*Ije*a
                 pdc[i, j, ff] = num/den
-                
-                print 'aqui 2', num.shape
                 
                 'Acrescenta derivada em relacao a evar'
                 if metric == 'euc':
@@ -324,8 +323,6 @@ def asymp_pdc(x, A, nf, e_var, p, metric = 'gen', alpha = 0.05):
                     
                 G1a = 2*a.T*Iije/den - 2*num*a.T*Ije/(den**2)
                 G1 = -G1a*Ca
-                
-                print 'aqui 3', Ca.shape, G1a.shape
 
                 varalpha = G1*omega*G1.T
                 varevar = dpdc_dev*omega_evar*dpdc_dev.T
@@ -338,21 +335,14 @@ def asymp_pdc(x, A, nf, e_var, p, metric = 'gen', alpha = 0.05):
                 G2a = 2*Iije/den
                 #G2 = Ca.T*G2a*Ca
                 
-                print 'aqui 4', G2a.shape#, G2.shape
-                
                 #print omega, eigh(omega, eigvals_only=True)
                 d = fEig(L, G2a)
-                
-                print 'aqui 4.5', d.shape
-                
                 
                 patdf = sum(d)**2/sum(d**2)
                 patden = sum(d)/sum(d**2)
                 th[i, j, ff] = st.chi2.ppf(1-alpha, patdf)/(patden*2*nd)
                 varass2[i, j, ff] = 2*patdf/(patden*2*nd)**2
-                
-                print 'aqui 5'
-                
+
     return pdc, th, ic1, ic2
 
 

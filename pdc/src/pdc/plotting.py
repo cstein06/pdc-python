@@ -3,9 +3,12 @@ from numpy import *
 import matplotlib.pyplot as pp
 
 
-def plot_all(mes, th, ic1, ic2, ss = None, nf = 64, sample_f = 1.0):
+def plot_all(mes, th, ic1, ic2, ss = None, nf = 64, sample_f = 1.0, logss = True):
     '''Plots nxn graphics, with confidence intervals and threshold. 
-       If ss == True, plots ss in the diagonal.'''
+       If ss == True, plots ss in the diagonal.
+       Already expects data in power form: abs(x)^2'''
+    if logss:
+        ss = log(ss)
     x = sample_f*arange(nf)/(2.0*nf)
     n = mes.shape[0]
     for i in range(n):
@@ -53,7 +56,8 @@ def plot_all(mes, th, ic1, ic2, ss = None, nf = 64, sample_f = 1.0):
     
 def pdc_plot(pdc, ss = None, nf = 64, sample_f = 1.0):
     '''Plots nxn graphics. 
-       If ss == True, plots ss in the diagonal.'''
+       If ss == True, plots ss in the diagonal.
+       Expects data in complex form. Does: abs(x)^2 before plotting.'''
     n = pdc.shape[0]
     pdc = pdc*pdc.conj()
     for i in range(n):
