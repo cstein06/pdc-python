@@ -200,10 +200,10 @@ def gen_winterhalter_2005_van_der_Pol_odeint(np, dummy = 100, dt = 0.01):
 def teste_data():
     subs = 50
     nd = 50000*subs
-    nf = 10
-    alpha = 0.05
+    nf = 64
+    alpha = 0.01
     #n = 5
-    maxp = 100
+    maxp = 200
     metric = 'euc'
     
     #Generate data from AR
@@ -214,7 +214,7 @@ def teste_data():
     
     pdc_.pdc_full(data, maxp = maxp, nf = nf, ss = True, 
                   metric = metric, alpha = alpha,
-                  normalize = False, detrend = True, fixp = True)
+                  normalize = False, detrend = True, fixp = False)
     
     #Estimate AR parameters with Nuttall-Strand
     #Aest, erest = ar_fit(data, maxp)

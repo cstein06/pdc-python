@@ -484,8 +484,6 @@ def pdc_full(data, maxp = 5, nf = 64, sample_f = 1,
         ic1 = zeros(mes.shape)
         ic2 = zeros(mes.shape)
          
-    print 'th', th[0,1]
-         
     if (ss == True):
         ssm = ss_alg(Aest, erest, nf)
     else:
