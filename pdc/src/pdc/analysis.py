@@ -54,10 +54,6 @@ def A_to_f(A, nf = 64):
     return AL
 
 
-    
-    
-
-
 def pc_alg(A, e_cov, nf = 64):
     '''Calculates the Partial Coherence
         A -> autoregressive matrix
@@ -90,6 +86,8 @@ def ss_alg(A, e_cov, nf = 64):
     for i in range(nf):
         H = mat(AL[i]).I
         ss[i] = H*e_cov*H.T.conj()
+        
+    print ss[5]
     return ss.transpose(1,2,0)
 
 def ss_coh_alg(A, e_cov, nf = 64):
@@ -230,8 +228,10 @@ def pdc(data, maxp = 30, nf = 64, detrend = True, normalize = False, fixp = Fals
     
     A, er = ar_fit.ar_fit(data, maxp, criterion=crit)
     
-    print A.shape[2]
-    print A
+    print 'data:', data.shape
+    print 'A:', A.shape
+    
+    #print A
     
     if (ss):
         return pdc_alg(A, er, nf, metric = metric), ss_alg(A, er, nf)
@@ -443,7 +443,7 @@ def white_test(data, maxp = 30, h = 20):
 #    return gct
         
 
-def pdc_full(data, maxp = 5, nf = 64, sample_f = 1, 
+def pdc_full(data, maxp = 30, nf = 64, sample_f = 1, 
                    ss = True, alpha = 0.05, metric = 'gen', 
                    detrend = True, normalize = False, stat = 'asymp', n_boot = 1000, fixp = False):
     '''Interface that calculates PDC from data, calculates asymptotics statistics and plots everything.'''
@@ -464,9 +464,9 @@ def pdc_full(data, maxp = 5, nf = 64, sample_f = 1,
     
     Aest, erest = ar_fit.ar_fit(data, maxp, criterion=crit)
     
-    print  'A:', Aest
+    #print  'A:', Aest
     #erest = (erest+erest.T)/2   #TODO: conferir isso. porque nao eh sempre simetrico?
-    print 'evar:', erest
+    #print 'evar:', erest
     #Calculate the connectivity and statistics
     
     print 'A:', Aest.shape
@@ -493,19 +493,19 @@ def pdc_full(data, maxp = 5, nf = 64, sample_f = 1,
     
 def coh_full(data, maxp = 5, nf = 64, sample_f = 1, 
              ss = True, alpha = 0.05, detrend = True, normalize = False, stat = 'asymp', n_boot = 1000, fixp = False, metric = None):
-    measure_full(data, 'coh', maxp, nf, sample_f, ss, alpha, detrend, normalize, stat = stat, n_boot = n_boot, fixp = False)
+    measure_full(data, 'coh', maxp, nf, sample_f, ss, alpha, detrend, normalize, stat = stat, n_boot = n_boot, fixp = fixp)
 
 def dtf_full(data, maxp = 5, nf = 64, sample_f = 1, 
              ss = True, alpha = 0.05, detrend = True, normalize = False, stat = 'asymp', n_boot = 1000, fixp = False, metric = None):
-    measure_full(data, 'dtf', maxp, nf, sample_f, ss, alpha, detrend, normalize, stat = stat, n_boot = n_boot, fixp = False)
+    measure_full(data, 'dtf', maxp, nf, sample_f, ss, alpha, detrend, normalize, stat = stat, n_boot = n_boot, fixp = fixp)
 
 def ss_full(data, maxp = 5, nf = 64, sample_f = 1, 
              ss = True, alpha = 0.05, detrend = True, normalize = False, stat = 'asymp', n_boot = 1000, fixp = False, metric = None):
-    measure_full(data, 'ss', maxp, nf, sample_f, ss, alpha, detrend, normalize, stat = stat, n_boot = n_boot, fixp = False)
+    measure_full(data, 'ss', maxp, nf, sample_f, ss, alpha, detrend, normalize, stat = stat, n_boot = n_boot, fixp = fixp)
 
 def pc_full(data, maxp = 5, nf = 64, sample_f = 1, 
              ss = True, alpha = 0.05, detrend = True, normalize = False, stat = 'asymp', n_boot = 1000, fixp = False, metric = None):
-    measure_full(data, 'pc', maxp, nf, sample_f, ss, alpha, detrend, normalize, stat = stat, n_boot = n_boot, fixp = False)
+    measure_full(data, 'pc', maxp, nf, sample_f, ss, alpha, detrend, normalize, stat = stat, n_boot = n_boot, fixp = fixp)
 
 def measure_full(data, measure, maxp = 5, nf = 64, sample_f = 1, 
                  ss = True, alpha = 0.05, detrend = True, 
@@ -582,19 +582,19 @@ def pdc_and_plot(data, maxp = 30, nf = 64, sample_f = 1, ss = True, metric = 'ge
 
 def coh_and_plot(data, maxp = 30, nf = 64, sample_f = 1, ss = True, metric = None,
                  detrend = True, normalize = False, fixp = False):
-    measure_and_plot(data, 'coh', maxp, nf, sample_f, ss)
+    measure_and_plot(data, 'coh', maxp, nf, sample_f, ss, fixp = fixp)
     
 def dtf_and_plot(data, maxp = 30, nf = 64, sample_f = 1, ss = True, metric = None,
                  detrend = True, normalize = False, fixp = False):
-    measure_and_plot(data, 'dtf', maxp, nf, sample_f, ss)
+    measure_and_plot(data, 'dtf', maxp, nf, sample_f, ss, fixp = fixp)
     
 def ss_and_plot(data, maxp = 30, nf = 64, sample_f = 1, ss = True, metric = None,
                 detrend = True, normalize = False, fixp = False):
-    measure_and_plot(data, 'ss', maxp, nf, sample_f, ss)
+    measure_and_plot(data, 'ss', maxp, nf, sample_f, ss, fixp = fixp)
     
 def pc_and_plot(data, maxp = 30, nf = 64, sample_f = 1, ss = True, metric = None,
                 detrend = True, normalize = False, fixp = False):
-    measure_and_plot(data, 'pc', maxp, nf, sample_f, ss)
+    measure_and_plot(data, 'pc', maxp, nf, sample_f, ss, fixp = fixp)
     
 def measure_and_plot(data, measure, maxp = 30, nf = 64, sample_f = 1, ss = True,
                      detrend = True, normalize = False, fixp = False):

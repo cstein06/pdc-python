@@ -214,6 +214,9 @@ def ar_fit(u, MaxIP = 0, alg=0, criterion=0, return_ef = False):
     IP=1
     Vaicv=zeros((MaxOrder+1,1), float)
     while IP <= UpperboundOrder:
+        if (IP > 10):
+            print 'Testando ar_fit com P =', IP
+            
         [npf, na, npb, nb, nef, neb, ISTAT]=nstrand(u,IP,False)
         
         vaic=max(u.shape)*log(det(npf))+2*nChannels*nChannels*IP;

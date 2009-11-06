@@ -157,7 +157,7 @@ def gen_winterhalter_2005_van_der_Pol(n, dummy = 100, dt = 0.01):
         x = x+x1*dt
         x1 = x1+x2*dt
         x2 = mi*(1 - x**2)*x1 - w**2 * x + \
-             sg*n + dot(t, x) - sum(t,1)*x
+             sg*n/sqrt(dt) + dot(t, x) - sum(t,1)*x
         data[:,j] = x
         #x = xn
         #x1 = x1n
@@ -200,21 +200,23 @@ def gen_winterhalter_2005_van_der_Pol_odeint(np, dummy = 100, dt = 0.01):
 def teste_data():
     subs = 50
     nd = 50000*subs
-    nf = 64
-    alpha = 0.01
+    nf = 40
+    alpha = 0.05
     #n = 5
-    maxp = 200
+    maxp = 10
     metric = 'euc'
     
     #Generate data from AR
     #data = gen_winterhalter_2005_van_der_Pol_odeint(nd, dt = 0.5/subs)
     data = loadtxt('D:/work/dados/simulation/pol50000_sub05_euler.txt')
     #data = subsample(data, subs)
+    #data = subsample(data, 2)
        
+    data = data[:,:4000]
     
     pdc_.pdc_full(data, maxp = maxp, nf = nf, ss = True, 
                   metric = metric, alpha = alpha,
-                  normalize = False, detrend = True, fixp = False)
+                  normalize = False, detrend = True, fixp = True, stat = 'boot', n_boot = 100)
     
     #Estimate AR parameters with Nuttall-Strand
     #Aest, erest = ar_fit(data, maxp)

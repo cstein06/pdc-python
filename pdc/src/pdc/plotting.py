@@ -3,12 +3,19 @@ from numpy import *
 import matplotlib.pyplot as pp
 
 
-def plot_all(mes, th, ic1, ic2, ss = None, nf = 64, sample_f = 1.0, logss = True):
+def plot_all(mes, th, ic1, ic2, ss = None, nf = 64, sample_f = 1.0, logss = False, sqrtmes = False):
     '''Plots nxn graphics, with confidence intervals and threshold. 
        If ss == True, plots ss in the diagonal.
        Already expects data in power form: abs(x)^2'''
     if logss:
         ss = log(ss)
+       
+    if sqrtmes: 
+        mes = sqrt(mes)
+        th = sqrt(th)
+        ic1 = sqrt(ic1)
+        ic2 = sqrt(ic2)
+
     x = sample_f*arange(nf)/(2.0*nf)
     n = mes.shape[0]
     for i in range(n):
@@ -49,7 +56,11 @@ def plot_all(mes, th, ic1, ic2, ss = None, nf = 64, sample_f = 1.0, logss = True
         if (ss != None):
             ax = pp.subplot(n,n,i*n+i+1).twinx()
             ax.plot(sample_f*arange(nf)/(2.0*nf), ss[i,i,:], color='g')
-            ax.set_ylim(ymin = 0, ymax = ss[i,i,:].max())
+            if logss:
+                ax.set_ylim(ymin = ss[i,i,:].min(), ymax = ss[i,i,:].max())
+            else:
+                ax.set_ylim(ymin = 0, ymax = ss[i,i,:].max())
+                
             if (i < n-1):
                 ax.set_xticks([])
     pp.show()

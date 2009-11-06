@@ -464,7 +464,7 @@ def asymp_pc(x, A, nf, e_var, p, alpha = 0.05):
     varass2 = empty([n, n, nf])
     
     gammai = inv(bigautocorr(x, p))
-    omega_orig = kron(gammai, e_var)
+    omega = kron(gammai, e_var)
     #print bigautocorr(x, p)
     
     omega_evar = 2*Dup(n).I*kron(e_var, e_var)*Dup(n).I.T
@@ -475,11 +475,11 @@ def asymp_pc(x, A, nf, e_var, p, alpha = 0.05):
         Ca = fCa(f, p, n)
         
         
-        omega = Ca*omega_orig*Ca.T
+        omega2 = Ca*omega*Ca.T
         
         ehs = omega_evar.shape[0]
-        oas = omega.shape[0]
-        omegabig = cat(cat(omega, zeros([oas, ehs]), 1),
+        oas = omega2.shape[0]
+        omegabig = cat(cat(omega2, zeros([oas, ehs]), 1),
                       cat(zeros([ehs, oas]), omega_evar, 1), 0) 
 
         L = fChol(omegabig)
@@ -635,7 +635,7 @@ def asymp_coh(x, A, nf, e_var, p, alpha = 0.05):
     varass2 = empty([n, n, nf])
     
     gammai = inv(bigautocorr(x, p))
-    omega_orig = kron(gammai, e_var)
+    omega = kron(gammai, e_var)
     #print bigautocorr(x, p)
     
     omega_evar = 2*Dup(n).I*kron(e_var, e_var)*Dup(n).I.T
@@ -652,11 +652,11 @@ def asymp_coh(x, A, nf, e_var, p, alpha = 0.05):
         
         dhda = fdh_da(mat(Af[ff, :, :]), n)
         
-        omega = dhda*Ca*omega_orig*Ca.T*dhda.T
+        omega2 = dhda*Ca*omega*Ca.T*dhda.T
         
         ehs = omega_evar.shape[0]
-        oas = omega.shape[0]
-        omegabig = cat(cat(omega, zeros([oas, ehs]), 1),
+        oas = omega2.shape[0]
+        omegabig = cat(cat(omega2, zeros([oas, ehs]), 1),
                    cat(zeros([ehs, oas]), omega_evar, 1), 0)
          
         L = fChol(omegabig)
@@ -791,7 +791,7 @@ def asymp_ss(x, A, nf, e_var, p, alpha = 0.05):
     varass2 = empty([n, n, nf])
     
     gammai = inv(bigautocorr(x, p))
-    omega_orig = kron(gammai, e_var)
+    omega = kron(gammai, e_var)
     #print bigautocorr(x, p)
     omega_evar = 2*Dup(n).I*kron(e_var, e_var)*Dup(n).I.T
     
@@ -806,11 +806,11 @@ def asymp_ss(x, A, nf, e_var, p, alpha = 0.05):
         
         dhda = fdh_da(mat(Af[ff, :, :]), n)
         
-        omega = dhda*Ca*omega_orig*Ca.T*dhda.T
+        omega2 = dhda*Ca*omega*Ca.T*dhda.T
         
         ehs = omega_evar.shape[0]
-        oas = omega.shape[0]
-        omegabig = cat(cat(omega, zeros([oas, ehs]), 1),
+        oas = omega2.shape[0]
+        omegabig = cat(cat(omega2, zeros([oas, ehs]), 1),
                    cat(zeros([ehs, oas]), omega_evar, 1), 0)
     
         L = fChol(omegabig) 
