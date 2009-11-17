@@ -202,6 +202,7 @@ def fEig(L, G2):
         print d
     return d
 
+
 def asymp_pdc(x, A, nf, e_var, p, metric = 'gen', alpha = 0.05):
     '''Asymptotic statistics for the three PDC formulations
         x -> data
@@ -342,6 +343,10 @@ def asymp_pdc(x, A, nf, e_var, p, metric = 'gen', alpha = 0.05):
                 patden = sum(d)/sum(d**2)
                 th[i, j, ff] = st.chi2.ppf(1-alpha, patdf)/(patden*2*nd)
                 varass2[i, j, ff] = 2*patdf/(patden*2*nd)**2
+                
+                #if (i == 1 and j == 0 and ff == 3):
+                #    patdfr = patdf
+                #    patdenr = patden TODO retirar
 
     return pdc, th, ic1, ic2
 

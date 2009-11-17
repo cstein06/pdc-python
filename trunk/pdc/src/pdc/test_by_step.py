@@ -12,8 +12,9 @@ from scipy import randn
 import pdc.analysis as pdc_
 import pdc.asymp as ass_
 from pdc.asymp import *
-from pdc.ar_data import ar_data, ar_models
+import pdc.ar_data as ar_data_
 import pdc.ar_fit as ar_fit
+import pdc.adaptative as adap 
 
 from scipy.stats import cov as cov
 from scipy.linalg import cholesky
@@ -57,13 +58,13 @@ def test_alpha_var(montei = 100, nd = 100, A = None, er = None, maxp = 2):
     p = A.shape[2]
     alpha = empty(montei, n, n, p)
     for i in arange(montei):
-        data = ar_data(A, er, nd)
+        data = ar_data_.ar_data(A, er, nd)
         alpha[i], erest = ar_fit.nstrand(data, maxp = maxp)
         
 def test_asymp_pdc_semr():
     Aest = array([[4,3],[0,3]], dtype=float).reshape(2,2,1)/10
     erest = array([[0.7,0],[0,2]], dtype = float)
-    data = ar_data(Aest, erest, 1000)
+    data = ar_data_.ar_data(Aest, erest, 1000)
     maxp = 1
     nf = 5
     Af = pdc_.A_to_f(Aest, nf = nf)
@@ -115,7 +116,7 @@ def test_alpha(nm = 100, nd = 100, A = None, er = None, maxp = 2):
     al = empty([nm, n**2*maxp])
     time.clock()
     for i in range(nm):
-        data = ar_data(A, er, nd)
+        data = ar_data_.ar_data(A, er, nd)
         Aest, erest = ar_fit.nstrand(data, maxp = maxp)  
         varass[i] = ass_alpha(data, erest, maxp, nd)
         al[i] = Aest.transpose([2,1,0]).ravel()
@@ -160,7 +161,7 @@ def test_evar(nm = 100, nd = 100, A = None, er = None, maxp = 2):
     erm = empty([nm, n, n])
     time.clock()
     for i in range(nm):
-        data = ar_data(A, er, nd)
+        data = ar_data_.ar_data(A, er, nd)
         Aest, erest = ar_fit.nstrand(data, maxp = maxp)  
         vares[i] = ass_evar(erest, nd)
         al[i] = ass_.vech(erest)
@@ -191,7 +192,7 @@ def test_eaind(nm = 100, nd = 100, A = None, er = None, maxp = 2):
     erm = empty([nm, n, n])
     time.clock()
     for i in range(nm):
-        data = ar_data(A, er, nd)
+        data = ar_data_.ar_data(A, er, nd)
         Aest, erest = ar_fit.nstrand(data, maxp = maxp)  
         vares[i] = ass_evar(erest, nd)
         ala[i] = Aest.transpose([2,1,0]).ravel()
@@ -255,7 +256,7 @@ def test_pc():
     Aest = array([[4,2],[0,3]], dtype=float).reshape(2,2,1)/10
     #erest = array([[0.7,0],[0,2]], dtype = float)
     erest = identity(2)
-    data = ar_data(Aest, erest, 1000)
+    data = ar_data_.ar_data(Aest, erest, 1000)
     maxp = 1
     nf = 2
     Af = pdc_.A_to_f(Aest, nf = nf)
@@ -272,7 +273,7 @@ def test_coh():
     Aest = array([[4,2],[0,3]], dtype=float).reshape(2,2,1)/10
     #erest = array([[0.7,0],[0,2]], dtype = float)
     erest = identity(2)
-    data = ar_data(Aest, erest, 1000)
+    data = ar_data_.ar_data(Aest, erest, 1000)
     maxp = 1
     nf = 2
     Af = pdc_.A_to_f(Aest, nf = nf)
@@ -291,7 +292,7 @@ def test_ss():
                    [[0, 0],[0,0],[0.4,0.1]]], dtype = float) 
     #erest = array([[0.7,0],[0,2]], dtype = float)
     erest = identity(3)
-    data = ar_data(Aest, erest, 1000)
+    data = ar_data_.ar_data(Aest, erest, 1000)
     maxp = 1
     nf = 2
     Af = pdc_.A_to_f(Aest, nf = nf)
@@ -334,16 +335,58 @@ def test_patnaik(d, mci = 10000):
     return pat, rpat
 
 def test_patnaik2():
-    
-    p, rp = test_patnaik(array([0.1, 0.8]), 100000)
+    n = 100000
+    p, rp = test_patnaik(array([0.2, 0.8]), n)
     p.sort()
     rp.sort()
-    li = rp[ceil(size(rp)*0.95)]
+    n95 = ceil(size(rp)*0.99)
+    li = rp[ceil(n95)]
     ind = (p>li).argmax()
-    print ceil(size(p)*0.95), li
+    print ceil(n95), li
     print ind, p[ind]
     pp.plot(p, rp)
     pp.plot([0,10], [0,10])
+    pp.plot(p[n95], rp[n95], 'r+')
+    
+    pp.figure(2)
+    pp.plot(p, linspace(0,1,n), 'r-', rp, linspace(0,1,n), 'b-')
+    
+    pp.show()
+    
+def test_daniel_JAS_fig2():
+    n = 10000
+    A, er = ar_data_.ar_models(4, 0)
+    emp = zeros(n)
+    for i in arange(n):
+        data = ar_data_.ar_data(A, er, 1000)
+        Ae, ere = ar_fit.ar_fit(data, 2, criterion = 1)
+        aux = pdc_.pdc_alg(Ae, ere, nf = 5, metric = 'euc')
+         
+        Af = pdc_.A_to_f(Ae, 5)
+        den = dot(Af[3,:,0],Af[3,:,0].conj()).real
+        
+        emp[i] = 1000*den*abs(aux[1,0,3])**2
+        
+    
+    emp = sort(emp)
+    
+    data = ar_data_.ar_data(A, er, 10000)
+    #Ae, ere = ar_fit.ar_fit(data, 2, criterion = 1)
+    
+    Af = pdc_.A_to_f(A, 5)
+    den = dot(Af[3,:,0],Af[3,:,0].conj()).real
+    
+    aux = ass_.asymp_pdc(data, A, 5, er, p=2, metric='euc')
+    patdf = aux[4]
+    patden = aux[5]
+    xpat = st.chi2.cdf((patden*2)*linspace(0,5,1000)/den, patdf)
+    xpat2 = st.gamma.cdf((patden*2)*linspace(0,5,1000)/den, 0.5*patdf, scale=2)
+    xpat3 = st.gamma.cdf((patden)*linspace(0,5,1000)/den, 0.5*patdf/2, scale=2)
+        
+    pp.plot(emp, linspace(0,1,n), 'b-', linspace(0,5,1000), xpat, 'y-',
+            linspace(0,5,1000), xpat2, 'k-', linspace(0,5,1000), xpat3, 'r-')
+    pp.xlim([0,3])
+    pp.ylim([0,1])
     pp.show()
 
 def test_AIC():
@@ -360,7 +403,7 @@ def test_AIC():
     metric = 'gen'
     
     #Generate data from AR
-    data = ar_data(A, er, nd)
+    data = ar_data_.ar_data(A, er, nd)
     
     #If you want step by step:
     
@@ -381,7 +424,7 @@ def test_gci():
               [[0, 0],[0.8,-0.1],[0.4,-0.1]],
                [[0, 0],[-0.7,0.2],[0,0]]], dtype = float) 
     er = identity(3)
-    data = ar_data(A, er, 10000, 10)
+    data = ar_data_.ar_data(A, er, 10000, 10)
     g = gci(data, 1)
     print g
     
@@ -391,7 +434,7 @@ def test_gct():
               [[0, 0],[0.8,-0.1],[0.4,-0.1]],
                [[0, 0],[-0.7,0.2],[0,0]]], dtype = float) 
     er =  array([[0.7,0.3,0.0],[0.3,0.9,0.0],[0.0,0.0,2]], dtype = float)
-    data = ar_data(A, er, 1000, 10)
+    data = ar_data_.ar_data(A, er, 1000, 10)
     
     maxp = 2
     
@@ -417,7 +460,7 @@ def test_white():
               [[0, 0],[0.8,-0.1],[0.4,-0.1]],
                [[0, 0],[-0.7,0.2],[0,0]]], dtype = float) 
     er =  array([[0.7,0.3,0.0],[0.3,0.9,0.0],[0.0,0.0,2]], dtype = float)
-    data = ar_data(A, er, 1000, 10)
+    data = ar_data_.ar_data(A, er, 1000, 10)
     
     maxp = 2
 
@@ -425,15 +468,59 @@ def test_white():
     print a
     print b
     
+
+def test_AMVAR(m = 10, nd = 2000, n = 2, p = 3, step = 50, se = 100):
+    
+    
+    
+    A, er = ar_data_.ar_models(3)
+    
+    data = empty([m,n,nd])
+    
+    for i in arange(m):
+        data[i] = ar_data_.ar_data(A, er, nd, dummy = 10)
+        
+    #A, er = adap.AMVAR(data, p, cf = 0.03)
+    A, er = adap.aPDC(data, p, se = se, step = step)
+
+    #print A
+    
+    return A, er
+    
+def test_AMVAR2(m = 10, nd = 2000, n = 2, p = 3, step = 50, se = 100):
+    
+    
+    A, er = ar_data_.ar_models(3)
+    A2, er2 = ar_data_.ar_models(1)
+    
+    
+    data = empty([m,n,nd])
+    nd2 = nd/4
+    
+    for i in arange(m):
+        for j in arange(4):
+            if (j%2 == 0):
+                data[i,:,j*nd2:(j+1)*nd2] = ar_data_.ar_data(A, er, nd2, dummy = 10)
+            else:
+                data[i,:,j*nd2:(j+1)*nd2] = ar_data_.ar_data(A2, er2, nd2, dummy = 10)
+        
+    #A, er = adap.AMVAR(data, p, cf = 0.03)
+    A, er = adap.aPDC(data, p = p, se = se, step = step)
+
+    #print A
+    
+    return A, er
     
 
 if __name__ == "__main__":
     #test_AIC()
     #compare_matlab_pdc_one()
     #test_patnaik2()
-    
+    test_daniel_JAS_fig2()
     #tes#t_gci()
     #test_gct()
     #test_white()
 
-    test_igct_matlab()
+    #test_igct_matlab()
+    
+    #test_AMVAR(nd = 200)

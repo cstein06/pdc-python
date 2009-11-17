@@ -47,7 +47,7 @@ y=array([[1936,  1.0, 0.9,  40],
 sun = y[:,[3,2]].transpose()
 
 
-def ar_models(id):
+def ar_models(id, lam = 0.0):
 
 
     models = [
@@ -57,10 +57,19 @@ def ar_models(id):
                [[0, 0],[-0.1,0.2],[0.4,0.1]]], dtype = float), 
      identity(3)],
              #1
-    [array([[[4,-4],[3,3]],[[0,0],[0,3]]], dtype=float).reshape(2,2,2)/20,
+    [array([[[4,-4],[3,3]],[[0,-2],[2,-3]]], dtype=float).reshape(2,2,2)/20,
      array([[0.7,0],[0,2]], dtype = float)],
              #2 sunspot melanoma
-    sun
+    sun,
+             #3
+    [array([[[4,3,-2],[-2,-5,3]],[[4,-2,1],[-4,0,3]]], dtype=float).reshape(2,2,3)/20,
+     array([[0.7,0.3],[0.3,2]], dtype = float)],
+            #4 JAS Daniel (12)
+    [array([[[0.2, 0],[-0.4, -0.2],[0.3,0]], 
+            [[lam, 0],[0.8,-0.1],[0.4,0.0]],
+            [[0, 0.5],[-0.1,0.2],[0.4,0.1]]], dtype = float), 
+     identity(3)],
+    
     ]
     return models[id]
 

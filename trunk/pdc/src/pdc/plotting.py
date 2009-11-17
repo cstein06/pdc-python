@@ -3,7 +3,8 @@ from numpy import *
 import matplotlib.pyplot as pp
 
 
-def plot_all(mes, th, ic1, ic2, ss = None, nf = 64, sample_f = 1.0, logss = False, sqrtmes = False):
+def plot_all(mes, th, ic1, ic2, ss = None, nf = 64, sample_f = 1.0, 
+             logss = False, sqrtmes = False, plotf = None):
     '''Plots nxn graphics, with confidence intervals and threshold. 
        If ss == True, plots ss in the diagonal.
        Already expects data in power form: abs(x)^2'''
@@ -53,6 +54,10 @@ def plot_all(mes, th, ic1, ic2, ss = None, nf = 64, sample_f = 1.0, logss = Fals
                 pp.xticks([])
             if (j > 0):
                 pp.yticks([])
+            
+            if plotf != None:
+                pp.xlim([0, plotf])
+                
         if (ss != None):
             ax = pp.subplot(n,n,i*n+i+1).twinx()
             ax.plot(sample_f*arange(nf)/(2.0*nf), ss[i,i,:], color='g')
@@ -63,6 +68,10 @@ def plot_all(mes, th, ic1, ic2, ss = None, nf = 64, sample_f = 1.0, logss = Fals
                 
             if (i < n-1):
                 ax.set_xticks([])
+            
+            if plotf != None:
+                ax.set_xlim(xmin = 0, xmax = plotf)
+                
     pp.show()
     
 def pdc_plot(pdc, ss = None, nf = 64, sample_f = 1.0):
