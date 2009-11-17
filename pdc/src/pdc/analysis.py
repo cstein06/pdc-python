@@ -12,6 +12,7 @@ from pdc.ar_data import ar_data
 import pdc.ar_fit as ar_fit
 import pdc.asymp as as_
 from pdc.plotting import *
+import pdc.plotting as pl_
 import pdc.bootstrap as bt_
 
 def list_to_array(data):
@@ -200,7 +201,8 @@ def pdc_ss_coh(data, maxp = 30, nf = 64, detrend = True):
     return abs(pdc_alg(A, er, nf))**2, abs(ss_alg(A, er, nf))**2, abs(coh_alg(A, er, nf))**2
 
 
-def pdc(data, maxp = 30, nf = 64, detrend = True, normalize = False, fixp = False, ss = True, metric = 'gen'):
+def pdc(data, maxp = 30, nf = 64, detrend = True, normalize = False, 
+        fixp = False, ss = True, metric = 'diag'):
     '''Generates spectral PDC matrix from data array
     
       Input: 
@@ -444,8 +446,10 @@ def white_test(data, maxp = 30, h = 20):
         
 
 def pdc_full(data, maxp = 30, nf = 64, sample_f = 1, 
-                   ss = True, alpha = 0.05, metric = 'gen', 
-                   detrend = True, normalize = False, stat = 'asymp', n_boot = 1000, fixp = False):
+                   ss = True, alpha = 0.05, metric = 'diag', 
+                   detrend = True, normalize = False, 
+                   stat = 'asymp', n_boot = 1000, fixp = False,
+                   plotf = None):
     '''Interface that calculates PDC from data, calculates asymptotics statistics and plots everything.'''
     
     if(type(data) == type([])):
@@ -489,7 +493,8 @@ def pdc_full(data, maxp = 30, nf = 64, sample_f = 1,
     else:
         ssm = None
         
-    plot_all(mes, th, ic1, ic2, nf = nf, ss = ssm, sample_f = sample_f)
+    plot_all(mes, th, ic1, ic2, nf = nf, 
+             ss = ssm, sample_f = sample_f, plotf = plotf)
     
 def coh_full(data, maxp = 5, nf = 64, sample_f = 1, 
              ss = True, alpha = 0.05, detrend = True, normalize = False, stat = 'asymp', n_boot = 1000, fixp = False, metric = None):
@@ -573,11 +578,11 @@ def pdc_and_plot(data, maxp = 30, nf = 64, sample_f = 1, ss = True, metric = 'ge
     if(type(data) == type([])):
         data = list_to_array(data)
     
-    
     pdc_, ss_ = pdc(data, maxp, nf, detrend = detrend, normalize = normalize, 
                     fixp = fixp, metric = metric)
     if(not ss):
         ss_ = None
+        
     pdc_plot(pdc_, ss_, nf, sample_f)
 
 def coh_and_plot(data, maxp = 30, nf = 64, sample_f = 1, ss = True, metric = None,
