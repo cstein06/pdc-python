@@ -1,3 +1,10 @@
+# -*- coding:utf-8 -*-
+"""
+Created on 06/11/2009
+
+@author: Carlos Stein
+"""
+
 from numpy import *
 from numpy.random import randn
 from numpy.random import multivariate_normal as mnorm
@@ -46,7 +53,9 @@ y=array([[1936,  1.0, 0.9,  40],
         [ 1972, 5.3, 4.8,  65]])
 sun = y[:,[3,2]].transpose()
 
-
+''' Some pre-specified models for ready use.
+    ar_models(2) is the sunspot-melanoma data.
+    lam is the free parameter is models that have one.'''
 def ar_models(id, lam = 0.0):
 
 
@@ -102,7 +111,6 @@ def ar_models(id, lam = 0.0):
 #    ro_.globalEnv["m"] = m
 #    ro_.globalEnv["n"] = n
 #    return array(r_('simulate(ARMA(A = array(A, dim), B = diag(1,n)), sd = sqrt(er), sampleT = m)$output')).T
-
 
 def ar_data_old(A, er = None, m = 1000, dummy = 100):
     '''Simulate ar-model from A matrix

@@ -13,6 +13,7 @@ from matplotlib.pyplot import xcorr
 from pdc import ar_fit
 from numpy.dual import eig
 from numpy.linalg.linalg import LinAlgError
+import time
 import sys
 
 # These functions are used to make code more readable.
@@ -110,7 +111,7 @@ def bigautocorr_old(x, p):
     return dot(y, y.T)/nd
     #return cov(y.T)
 
-def bigautocorr_old2(x, p):
+def bigautocorr(x, p):
     '''Autocorrelation. Data in rows. From order 0 to p-1.
     Output: nxn blocks of autocorr of lags i. (Nuttall Strand matrix)'''
     n, nd = x.shape
@@ -121,9 +122,12 @@ def bigautocorr_old2(x, p):
 
     return gamma
 
-def bigautocorr(x, p):
+def bigautocorr_old_wrong(x, p):
     '''Autocorrelation. Data in rows. From order 0 to p-1.
-    Output: nxn blocks of autocorr of lags i. (Nuttall Strand matrix)'''
+    Output: nxn blocks of autocorr of lags i. (Nuttall Strand matrix)
+    
+    its not positive definite... it's wrong.
+    '''
     n, nd = x.shape
     gamma = zeros([n*p, n*p])
     for i in arange(p):
@@ -180,7 +184,9 @@ def fChol(omega):
     # If there's a small negative eigenvalue, diagonalize
     except LinAlgError:
         val, vec = eigh(omega)
-        print 'non-positive eig. in omega:', val[val<=0]
+        if sum(val<0) > 0:
+            print 'negative eig. in omega:', val[val<0]
+        #print omega
         L = zeros(vec.shape)
         for i in range(len(val)):
             if val[i]<0.:
@@ -231,10 +237,14 @@ def asymp_pdc(x, A, nf, e_var, p, metric = 'gen', alpha = 0.05):
     omega = kron(gammai, e_var)
     
     omega_evar = 2*Dup(n).I*kron(e_var, e_var)*Dup(n).I.T
+    
+   
 
     print 'alpha', alpha
     
     for ff in range(nf):
+        
+        print 'ff', ff
         
         f = ff/(2.0*nf)
         
@@ -243,7 +253,7 @@ def asymp_pdc(x, A, nf, e_var, p, metric = 'gen', alpha = 0.05):
         omega2 = Ca*omega*Ca.T
         
         L = fChol(omega2)
-        
+            
         a = vec(Af[ff, :, :])
         a = cat(a.real, a.imag, 0)
         #a = vec(cat(I(n), O(n), 1)) - dot(Ca, al)
@@ -282,15 +292,19 @@ def asymp_pdc(x, A, nf, e_var, p, metric = 'gen', alpha = 0.05):
                     dpdc_dev = mat(zeros((n*(n+1))/2))
                 
                 elif metric == 'diag':
-                    evar_d = mdiag(e_var)
-                    evar_d_big = kron(I(2*n), evar_d)
-                    inv_ed = evar_d_big.I
                     
-                    'derivada de vec(Ed-1) por vecE'
-                    de_deh = Dup(n)
-                    debig_de = fdebig_de(n)
-                    dedinv_dev = diagtom(vec(-inv_ed*inv_ed))
-                    dedinv_deh = dedinv_dev*debig_de*de_deh
+                    #todo: tirar partes que nao dependem de f do loop.
+                    
+                    if i == 0 and j == 0 and ff == 0:
+                        evar_d = mdiag(e_var)
+                        evar_d_big = kron(I(2*n), evar_d)
+                        inv_ed = evar_d_big.I
+                        
+                        'derivada de vec(Ed-1) por vecE'
+                        de_deh = Dup(n)
+                        debig_de = fdebig_de(n)
+                        dedinv_dev = diagtom(vec(-inv_ed*inv_ed))
+                        dedinv_deh = dedinv_dev*debig_de*de_deh
                     
                     'derivada do num por vecE'
                     dnum_dev = kron((Iij*a).T, a.T)*dedinv_deh
@@ -299,22 +313,24 @@ def asymp_pdc(x, A, nf, e_var, p, metric = 'gen', alpha = 0.05):
                     dpdc_dev = (den*dnum_dev - num*dden_dev)/(den**2)
                 
                 else: # metric == 'gen'
-                    evar_d = mdiag(e_var)
-                    evar_d_big = kron(I(2*n), evar_d)
-                    inv_ed = evar_d_big.I
                     
-                    evar_big = kron(I(2*n), e_var)
-                    inv_e = evar_big.I
-
-                    'derivada de vec(Ed-1) por vecE'
-                    de_deh = Dup(n)
-                    debig_de = fdebig_de(n)
-                    
-                    dedinv_devd = diagtom(vec(-inv_ed*inv_ed)) 
-                    dedinv_dehd = dedinv_devd*debig_de*de_deh
-                    
-                    dedinv_dev = -kron(inv_e.T, inv_e)
-                    dedinv_deh = dedinv_dev*debig_de*de_deh
+                    if i == 0 and j == 0 and ff == 0:
+                        evar_d = mdiag(e_var)
+                        evar_d_big = kron(I(2*n), evar_d)
+                        inv_ed = evar_d_big.I
+                        
+                        evar_big = kron(I(2*n), e_var)
+                        inv_e = evar_big.I
+    
+                        'derivada de vec(Ed-1) por vecE'
+                        de_deh = Dup(n)
+                        debig_de = fdebig_de(n)
+                        
+                        dedinv_devd = diagtom(vec(-inv_ed*inv_ed)) 
+                        dedinv_dehd = dedinv_devd*debig_de*de_deh
+                        
+                        dedinv_dev = -kron(inv_e.T, inv_e)
+                        dedinv_deh = dedinv_dev*debig_de*de_deh
                     
                     'derivada do num por vecE'
                     dnum_dev = kron((Iij*a).T, a.T)*dedinv_dehd
@@ -343,6 +359,7 @@ def asymp_pdc(x, A, nf, e_var, p, metric = 'gen', alpha = 0.05):
                 patden = sum(d)/sum(d**2)
                 th[i, j, ff] = st.chi2.ppf(1-alpha, patdf)/(patden*2*nd)
                 varass2[i, j, ff] = 2*patdf/(patden*2*nd)**2
+                
                 
                 #if (i == 1 and j == 0 and ff == 3):
                 #    patdfr = patdf
@@ -647,6 +664,9 @@ def asymp_coh(x, A, nf, e_var, p, alpha = 0.05):
     
     
     for ff in range(nf):
+        
+        print 'ff', ff
+        
         f = ff/(2.0*nf)
         
         Ca = fCa(f, p, n)

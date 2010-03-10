@@ -21,19 +21,21 @@ def teste_simples():
                [[0, 0],[0.8,-0.1],[0.4,-0.1]],
                [[0, 0],[0.3,0.2],[0.4,0.1]]], dtype = float) 
     er = identity(3)
-    nd = 500
-    nf = 20
+    nd = 2000
+    nf = 40
     alpha = 0.05
     n = A.shape[0]
     maxp = A.shape[2]
-    metric = 'gen'
+    metric = 'diag'
     
     #Generate data from AR
     data = ar_data(A, er, nd)
     
-    pdc_.measure_and_plot(data, 'dtf', nf = nf, ss = True)
+    #pdc_.measure_and_plot(data, 'dtf', nf = nf, ss = True)
     
-    #pdc_.pdc_and_plot(data, nf = nf, ss = True, metric = metric)
+    pdc_.pdc_and_plot(data, nf = nf, ss = True)
+    
+    #pdc_.pdc_full(data, nf = nf, ss = True, metric = metric)
     
     #If you want step by step:
     
@@ -64,8 +66,8 @@ def gen_data_Ding(m):
     return x
 
 def teste_Ding():
-    nd = 2000
-    nf = 10
+    nd = 20000
+    nf = 20
     alpha = 0.01
     n = 5
     maxp = 30
@@ -74,7 +76,7 @@ def teste_Ding():
     #Generate data from AR
     data = gen_data_Ding(nd)
     
-    pdc_.pdc_full(data, maxp = maxp, nf = nf, ss = False, 
+    pdc_.dtf_full(data, maxp = maxp, nf = nf, ss = False, 
                           alpha = alpha, metric = metric)
     
     #Estimate AR parameters with Nuttall-Strand
@@ -216,7 +218,7 @@ def teste_data():
     
     pdc_.pdc_full(data, maxp = maxp, nf = nf, ss = True, 
                   metric = metric, alpha = alpha,
-                  normalize = False, detrend = True, fixp = True, stat = 'boot', n_boot = 100)
+                  normalize = False, detrend = True, fixp = True, stat = 'asymp', n_boot = 100)
     
     #Estimate AR parameters with Nuttall-Strand
     #Aest, erest = ar_fit(data, maxp)
@@ -226,9 +228,10 @@ def teste_data():
     #pdc_.plot_all(mes, th, ic1, ic2, nf = nf)
 
 if __name__ == "__main__":
-    #teste_Ding()
+    #teste_simples()
+    teste_Ding()
     #teste_sunspot_melanoma()
-    teste_data()
+    #teste_data()
     #a = gen_winterhalter_2005_van_der_Pol(30, 30)
     #print a
     
