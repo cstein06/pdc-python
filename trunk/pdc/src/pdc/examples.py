@@ -1,3 +1,17 @@
+# -*- coding:utf-8 -*-
+"""
+Created on 2009
+
+@author: Carlos Stein
+
+This file has examples of uses of the PDC library.
+
+It has some examples reproducing related articles and some new ones.
+
+It should be used to validate the library and to learn how to use it.
+
+Please refer to the manual to further explanations on usage.
+"""
 
 from numpy import *
 import matplotlib.pyplot as pp
@@ -17,27 +31,48 @@ from pdc.ar_data import ar_models
 from pdc.ar_fit import ar_fit
 
 def teste_simples():
+    '''Simple test of connectivity routines
+    
+    Here we simulate some data using the ar_data module, from a given
+    MVAR matrix A and covariance matrix er.
+    
+    '''
+    
+    #Definition of the MVAR model
     A = array([[[0.2, 0],[0.3,-0.2],[0.3,-0.2]], 
                [[0, 0],[0.8,-0.1],[0.4,-0.1]],
                [[0, 0],[0.3,0.2],[0.4,0.1]]], dtype = float) 
     er = identity(3)
+    
+    #number of data points generated
     nd = 2000
+    
+    #number of frequency points analyzed
     nf = 40
+    
+    #error of the confidence interval and threshold
     alpha = 0.05
+    
+    #model order parameters
     n = A.shape[0]
     maxp = A.shape[2]
+    
+    #type of PDC used (refer to manual to see what it means)
     metric = 'diag'
     
     #Generate data from AR
     data = ar_data(A, er, nd)
     
+    #Call any connectivity routine routine. 
+    #Here are some calling examples, uncomment your preferred one for use:
+    
     #pdc_.measure_and_plot(data, 'dtf', nf = nf, ss = True)
-    
-    pdc_.pdc_and_plot(data, nf = nf, ss = True)
-    
+    #pdc_.pdc_and_plot(data, nf = nf, ss = True)
     #pdc_.pdc_full(data, nf = nf, ss = True, metric = metric)
+    #pdc_.coh_full(data, nf = nf, ss = True, metric = metric)
     
-    #If you want step by step:
+    
+    #If you want step by step, you can do it this way:
     
     #Estimate AR parameters with Nuttall-Strand
     #Aest, erest = ar_fit(data, maxp)
@@ -48,6 +83,20 @@ def teste_simples():
     
     #Plot result
     #pdc_.plot_all(mes, th, ic1, ic2, nf = nf)
+    
+    
+    #Another step-by-step way, without statistics:
+    
+    #Estimate AR parameters with Nuttall-Strand
+    Aest, erest = ar_fit(data, maxp)
+    
+    #Calculate the connectivity
+    mes = pdc_.pdc_alg(Aest, erest, nf = nf, metric = metric)
+    
+    #Plot result
+    pdc_.pdc_plot(mes)
+    
+    
 
 def gen_data_Ding(m):
     p = 3
@@ -228,8 +277,8 @@ def teste_data():
     #pdc_.plot_all(mes, th, ic1, ic2, nf = nf)
 
 if __name__ == "__main__":
-    #teste_simples()
-    teste_Ding()
+    teste_simples()
+    #teste_Ding()
     #teste_sunspot_melanoma()
     #teste_data()
     #a = gen_winterhalter_2005_van_der_Pol(30, 30)

@@ -3,7 +3,7 @@ from numpy import *
 import matplotlib.pyplot as pp
 
 
-def plot_all(mes, th, ic1, ic2, ss = None, nf = 64, sample_f = 1.0, 
+def plot_all(mes, th, ic1, ic2, ss = None, sample_f = 1.0, 
              logss = False, sqrtmes = False, plotf = None):
     '''Plots nxn graphics, with confidence intervals and threshold. 
        If ss == True, plots ss in the diagonal.
@@ -16,9 +16,10 @@ def plot_all(mes, th, ic1, ic2, ss = None, nf = 64, sample_f = 1.0,
         th = sqrt(th)
         ic1 = sqrt(ic1)
         ic2 = sqrt(ic2)
+        
+    n,n,nf = mes.shape
 
     x = sample_f*arange(nf)/(2.0*nf)
-    n = mes.shape[0]
     for i in range(n):
         for j in range(n):
             pp.subplot(n,n,i*n+j+1)
@@ -74,12 +75,14 @@ def plot_all(mes, th, ic1, ic2, ss = None, nf = 64, sample_f = 1.0,
                 
     pp.show()
     
-def pdc_plot(pdc, ss = None, nf = 64, sample_f = 1.0):
+def pdc_plot(pdc, ss = None, sample_f = 1.0):
     '''Plots nxn graphics. 
        If ss == True, plots ss in the diagonal.
        Expects data in complex form. Does: abs(x)^2 before plotting.'''
-    n = pdc.shape[0]
+    n,n,nf = pdc.shape
     pdc = pdc*pdc.conj()
+    
+    
     for i in range(n):
         for j in range(n):
             pp.subplot(n,n,i*n+j+1)
