@@ -459,8 +459,6 @@ def pdc_full(data, maxp = 30, nf = 64, sample_f = 1,
     data = pre_data(data, normalize, detrend)
     n,nd = data.shape
         
-    data = pre_data(data, normalize, detrend)
-        
     #Estimate AR parameters with Nuttall-Strand
     crit = 0 #AIC
     if fixp:

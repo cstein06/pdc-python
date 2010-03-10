@@ -14,6 +14,9 @@ from pdc.plotting import pdc_plot
 from matplotlib.pyplot import gcf
 
 def aPDC(data, p, step = 50, se = 100, preproc = False):
+    '''data(m,n,nd) -> data, m = #trials, n = #channels, nd = #time samples
+       p -> VAR model order
+       se -> efective sample memory of adaptative model'''
     
     m,n,nd = data.shape
     
