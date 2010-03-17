@@ -14,6 +14,41 @@ import pdc.asymp as as_
 import pdc.plotting as pl_
 import pdc.bootstrap as bt_
 
+pm_ = {}
+pm_['metric'] = 'diag'
+pm_['normalize'] = False  
+pm_['detrend'] = True   
+pm_['nf'] = 64   
+pm_['sample_f'] = 1   
+pm_['maxp'] = 30   
+pm_['fixp'] = False   
+pm_['alg'] = 'pdc' 
+pm_['logss'] = True
+pm_['ss'] = True   
+pm_['power'] = True   
+pm_['alpha'] = 0.05   
+pm_['stat'] = 'asymp' 
+pm_['n_boot'] = 1000
+pm_['plotf'] = None
+
+metric_ = 'diag'
+normalize_ = False  
+detrend_ = True   
+nf_ = 64   
+sample_f_ = 1   
+maxp_ = 30   
+fixp_ = False   
+alg_ = 'pdc' 
+logss_ = True
+ss_ = True   
+power_ = True   
+alpha_ = 0.05   
+stat_ = 'asymp' 
+n_boot_ = 1000
+plotf_ = None
+
+result_ = {}
+
 def list_to_array(data):
     '''Converts a list to an array'''
     d = data[0].reshape(1,-1)
@@ -87,7 +122,7 @@ def ss_alg(A, e_cov, nf = 64):
         H = mat(AL[i]).I
         ss[i] = H*e_cov*H.T.conj()
         
-    print ss[5]
+    #print ss[5]
     return ss.transpose(1,2,0)
 
 def ss_coh_alg(A, e_cov, nf = 64):
@@ -201,9 +236,15 @@ def pdc_ss_coh(data, maxp = 30, nf = 64, detrend = True):
     A, er = ar_fit.ar_fit(data, maxp)
     return abs(pdc_alg(A, er, nf))**2, abs(ss_alg(A, er, nf))**2, abs(coh_alg(A, er, nf))**2
 
+def read_args(args):
+    
+    for a,b in args.items():
+        globals()[a+'_'] = b
 
-def pdc(data, maxp = 30, nf = 64, detrend = True, normalize = False, 
-        fixp = False, ss = True, metric = 'diag', power = False):
+
+#maxp = 30, nf = 64, detrend = True, normalize = False, 
+#        fixp = False, ss = True, metric = 'diag', power = False
+def pdc(data, **args):
     '''Generates spectral PDC matrix from data array
     
       Input: 
@@ -220,17 +261,20 @@ def pdc(data, maxp = 30, nf = 64, detrend = True, normalize = False,
         ss(n, n, nf) - Parametric cross spectral matrix
     '''
     
+    read_args(args)
+    
+    print maxp_
+    
     if(type(data) == type([])):
         data = list_to_array(data)
-        
     
-    data = pre_data(data, normalize, detrend)
+    data = pre_data(data, normalize_, detrend_)
         
     crit = 0 #AIC
-    if fixp:
+    if fixp_:
         crit = 1
     
-    A, er = ar_fit.ar_fit(data, maxp, criterion=crit)
+    A, er = ar_fit.ar_fit(data, maxp_, criterion=crit)
     
     #print 'data:', data.shape
     print 'A:', A.shape
@@ -238,14 +282,14 @@ def pdc(data, maxp = 30, nf = 64, detrend = True, normalize = False,
     
     #print A
     
-    pdcaux = pdc_alg(A, er, nf, metric = metric)
+    pdcaux = pdc_alg(A, er, nf_, metric = metric_)
     
     
     if power:
         pdcaux = pdcaux*pdcaux.conj()
     
     if (ss):
-        return pdcaux, ss_alg(A, er, nf)
+        return pdcaux, ss_alg(A, er, nf_)
     else:
         return pdcaux
 
@@ -462,26 +506,31 @@ def white_test(data, maxp = 30, h = 20, fixp = False):
 #    return gct
         
 
-def pdc_full(data, maxp = 30, nf = 64, sample_f = 1, 
-                   ss = True, alpha = 0.05, metric = 'diag', 
-                   detrend = True, normalize = False, 
-                   stat = 'asymp', n_boot = 1000, fixp = False,
-                   plotf = None):
-    '''Interface that calculates PDC from data, calculates asymptotics statistics and plots everything.'''
+def pdc_full(data, **args):
+    '''Interface that calculates PDC from data, calculates asymptotics statistics and plots everything.
+        
+    Possible parameters:
+       maxp = 30, nf = 64, sample_f = 1, 
+       ss = True, alpha = 0.05, metric = 'diag', 
+       detrend = True, normalize = False, 
+       stat = 'asymp', n_boot = 1000, fixp = False,
+       plotf = None, *'''
+    
+    pm_.update(args)
     
     if(type(data) == type([])):
         data = list_to_array(data)
     
         
-    data = pre_data(data, normalize, detrend)
+    data = pre_data(data, pm_['normalize'], pm_['detrend'])
     n,nd = data.shape
         
     #Estimate AR parameters with Nuttall-Strand
     crit = 0 #AIC
-    if fixp:
+    if pm_['fixp']:
         crit = 1
     
-    Aest, erest = ar_fit.ar_fit(data, maxp, criterion=crit)
+    Aest, erest = ar_fit.ar_fit(data, pm_['maxp'], criterion=crit)
     
     #print  'A:', Aest
     #erest = (erest+erest.T)/2   #TODO: conferir isso. porque nao eh sempre simetrico?
@@ -491,25 +540,25 @@ def pdc_full(data, maxp = 30, nf = 64, sample_f = 1,
     print 'A:', Aest.shape
     print 'data:', data.shape
     
-    if stat == 'asymp':
-        mes, th, ic1, ic2 = as_.asymp_pdc(data, Aest, nf, erest, 
-                                   maxp, alpha = alpha, metric = metric)
-    elif stat == 'boot':
-        mes, th, ic1, ic2 = bt_.bootstrap(pdc_alg, nd, n_boot, Aest, erest, 
-                                          nf, alpha = alpha, metric = metric)
+    if pm_['stat'] == 'asymp':
+        mes, th, ic1, ic2 = as_.asymp_pdc(data, Aest, pm_['nf'], erest, 
+                                   pm_['maxp'], alpha = pm_['alpha'], metric = pm_['metric'])
+    elif pm_['stat'] == 'boot':
+        mes, th, ic1, ic2 = bt_.bootstrap(pdc_alg, nd, pm_['n_boot'], Aest, erest, 
+                                          pm_['nf'], alpha = pm_['alpha'], metric = pm_['metric'])
     else:
-        mes = pdc_alg(Aest, erest, nf, metric)
+        mes = abs(pdc_alg(Aest, erest, pm_['nf'], pm_['metric']))**2
         th = zeros(mes.shape)
         ic1 = zeros(mes.shape)
         ic2 = zeros(mes.shape)
          
-    if (ss == True):
-        ssm = ss_alg(Aest, erest, nf)
+    if (pm_['ss'] == True):
+        ssm = ss_alg(Aest, erest, pm_['nf'])
     else:
         ssm = None
         
     pl_.plot_all(mes, th, ic1, ic2, 
-             ss = ssm, sample_f = sample_f, plotf = plotf)
+             ss = ssm, sample_f = pm_['sample_f'], plotf = pm_['plotf'])
     
 def coh_full(data, maxp = 5, nf = 64, sample_f = 1, 
              ss = True, alpha = 0.05, detrend = True, normalize = False, stat = 'asymp', n_boot = 1000, fixp = False, metric = None):
@@ -588,7 +637,7 @@ def measure_full(data, measure, maxp = 5, nf = 64, sample_f = 1,
 
 
 def pdc_and_plot(data, maxp = 30, nf = 64, sample_f = 1, ss = True, metric = 'gen',
-                 detrend = True, normalize = False, fixp = False):
+                 detrend = True, normalize = False, fixp = False, logss = False):
     '''Interface that calculates PDC from data and plots it'''
     if(type(data) == type([])):
         data = list_to_array(data)
@@ -598,7 +647,7 @@ def pdc_and_plot(data, maxp = 30, nf = 64, sample_f = 1, ss = True, metric = 'ge
     if(not ss):
         ss_ = None
     #print pdc_
-    pl_.pdc_plot(pdc_, ss_, sample_f)
+    pl_.pdc_plot(pdc_, ss_, sample_f, logss = logss)
     
 
 def coh_and_plot(data, maxp = 30, nf = 64, sample_f = 1, ss = True, metric = None,
@@ -618,7 +667,7 @@ def pc_and_plot(data, maxp = 30, nf = 64, sample_f = 1, ss = True, metric = None
     measure_and_plot(data, 'pc', maxp, nf, sample_f, ss, fixp = fixp)
     
 def measure_and_plot(data, measure, maxp = 30, nf = 64, sample_f = 1, ss = True,
-                     detrend = True, normalize = False, fixp = False):
+                     detrend = True, normalize = False, fixp = False, power = True):
     '''Interface that calculates PDC from data and plots it'''
     if(type(data) == type([])):
         data = list_to_array(data)
@@ -641,4 +690,4 @@ def measure_and_plot(data, measure, maxp = 30, nf = 64, sample_f = 1, ss = True,
                     fixp = fixp, ss = False)
         ss_ = None
         
-    pl_.pdc_plot(mea, ss_, sample_f)
+    pl_.pdc_plot(mea, ss_, sample_f, power = power)
