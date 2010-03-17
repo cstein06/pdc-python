@@ -14,6 +14,27 @@ import pdc.asymp as as_
 import pdc.plotting as pl_
 import pdc.bootstrap as bt_
 
+class Param():  
+    def __init__(self):
+        self.metric = 'diag'
+        self.normalize = False  
+        self.detrend = True   
+        self.nf = 64   
+        self.sample_f = 1   
+        self.maxp = 30   
+        self.fixp = False   
+        self.alg = 'pdc' 
+        self.logss = True
+        self.ss = True   
+        self.power = True   
+        self.alpha = 0.05   
+        self.stat = 'asymp' 
+        self.n_boot = 1000
+        self.plotf = None
+
+
+pr_ = Param()
+
 pm_ = {}
 pm_['metric'] = 'diag'
 pm_['normalize'] = False  
@@ -236,6 +257,13 @@ def pdc_ss_coh(data, maxp = 30, nf = 64, detrend = True):
     A, er = ar_fit.ar_fit(data, maxp)
     return abs(pdc_alg(A, er, nf))**2, abs(ss_alg(A, er, nf))**2, abs(coh_alg(A, er, nf))**2
 
+def read_args_2(args):
+    
+    for a,b in args.items():
+        exec 'pr_.' + a + ' = b'
+        print 'here'
+        #globals()[a+'_'] = b
+        
 def read_args(args):
     
     for a,b in args.items():
@@ -261,20 +289,21 @@ def pdc(data, **args):
         ss(n, n, nf) - Parametric cross spectral matrix
     '''
     
-    read_args(args)
+    #read_args(args)
+    read_args_2(args)
     
-    print maxp_
+    print pr_.maxp
     
     if(type(data) == type([])):
         data = list_to_array(data)
     
-    data = pre_data(data, normalize_, detrend_)
+    data = pre_data(data, pr_.normalize, pr_.detrend)
         
     crit = 0 #AIC
-    if fixp_:
+    if pr_.fixp:
         crit = 1
     
-    A, er = ar_fit.ar_fit(data, maxp_, criterion=crit)
+    A, er = ar_fit.ar_fit(data, pr_.maxp, criterion=crit)
     
     #print 'data:', data.shape
     print 'A:', A.shape
@@ -282,14 +311,14 @@ def pdc(data, **args):
     
     #print A
     
-    pdcaux = pdc_alg(A, er, nf_, metric = metric_)
+    pdcaux = pdc_alg(A, er, pr_.nf, metric = pr_.metric)
     
     
     if power:
         pdcaux = pdcaux*pdcaux.conj()
     
     if (ss):
-        return pdcaux, ss_alg(A, er, nf_)
+        return pdcaux, ss_alg(A, er, pr_.nf)
     else:
         return pdcaux
 
