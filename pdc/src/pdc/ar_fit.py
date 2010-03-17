@@ -273,9 +273,12 @@ def ar_fit(u, MaxIP = 0, alg=0, criterion=0, return_ef = False):
 #    ri_.globalEnv["data"] = ri_.FloatSexpVector(data.ravel())
 #    ri_.globalEnv["dim"] = ri_.IntSexpVector(data.shape[::-1])
 #    ro_.globalEnv["maxp"] = maxp
-#    r_('data <- ar(array(data, dim), order.max = maxp)')
+#    r_('data <- ar(array(data, dim), order.max = maxp, aic=FALSE)')
 #    
 #    A = array(r_('data$ar')).transpose(1,2,0) #TODO: conferir A e A.T em todos.
 #    er = array(r_('cov(data$resid[-seq(data$order),])'))
 #    #print 'Model order: ', array(r_('data$order'))[0]
+#    
+#    print A
+#    
 #    return A, er

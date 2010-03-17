@@ -11,7 +11,6 @@ import cProfile
 from pdc.ar_data import ar_data
 import pdc.ar_fit as ar_fit
 import pdc.asymp as as_
-from pdc.plotting import *
 import pdc.plotting as pl_
 import pdc.bootstrap as bt_
 
@@ -140,6 +139,8 @@ def pdc_alg(A, e_cov, nf = 64, metric = 'gen'):
         PDC(n, n, nf) - PDC matrix
     '''
     
+    print metric
+    
     n, n, r = A.shape
     if metric == 'euc':
         nornum = ones(n)
@@ -202,7 +203,7 @@ def pdc_ss_coh(data, maxp = 30, nf = 64, detrend = True):
 
 
 def pdc(data, maxp = 30, nf = 64, detrend = True, normalize = False, 
-        fixp = False, ss = True, metric = 'diag'):
+        fixp = False, ss = True, metric = 'diag', power = False):
     '''Generates spectral PDC matrix from data array
     
       Input: 
@@ -212,6 +213,7 @@ def pdc(data, maxp = 30, nf = 64, detrend = True, normalize = False,
         detrend - Shall the data be detrended
         SS - Shall calculate the SS also
         metric - which PDC to use ('euc', 'diag' or 'gen')
+        power - returns abs(PDC)^2
         
       Output:
         PDC(n, n, nf) - PDC matrix
@@ -230,15 +232,22 @@ def pdc(data, maxp = 30, nf = 64, detrend = True, normalize = False,
     
     A, er = ar_fit.ar_fit(data, maxp, criterion=crit)
     
-    print 'data:', data.shape
+    #print 'data:', data.shape
     print 'A:', A.shape
+    #print er
     
     #print A
     
+    pdcaux = pdc_alg(A, er, nf, metric = metric)
+    
+    
+    if power:
+        pdcaux = pdcaux*pdcaux.conj()
+    
     if (ss):
-        return pdc_alg(A, er, nf, metric = metric), ss_alg(A, er, nf)
+        return pdcaux, ss_alg(A, er, nf)
     else:
-        return pdc_alg(A, er, nf, metric = metric)
+        return pdcaux
 
 
 
@@ -395,7 +404,7 @@ def gct(data, maxp = 30, detrend = True):
         
     return as_.asymp_gct(data, A, e_var)
 
-def igct(data, maxp = 30, detrend = True):
+def igct(data, maxp = 30, detrend = True, fixp = False):
     '''Asymptotic statistics for Wald statistic of instantaneous GC
         x -> data
         maxp -> max ar_fit order
@@ -405,15 +414,23 @@ def igct(data, maxp = 30, detrend = True):
     if (detrend):
         data = sig.detrend(data)
         
-    A, e_var = ar_fit.ar_fit(data, maxp)
+    crit = 0 #AIC
+    if fixp:
+        crit = 1
+    
+    A, e_var = ar_fit.ar_fit(data, maxp, criterion = crit)
     
     n, nd = data.shape
         
     return as_.asymp_igct(e_var, nd)
 
-def white_test(data, maxp = 30, h = 20):
+def white_test(data, maxp = 30, h = 20, fixp = False):
     
-    A, res = ar_fit.ar_fit(data, maxp, return_ef=True)
+    crit = 0 #AIC
+    if fixp:
+        crit = 1
+    
+    A, res = ar_fit.ar_fit(data, maxp, return_ef=True, criterion = crit)
     
     n,n,p = A.shape
     
@@ -491,7 +508,7 @@ def pdc_full(data, maxp = 30, nf = 64, sample_f = 1,
     else:
         ssm = None
         
-    plot_all(mes, th, ic1, ic2, nf = nf, 
+    pl_.plot_all(mes, th, ic1, ic2, 
              ss = ssm, sample_f = sample_f, plotf = plotf)
     
 def coh_full(data, maxp = 5, nf = 64, sample_f = 1, 
@@ -567,7 +584,7 @@ def measure_full(data, measure, maxp = 5, nf = 64, sample_f = 1,
     else:
         ssm = None
     
-    plot_all(mes, th, ic1, ic2, nf = nf, ss = ssm, sample_f = sample_f)
+    pl_.plot_all(mes, th, ic1, ic2, nf = nf, ss = ssm, sample_f = sample_f)
 
 
 def pdc_and_plot(data, maxp = 30, nf = 64, sample_f = 1, ss = True, metric = 'gen',
@@ -580,8 +597,9 @@ def pdc_and_plot(data, maxp = 30, nf = 64, sample_f = 1, ss = True, metric = 'ge
                     fixp = fixp, metric = metric)
     if(not ss):
         ss_ = None
-        
-    pdc_plot(pdc_, ss_, nf, sample_f)
+    #print pdc_
+    pl_.pdc_plot(pdc_, ss_, sample_f)
+    
 
 def coh_and_plot(data, maxp = 30, nf = 64, sample_f = 1, ss = True, metric = None,
                  detrend = True, normalize = False, fixp = False):
@@ -623,4 +641,4 @@ def measure_and_plot(data, measure, maxp = 30, nf = 64, sample_f = 1, ss = True,
                     fixp = fixp, ss = False)
         ss_ = None
         
-    pdc_plot(mea, ss_, nf, sample_f)
+    pl_.pdc_plot(mea, ss_, sample_f)

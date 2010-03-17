@@ -18,6 +18,8 @@ def plot_all(mes, th, ic1, ic2, ss = None, sample_f = 1.0,
         ic2 = sqrt(ic2)
         
     n,n,nf = mes.shape
+    
+    pp.ion()
 
     x = sample_f*arange(nf)/(2.0*nf)
     for i in range(n):
@@ -73,15 +75,17 @@ def plot_all(mes, th, ic1, ic2, ss = None, sample_f = 1.0,
             if plotf != None:
                 ax.set_xlim(xmin = 0, xmax = plotf)
                 
-    pp.show()
+    #pp.show()
     
-def pdc_plot(pdc, ss = None, sample_f = 1.0):
+def pdc_plot(pdc, ss = None, sample_f = 1.0, power = True):
     '''Plots nxn graphics. 
        If ss == True, plots ss in the diagonal.
        Expects data in complex form. Does: abs(x)^2 before plotting.'''
     n,n,nf = pdc.shape
-    pdc = pdc*pdc.conj()
+    if power:
+        pdc = pdc*pdc.conj()
     
+    pp.ion()
     
     for i in range(n):
         for j in range(n):
@@ -98,4 +102,4 @@ def pdc_plot(pdc, ss = None, sample_f = 1.0):
             ax.set_ylim(ymin = 0, ymax = ss[i,i,:].max())
             if (i < n-1):
                 ax.set_xticks([])
-    pp.show()
+    #pp.show()
