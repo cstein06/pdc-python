@@ -25,7 +25,8 @@ class Param():
         self.maxp = 30   
         self.fixp = False   
         self.alg = 'pdc' 
-        self.logss = True
+        self.logss = False
+        self.sqrtmes = False
         self.ss = True   
         self.power = True   
         self.alpha = 0.05   
@@ -48,11 +49,27 @@ class Results():
         self.alg = None   
         self.p = None   
         self.Af = None 
-        self.thres = None
+        self.th = None
         self.ic1 = None   
         self.ic2 = None
+        
+    def copy(self):
+        r = Results()
+        for a,b in vars(self).items():
+            exec 'r.' + a + ' = b'
+        return r
+            
 
 res_ = Results()
+
+
+def reset():
+    global res_
+    global pr_
+    
+    res_ = Results()
+    pr_ = Param()
+
 #
 #pm_ = {}
 #pm_['metric'] = 'diag'
@@ -89,6 +106,9 @@ res_ = Results()
 
 
 def log_results():
+    
+    global res_
+    global pr_
 
     f = open(res_.log_file, 'w')
     
@@ -121,6 +141,7 @@ def load_results():
     f.close()
 
     #return prn_, resn_
+
 
 def list_to_array(data):
     '''Converts a list to an array'''
@@ -351,24 +372,21 @@ def pdc(data, **args):
     if pr_.fixp:
         crit = 1
     
-    A, er = ar_fit.ar_fit(data, pr_.maxp, criterion=crit)
+    res_.A, res_.er = ar_fit.ar_fit(data, pr_.maxp, criterion=crit)
     
     #print 'data:', data.shape
-    print 'A:', A.shape
+    print 'A:', res_.A.shape
     #print er
     
     #print A
     
-    pdcaux = pdc_alg(A, er, pr_.nf, metric = pr_.metric)
+    res_.mes = pdc_alg(res_.A, res_.er, nf = pr_.nf, metric = pr_.metric)
     
+    if pr_.power:
+        res_.mes = res_.mes*res_.mes.conj()
     
-    if power:
-        pdcaux = pdcaux*pdcaux.conj()
-    
-    if (ss):
-        return pdcaux, ss_alg(A, er, pr_.nf)
-    else:
-        return pdcaux
+    if pr_.ss:
+        res_.ss = ss_alg(res_.A, res_.er, pr_.nf)
 
 
 
@@ -641,12 +659,16 @@ def pdc_full(data, **args):
     res_.th = th
     res_.ic1 = ic1
     res_.ic2 = ic2
+    res_.alg = 'pdc'
+    res_.ss = ssm
         
     log_results()
-    read_result_pickle()
+    #load_results()
         
-    pl_.plot_all(mes, th, ic1, ic2, 
-             ss = ssm, sample_f = pr_.sample_f, plotf = pr_.plotf)
+    #pl_.plot_all(mes, th, ic1, ic2, 
+    #         ss = ssm, sample_f = pr_.sample_f, plotf = pr_.plotf)
+    
+    pl_.plot_all(res_, pr_)
     
 def coh_full(data, maxp = 5, nf = 64, sample_f = 1, 
              ss = True, alpha = 0.05, detrend = True, normalize = False, stat = 'asymp', n_boot = 1000, fixp = False, metric = None):
@@ -723,19 +745,24 @@ def measure_full(data, measure, maxp = 5, nf = 64, sample_f = 1,
     
     pl_.plot_all(mes, th, ic1, ic2, nf = nf, ss = ssm, sample_f = sample_f)
 
-
-def pdc_and_plot(data, maxp = 30, nf = 64, sample_f = 1, ss = True, metric = 'gen',
-                 detrend = True, normalize = False, fixp = False, logss = False):
+#data, maxp = 30, nf = 64, sample_f = 1, ss = True, metric = 'gen',
+#                 detrend = True, normalize = False, fixp = False, logss = False
+def pdc_and_plot(data, **args):
     '''Interface that calculates PDC from data and plots it'''
     if(type(data) == type([])):
         data = list_to_array(data)
     
-    pdc_, ss_ = pdc(data, maxp, nf, detrend = detrend, normalize = normalize, 
-                    fixp = fixp, metric = metric)
-    if(not ss):
-        ss_ = None
+    read_args(args)
+    
+    #pdc_, ss_ = pdc(data, maxp = maxp, nf = nf, detrend = detrend, normalize = normalize, 
+    #                fixp = fixp, metric = metric)
+    
+    pdc(data)
+    
     #print pdc_
-    pl_.pdc_plot(pdc_, ss_, sample_f, logss = logss)
+    #pl_.pdc_plot(pdc_, ss_, sample_f, logss = logss)
+    
+    pl_.pdc_plot(res_, pr_)
     
 
 def coh_and_plot(data, maxp = 30, nf = 64, sample_f = 1, ss = True, metric = None,
