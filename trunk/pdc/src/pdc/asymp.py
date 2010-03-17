@@ -244,7 +244,7 @@ def asymp_pdc(x, A, nf, e_var, p, metric = 'gen', alpha = 0.05):
     
     for ff in range(nf):
         
-        print 'ff', ff
+        #print 'ff', ff
         
         f = ff/(2.0*nf)
         
@@ -1014,6 +1014,8 @@ def asymp_white(x, res, p, h = 20):
     for i in arange(1,h+1):
         s = s + (1.0/(nd-i))*trace(x[:,:,i].T*s0*x[:,:,i]*s0)
     s = s*nd**2
+    print s
+    print (h-p)*n**2
     pv = 1-st.chi2.cdf(s,(h-p)*n**2)
     
     return pv, s
