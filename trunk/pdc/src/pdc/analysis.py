@@ -6,6 +6,7 @@ from scipy.linalg import inv
 import scipy.signal as sig
 from scipy.stats import f
 
+import pickle
 import cProfile
 
 from pdc.ar_data import ar_data
@@ -32,43 +33,94 @@ class Param():
         self.n_boot = 1000
         self.plotf = None
 
-
 pr_ = Param()
 
-pm_ = {}
-pm_['metric'] = 'diag'
-pm_['normalize'] = False  
-pm_['detrend'] = True   
-pm_['nf'] = 64   
-pm_['sample_f'] = 1   
-pm_['maxp'] = 30   
-pm_['fixp'] = False   
-pm_['alg'] = 'pdc' 
-pm_['logss'] = True
-pm_['ss'] = True   
-pm_['power'] = True   
-pm_['alpha'] = 0.05   
-pm_['stat'] = 'asymp' 
-pm_['n_boot'] = 1000
-pm_['plotf'] = None
+class Results():  
+    def __init__(self):
+        self.log_file = 'current_log.log'
+        self.pic_file = 'current_log.pic'
+        self.data_descr = 'Current log. Please give description.'  
+        self.data_shape = None
+        self.A = None  
+        self.er = None   
+        self.mes = None   
+        self.ss = None 
+        self.alg = None   
+        self.p = None   
+        self.Af = None 
+        self.thres = None
+        self.ic1 = None   
+        self.ic2 = None
 
-metric_ = 'diag'
-normalize_ = False  
-detrend_ = True   
-nf_ = 64   
-sample_f_ = 1   
-maxp_ = 30   
-fixp_ = False   
-alg_ = 'pdc' 
-logss_ = True
-ss_ = True   
-power_ = True   
-alpha_ = 0.05   
-stat_ = 'asymp' 
-n_boot_ = 1000
-plotf_ = None
+res_ = Results()
+#
+#pm_ = {}
+#pm_['metric'] = 'diag'
+#pm_['normalize'] = False  
+#pm_['detrend'] = True   
+#pm_['nf'] = 64   
+#pm_['sample_f'] = 1   
+#pm_['maxp'] = 30   
+#pm_['fixp'] = False   
+#pm_['alg'] = 'pdc' 
+#pm_['logss'] = True
+#pm_['ss'] = True   
+#pm_['power'] = True   
+#pm_['alpha'] = 0.05   
+#pm_['stat'] = 'asymp' 
+#pm_['n_boot'] = 1000
+#pm_['plotf'] = None
+#
+#metric_ = 'diag'
+#normalize_ = False  
+#detrend_ = True   
+#nf_ = 64   
+#sample_f_ = 1   
+#maxp_ = 30   
+#fixp_ = False   
+#alg_ = 'pdc' 
+#logss_ = True
+#ss_ = True   
+#power_ = True   
+#alpha_ = 0.05   
+#stat_ = 'asymp' 
+#n_boot_ = 1000
+#plotf_ = None
 
-result_ = {}
+
+def log_results():
+
+    f = open(res_.log_file, 'w')
+    
+    f.write(res_.data_descr + '\n\n')
+    
+    f.write('Parameters:' + '\n\n')
+    f.write(str(vars(pr_)) + '\n\n')
+    
+    f.write('Results:' + '\n\n')
+    f.write(str(vars(res_)) + '\n\n')
+    
+    f.close()
+    
+    f = open(res_.pic_file, 'w')
+    
+    pickle.dump(pr_, f)    
+    pickle.dump(res_, f)
+    
+    f.close()
+    
+def load_results():
+    global res_
+    global pr_ 
+    
+    f = open(res_.pic_file, 'r')
+    
+    pr_ = pickle.load(f)
+    res_ = pickle.load(f)
+    
+    f.close()
+
+    #return prn_, resn_
 
 def list_to_array(data):
     '''Converts a list to an array'''
@@ -257,17 +309,16 @@ def pdc_ss_coh(data, maxp = 30, nf = 64, detrend = True):
     A, er = ar_fit.ar_fit(data, maxp)
     return abs(pdc_alg(A, er, nf))**2, abs(ss_alg(A, er, nf))**2, abs(coh_alg(A, er, nf))**2
 
-def read_args_2(args):
-    
-    for a,b in args.items():
-        exec 'pr_.' + a + ' = b'
-        print 'here'
-        #globals()[a+'_'] = b
-        
 def read_args(args):
     
     for a,b in args.items():
-        globals()[a+'_'] = b
+        exec 'pr_.' + a + ' = b'
+        
+#        
+#def read_args(args):
+#    
+#    for a,b in args.items():
+#        globals()[a+'_'] = b
 
 
 #maxp = 30, nf = 64, detrend = True, normalize = False, 
@@ -289,10 +340,7 @@ def pdc(data, **args):
         ss(n, n, nf) - Parametric cross spectral matrix
     '''
     
-    #read_args(args)
-    read_args_2(args)
-    
-    print pr_.maxp
+    read_args(args)
     
     if(type(data) == type([])):
         data = list_to_array(data)
@@ -545,21 +593,21 @@ def pdc_full(data, **args):
        stat = 'asymp', n_boot = 1000, fixp = False,
        plotf = None, *'''
     
-    pm_.update(args)
+    read_args(args)
     
     if(type(data) == type([])):
         data = list_to_array(data)
     
         
-    data = pre_data(data, pm_['normalize'], pm_['detrend'])
+    data = pre_data(data, pr_.normalize, pr_.detrend)
     n,nd = data.shape
         
     #Estimate AR parameters with Nuttall-Strand
     crit = 0 #AIC
-    if pm_['fixp']:
+    if pr_.fixp:
         crit = 1
     
-    Aest, erest = ar_fit.ar_fit(data, pm_['maxp'], criterion=crit)
+    Aest, erest = ar_fit.ar_fit(data, pr_.maxp, criterion=crit)
     
     #print  'A:', Aest
     #erest = (erest+erest.T)/2   #TODO: conferir isso. porque nao eh sempre simetrico?
@@ -569,25 +617,36 @@ def pdc_full(data, **args):
     print 'A:', Aest.shape
     print 'data:', data.shape
     
-    if pm_['stat'] == 'asymp':
-        mes, th, ic1, ic2 = as_.asymp_pdc(data, Aest, pm_['nf'], erest, 
-                                   pm_['maxp'], alpha = pm_['alpha'], metric = pm_['metric'])
-    elif pm_['stat'] == 'boot':
-        mes, th, ic1, ic2 = bt_.bootstrap(pdc_alg, nd, pm_['n_boot'], Aest, erest, 
-                                          pm_['nf'], alpha = pm_['alpha'], metric = pm_['metric'])
+    if pr_.stat == 'asymp':
+        mes, th, ic1, ic2 = as_.asymp_pdc(data, Aest, pr_.nf, erest, 
+                                   pr_.maxp, alpha = pr_.alpha, metric = pr_.metric)
+    elif pr_.stat == 'boot':
+        mes, th, ic1, ic2 = bt_.bootstrap(pdc_alg, nd, pr_.n_boot, Aest, erest, 
+                                          pr_.nf, alpha = pr_.alpha, metric = pr_.metric)
     else:
-        mes = abs(pdc_alg(Aest, erest, pm_['nf'], pm_['metric']))**2
+        mes = abs(pdc_alg(Aest, erest, pr_.nf, pr_.metric))**2
         th = zeros(mes.shape)
         ic1 = zeros(mes.shape)
         ic2 = zeros(mes.shape)
          
-    if (pm_['ss'] == True):
-        ssm = ss_alg(Aest, erest, pm_['nf'])
+    if (pr_.ss == True):
+        ssm = ss_alg(Aest, erest, pr_.nf)
     else:
         ssm = None
         
+    res_.A = Aest
+    res_.er = erest
+    res_.data_shape = data.shape
+    res_.mes = mes
+    res_.th = th
+    res_.ic1 = ic1
+    res_.ic2 = ic2
+        
+    log_results()
+    read_result_pickle()
+        
     pl_.plot_all(mes, th, ic1, ic2, 
-             ss = ssm, sample_f = pm_['sample_f'], plotf = pm_['plotf'])
+             ss = ssm, sample_f = pr_.sample_f, plotf = pr_.plotf)
     
 def coh_full(data, maxp = 5, nf = 64, sample_f = 1, 
              ss = True, alpha = 0.05, detrend = True, normalize = False, stat = 'asymp', n_boot = 1000, fixp = False, metric = None):
