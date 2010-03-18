@@ -31,6 +31,7 @@ def window_analysis(data, **args):
         resp[i] = an_.measure(data[:,i*win:i*win+win], ss = False)
         
         print 'Processed', i+1, 'of', nwins, 'windows:', 100*(i+1.0)/nwins, '%'
+        set_params(v = False)
     
     return resp
 
@@ -39,23 +40,74 @@ def mean_estag(mes, estag, maxe = 6, nulle = -1):
     nwins,n,n,nf = mes.shape
     
     mpdc = zeros([maxe, n, n, nf])
-    npdc = zeros(maxe)
+    spdc = zeros([maxe, n, n, nf])
+    m2 = zeros([maxe, n, n, nf])
+    s2 = zeros([maxe, n, n, nf])
+#    npdc = zeros(maxe)
+#    
+#    for i in arange(nwins):
+#        if (estag[i] == nulle):
+#            continue
+#        mpdc[estag[i]-1] += mes[i]
+#        spdc[estag[i]-1] += mes[i]**2
+#        npdc[estag[i]-1] += 1
     
-    for i in arange(nwins):
-        if (estag[i] == nulle):
-            continue
-        mpdc[estag[i]-1] += mes[i]
-        npdc[estag[i]-1] += 1
-    
-    print npdc
+    estag = estag[:nwins]
     
     for i in arange(maxe):
-        if npdc[i] > 0:            
-            mpdc[i] = mpdc[i]/npdc[i]
+        mpdc[i] = mean(mes[estag-1 == i], 0)
+        spdc[i] = std(mes[estag-1 == i], 0)
+#    
+#    print npdc
+#    
+#    for i in arange(maxe):
+#        if npdc[i] > 0:            
+#            mpdc[i] = mpdc[i]/npdc[i]
+#            spdc[i] = sqrt(spdc[i]/npdc[i] - mpdc[i]**2)
             
-    return mpdc
+            
+    return mpdc, spdc
         
-def main_analysis(data = None):
+def states_analysis(data, states, plot_states = None, plot_freq = None, **args):
+        
+    read_args(args)
+
+    tim = time.clock()
+    
+    print 'data loaded'
+    
+    result = window_analysis(data)
+    
+    nwins = result.shape[0]
+    
+    states = states[:nwins]
+    
+    nstates = histogram(states, new = True, bins=arange(1,8))[0]
+    
+    print states.shape
+    
+    mpdc, spdc = mean_estag(result, states)
+    
+    nf = mpdc.shape[3]
+    
+    print nstates
+    if pr_.do_plot:
+        for i in plot_states:
+            if nstates[i-1] > 0:
+                pl.pdc_plot(mpdc[i-1,:,:,:plot_freq])
+        
+    pp.show()
+    
+    print 'tempo gasto:', time.clock() - tim
+    
+    #savetxt('C:/Documents and Settings/Stein/Desktop/teste edu/baccala2001pdc.txt', pdcan)
+    #savetxt('C:/Documents and Settings/Stein/Desktop/teste edu/baccala2001coh.txt', cohan)
+    
+    return result, mpdc, spdc
+
+
+
+def main_analysis():
     
     root = 'C:\\Documents and Settings\\Stein\\My Documents\\dados\\teste edu\\'
         
@@ -67,7 +119,8 @@ def main_analysis(data = None):
     
     inestag = root + 'ES57_09_02_09_estagiamentojanela10s_limpo.txt'
     
-    plot_estag = array([1,2,3,4,5,6])
+    plot_states = array([1,2,3,4,5,6])
+    #plot_states = array([])
 
     algoritmo = 'pdc'
     #algoritmo = 'coh'
@@ -80,44 +133,22 @@ def main_analysis(data = None):
     detrend = True
     espectro_em_potencia = False
     metrica_pdc = 'diag'
-
-
-    #nao mexer a partir daqui
-
-    tim = time.clock()
+    plota = True
     
+    
+    
+    #nao mexer daqui pra frente
+    
+    data = loadtxt(input).T
+    estag = loadtxt(inestag)
+
     set_params(alg = algoritmo, window_size = window_size, 
                nf = n_frequencies, sample_f = sampling_rate,
                maxp = ordem_max, fixp = ordem_fixa, detrend = detrend, 
-               power = espectro_em_potencia, metric = metrica_pdc)
-      
-    if (data == None):  
-        data = loadtxt(input).T
+               power = espectro_em_potencia, metric = metrica_pdc, do_plot = plota)
     
-    #data  = data[:,:5000]
-    
-    print 'data loaded'
-    
-    result = window_analysis(data)
-    
-    estag = loadtxt(inestag)
-    
-    print estag.shape
-    mpdc = mean_estag(result, estag)
-    
-    nf = mpdc.shape[3]
-    
-    for i in plot_estag-1:
-        pl.pdc_plot(mpdc[i,:,:,:plot_freq])
-        
-    pp.show()
-    
-    print 'tempo gasto:', time.clock() - tim
-    
-    #savetxt('C:/Documents and Settings/Stein/Desktop/teste edu/baccala2001pdc.txt', pdcan)
-    #savetxt('C:/Documents and Settings/Stein/Desktop/teste edu/baccala2001coh.txt', cohan)
-    
-    return result, mpdc
+    states_analysis(data, estag, plot_states = plot_states, plot_freq = plot_freq)
+
     
 def testa_aic():
     
