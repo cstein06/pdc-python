@@ -2,6 +2,8 @@
 from numpy import *
 import matplotlib.pyplot as pp
 
+from globals import *
+
 #def plot_all(mes, th, ic1, ic2, ss = None, sample_f = 1.0, 
 #             logss = False, sqrtmes = False, plotf = None):
 
@@ -9,6 +11,8 @@ def plot_all(res_, pr_):
     '''Plots nxn graphics, with confidence intervals and threshold. 
        If ss == True, plots ss in the diagonal.
        Already expects data in power form: abs(x)^2'''
+    
+    print 'Plotting...'
     
     r = res_.copy()
     
@@ -23,7 +27,7 @@ def plot_all(res_, pr_):
         
     n,n,nf = r.mes.shape
     
-    print 'mes', r.mes.min(), r.mes.max()
+    #print 'mes', r.mes.min(), r.mes.max()
     
     #pp.ion()
 
@@ -84,16 +88,30 @@ def plot_all(res_, pr_):
         pp.draw()
     #pp.show()
     
+    del r
+    
 #pdc, ss = None, sample_f = 1.0, power = True, logss = False
-def pdc_plot(res_, pr_):
+def pdc_plot(mes = None, ss = None, **args):
     '''Plots nxn graphics. 
+       mes(n,n,nf) -> data
+       
        If ss == True, plots ss in the diagonal.
        Expects data in complex form. Does: abs(x)^2 before plotting.'''
+    
+    read_args(args)
+    
+    print 'Plotting...'
        
     r = res_.copy()
+    
+    if mes != None:
+        r.mes = mes
+        
+    if ss != None:
+        r.ss = ss
        
     n,n,nf = r.mes.shape
-    if pr_.power:
+    if not pr_.power:
         r.mes = r.mes*r.mes.conj()
     
     if pr_.logss and pr_.ss:
@@ -107,7 +125,7 @@ def pdc_plot(res_, pr_):
     for i in range(n):
         for j in range(n):
             pp.subplot(n,n,i*n+j+1)
-            pp.plot(pr_.sample_f*arange(pr_.nf)/(2.0*nf), r.mes[i,j,:])
+            pp.plot(pr_.sample_f*arange(nf)/(2.0*nf), r.mes[i,j,:])
             pp.ylim(-0.05,1.05)
             if (i < n-1):
                 pp.xticks([])
@@ -115,7 +133,7 @@ def pdc_plot(res_, pr_):
                 pp.yticks([])
         if (pr_.ss):
             ax = pp.subplot(n,n,i*n+i+1).twinx()
-            ax.plot(pr_.sample_f*arange(pr_.nf)/(2.0*nf), r.ss[i,i,:], color='g')
+            ax.plot(pr_.sample_f*arange(nf)/(2.0*nf), r.ss[i,i,:], color='g')
             if pr_.logss:
                 ax.set_ylim(ymin = r.ss[i,i,:].min(), ymax = r.ss[i,i,:].max())
             else:
@@ -126,3 +144,5 @@ def pdc_plot(res_, pr_):
     
         pp.draw()
     #pp.show()
+    
+    del r
