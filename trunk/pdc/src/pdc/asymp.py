@@ -240,7 +240,7 @@ def asymp_pdc(x, A, nf, e_var, p, metric = 'gen', alpha = 0.05):
     
    
 
-    print 'alpha', alpha
+    #print 'alpha', alpha
     
     for ff in range(nf):
         
@@ -665,7 +665,7 @@ def asymp_coh(x, A, nf, e_var, p, alpha = 0.05, metric = 'dummy'):
     
     for ff in range(nf):
         
-        print 'ff', ff
+        #print 'ff', ff
         
         f = ff/(2.0*nf)
         

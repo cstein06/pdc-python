@@ -6,7 +6,6 @@ from scipy.linalg import inv
 import scipy.signal as sig
 from scipy.stats import f
 
-import pickle
 import cProfile
 
 from pdc.ar_data import ar_data
@@ -14,134 +13,7 @@ import pdc.ar_fit as ar_fit
 import pdc.asymp as as_
 import pdc.plotting as pl_
 import pdc.bootstrap as bt_
-
-class Param():  
-    def __init__(self):
-        self.metric = 'diag'
-        self.normalize = False  
-        self.detrend = True   
-        self.nf = 64   
-        self.sample_f = 1   
-        self.maxp = 30   
-        self.fixp = False   
-        self.alg = 'pdc' 
-        self.logss = False
-        self.sqrtmes = False
-        self.ss = True   
-        self.power = True   
-        self.alpha = 0.05   
-        self.stat = 'asymp' 
-        self.n_boot = 1000
-        self.plotf = None
-
-pr_ = Param()
-
-class Results():  
-    def __init__(self):
-        self.log_file = 'current_log.log'
-        self.pic_file = 'current_log.pic'
-        self.data_descr = 'Current log. Please give description.'  
-        self.data_shape = None
-        self.A = None  
-        self.er = None   
-        self.mes = None   
-        self.ss = None 
-        self.alg = None   
-        self.p = None   
-        self.Af = None 
-        self.th = None
-        self.ic1 = None   
-        self.ic2 = None
-        
-    def copy(self):
-        r = Results()
-        for a,b in vars(self).items():
-            exec 'r.' + a + ' = b'
-        return r
-            
-
-res_ = Results()
-
-
-def reset():
-    global res_
-    global pr_
-    
-    res_ = Results()
-    pr_ = Param()
-
-#
-#pm_ = {}
-#pm_['metric'] = 'diag'
-#pm_['normalize'] = False  
-#pm_['detrend'] = True   
-#pm_['nf'] = 64   
-#pm_['sample_f'] = 1   
-#pm_['maxp'] = 30   
-#pm_['fixp'] = False   
-#pm_['alg'] = 'pdc' 
-#pm_['logss'] = True
-#pm_['ss'] = True   
-#pm_['power'] = True   
-#pm_['alpha'] = 0.05   
-#pm_['stat'] = 'asymp' 
-#pm_['n_boot'] = 1000
-#pm_['plotf'] = None
-#
-#metric_ = 'diag'
-#normalize_ = False  
-#detrend_ = True   
-#nf_ = 64   
-#sample_f_ = 1   
-#maxp_ = 30   
-#fixp_ = False   
-#alg_ = 'pdc' 
-#logss_ = True
-#ss_ = True   
-#power_ = True   
-#alpha_ = 0.05   
-#stat_ = 'asymp' 
-#n_boot_ = 1000
-#plotf_ = None
-
-
-def log_results():
-    
-    global res_
-    global pr_
-
-    f = open(res_.log_file, 'w')
-    
-    f.write(res_.data_descr + '\n\n')
-    
-    f.write('Parameters:' + '\n\n')
-    f.write(str(vars(pr_)) + '\n\n')
-    
-    f.write('Results:' + '\n\n')
-    f.write(str(vars(res_)) + '\n\n')
-    
-    f.close()
-    
-    f = open(res_.pic_file, 'w')
-    
-    pickle.dump(pr_, f)    
-    pickle.dump(res_, f)
-    
-    f.close()
-    
-def load_results():
-    global res_
-    global pr_ 
-    
-    f = open(res_.pic_file, 'r')
-    
-    pr_ = pickle.load(f)
-    res_ = pickle.load(f)
-    
-    f.close()
-
-    #return prn_, resn_
-
+from globals import *
 
 def list_to_array(data):
     '''Converts a list to an array'''
@@ -183,7 +55,7 @@ def A_to_f(A, nf = 64):
     return AL
 
 
-def pc_alg(A, e_cov, nf = 64):
+def pc_alg(A, e_cov, nf = 64, metric = 'dummy'):
     '''Calculates the Partial Coherence
         A -> autoregressive matrix
         e_cov -> residues
@@ -202,7 +74,7 @@ def pc_alg(A, e_cov, nf = 64):
         pc[i] = ps/sqrt(m)
     return pc.transpose(1,2,0)
     
-def ss_alg(A, e_cov, nf = 64):
+def ss_alg(A, e_cov, nf = 64, metric = 'dummy'):
     '''Calculates the Spectral density (SS)
         A -> autoregressive matrix
         e_cov -> residues
@@ -219,7 +91,7 @@ def ss_alg(A, e_cov, nf = 64):
     #print ss[5]
     return ss.transpose(1,2,0)
 
-def ss_coh_alg(A, e_cov, nf = 64):
+def ss_coh_alg(A, e_cov, nf = 64, metric = 'dummy'):
     '''Calculates the Spectral density (SS) and Coherence (coh)
         A -> autoregressive matrix
         e_cov -> residues
@@ -238,7 +110,7 @@ def ss_coh_alg(A, e_cov, nf = 64):
         coh[i] = ss[i]/sqrt(m)
     return ss.transpose(1,2,0), coh.transpose(1,2,0)
 
-def coh_alg(A, e_cov, nf = 64):
+def coh_alg(A, e_cov, nf = 64, metric = 'dummy'):
     '''Calculates the Coherence (coh)
         A -> autoregressive matrix
         e_cov -> residues
@@ -290,7 +162,7 @@ def pdc_alg(A, e_cov, nf = 64, metric = 'gen'):
     PDC = nPDC/sqrt(abs(dPDC)).reshape(nf,1,n).repeat(n, axis = 1)
     return PDC.transpose(1,2,0)
 
-def dtf_alg(A, er, nf = 64):
+def dtf_alg(A, er, nf = 64, metric = 'dummy'):
     '''Generates spectral not normalized DTF matrix from AR matrix
     
       Input: 
@@ -330,10 +202,6 @@ def pdc_ss_coh(data, maxp = 30, nf = 64, detrend = True):
     A, er = ar_fit.ar_fit(data, maxp)
     return abs(pdc_alg(A, er, nf))**2, abs(ss_alg(A, er, nf))**2, abs(coh_alg(A, er, nf))**2
 
-def read_args(args):
-    
-    for a,b in args.items():
-        exec 'pr_.' + a + ' = b'
         
 #        
 #def read_args(args):
@@ -360,6 +228,54 @@ def pdc(data, **args):
         PDC(n, n, nf) - PDC matrix
         ss(n, n, nf) - Parametric cross spectral matrix
     '''
+    read_args(args)
+    
+    return measure(data, alg = 'pdc')
+
+def coh(data, **args):
+    '''Interface that calculate the Coherence from data'''
+    read_args(args)
+    
+    return measure(data, alg = 'coh')
+    
+def dtf(data, **args):
+    '''Interface that calculate the Dtf from data'''
+    read_args(args)
+    
+    return measure(data, alg = 'dtf')
+    
+
+def ss(data, **args):
+    '''Interface that calculate the SS from data'''
+    read_args(args)
+    
+    return measure(data, alg = 'ss')
+    
+
+def pc(data, **args):
+    '''Interface that calculate the PC from data'''
+    read_args(args)
+    
+    return measure(data, alg = 'pc')
+    
+#maxp = 30, nf = 64, detrend = True, normalize = False, 
+#        fixp = False, ss = True, metric = 'diag', power = False
+def measure(data, **args):
+    '''Generates spectral measure from data array
+    
+      Input: 
+        data(n, m) - data matrix (n - number of signals, m - data length)
+        maxp - maximum order for estimated AR model
+        nf - frequency resolution
+        detrend - Shall the data be detrended
+        SS - Shall calculate the SS also
+        metric - which PDC to use ('euc', 'diag' or 'gen')
+        power - returns abs(PDC)^2
+        
+      Output:
+        PDC(n, n, nf) - PDC matrix
+        ss(n, n, nf) - Parametric cross spectral matrix
+    ''' 
     
     read_args(args)
     
@@ -371,103 +287,66 @@ def pdc(data, **args):
     crit = 0 #AIC
     if pr_.fixp:
         crit = 1
+        
+        
+    if pr_.v:
+        print 'Will calculate the', mnames_[pr_.alg], 'of the data'
+        print 'Dimensions of the data:', data.shape
+        if pr_.fixp:
+            print 'Using fixed VAR order'
+        else:
+            print 'Using AIC for VAR order' 
+        
+        print '\nEstimating VAR'
+    
     
     res_.A, res_.er = ar_fit.ar_fit(data, pr_.maxp, criterion=crit)
     
+    
+    if pr_.v:
+        print '\nVAR estimaded. Order:', res_.A.shape
     #print 'data:', data.shape
-    print 'A:', res_.A.shape
+    #print 'A:', res_.A.shape
     #print er
     
     #print A
     
-    res_.mes = pdc_alg(res_.A, res_.er, nf = pr_.nf, metric = pr_.metric)
+    method = globals()[pr_.alg + '_alg']
+    
+    res_.mes = method(res_.A, res_.er, nf = pr_.nf, metric = pr_.metric)
+    
+    
+    if pr_.v:
+        print '\n', mnames_[pr_.alg], 'estimaded.'
+        if pr_.alg == 'pdc':
+            print 'Used metric:', pr_.metric
+        print '\nNumber of frequencies:', pr_.nf
+        print 'From 0 to ', pr_.sample_f/2.0, 'Hz\n'
+    
     
     if pr_.power:
-        res_.mes = res_.mes*res_.mes.conj()
+        if pr_.v:
+            print 'Calculates squared power of the measure\n'
+        res_.mes = res_.mes*res_.mes.conj() #todo: check power consistency of everything
     
     if pr_.ss:
+        if pr_.v:
+            print 'Calculates also the spectrum\n'
         res_.ss = ss_alg(res_.A, res_.er, pr_.nf)
-
-
-
-def coh(data, maxp = 30, nf = 64, detrend = True, normalize = False, fixp = False, ss = True):
-    '''Interface that calculate the Coherence from data'''
     
-    if(type(data) == type([])):
-        data = list_to_array(data)
-        
+    res_.data_shape = data.shape
+    res_.alg = pr_.alg
     
-    data = pre_data(data, normalize, detrend)
-        
-    crit = 0 #AIC
-    if fixp:
-        crit = 1
     
-    A, er = ar_fit.ar_fit(data, maxp, criterion=crit)
+    if pr_.do_log:
+        if pr_.v:
+            print 'Logging the results in file:', res_.log_file   
+        log_results()
     
-    if (ss):
-        return coh_alg(A, er, nf), ss_alg(A, er, nf)
+    if pr_.ss:
+        return res_.mes, res_.ss
     else:
-        return coh_alg(A, er, nf)
-
-
-def dtf(data, maxp = 30, nf = 64, detrend = True, normalize = False, fixp = False, ss = True):
-    '''Interface that calculate the Coherence from data'''
-    
-    if(type(data) == type([])):
-        data = list_to_array(data)
-        
-   
-    data = pre_data(data, normalize, detrend)
-        
-    crit = 0 #AIC
-    if fixp:
-        crit = 1
-    
-    A, er = ar_fit.ar_fit(data, maxp, criterion=crit)
-    
-    
-    if (ss):
-        return dtf_alg(A, er, nf), ss_alg(A, er, nf)
-    else:
-        return dtf_alg(A, er, nf)
-
-def ss(data, maxp = 30, nf = 64, detrend = True, normalize = False, fixp = False, ss = True):
-    '''Interface that calculate the Coherence from data'''
-    
-    if(type(data) == type([])):
-        data = list_to_array(data)
-        
-    
-    data = pre_data(data, normalize, detrend)
-        
-    crit = 0 #AIC
-    if fixp:
-        crit = 1
-    
-    A, er = ar_fit.ar_fit(data, maxp, criterion=crit)
-    
-    return ss_alg(A,er,nf)
-
-def pc(data, maxp = 30, nf = 64, detrend = True, normalize = False, fixp = False, ss = True):
-    '''Interface that calculate the Coherence from data'''
-    
-    if(type(data) == type([])):
-        data = list_to_array(data)
-        
-    
-    data = pre_data(data, normalize, detrend)
-        
-    crit = 0 #AIC
-    if fixp:
-        crit = 1
-    
-    A, er = ar_fit.ar_fit(data, maxp, criterion=crit)
-    
-    if (ss):
-        return pc_alg(A, er, nf), ss_alg(A, er, nf)
-    else:
-        return pc_alg(A, er, nf)
+        return res_.mes
     
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -601,53 +480,116 @@ def white_test(data, maxp = 30, h = 20, fixp = False):
 #    return gct
         
 
+#maxp = 5, nf = 64, sample_f = 1, 
+#ss = True, alpha = 0.05, detrend = True, normalize = False, 
+#stat = 'asymp', n_boot = 1000, fixp = False, metric = None   
 def pdc_full(data, **args):
-    '''Interface that calculates PDC from data, calculates asymptotics statistics and plots everything.
+    read_args(args)
+    return measure_full(data, alg = 'pdc')
         
+def coh_full(data, **args):
+    read_args(args)
+    return measure_full(data, alg = 'coh')
+
+def dtf_full(data, **args):
+    read_args(args)
+    return measure_full(data, alg = 'dtf')
+    
+def ss_full(data, **args):
+    read_args(args)
+    return measure_full(data, alg = 'ss')
+    
+def pc_full(data, **args):
+    read_args(args)
+    return measure_full(data, alg = 'pc')
+
+def measure_full(data, **args):
+    '''Interface that calculates some measure from data, calculates asymptotics statistics and plots everything.
+       
+       data 
+       alg: 'pdc', 'dtf', 'coh', 'ss', 'pc'
+       
     Possible parameters:
        maxp = 30, nf = 64, sample_f = 1, 
        ss = True, alpha = 0.05, metric = 'diag', 
        detrend = True, normalize = False, 
        stat = 'asymp', n_boot = 1000, fixp = False,
-       plotf = None, *'''
+       plotf = None, *
+    '''
     
     read_args(args)
     
     if(type(data) == type([])):
         data = list_to_array(data)
     
+    n,nd = data.shape
         
     data = pre_data(data, pr_.normalize, pr_.detrend)
-    n,nd = data.shape
         
     #Estimate AR parameters with Nuttall-Strand
     crit = 0 #AIC
     if pr_.fixp:
         crit = 1
     
-    Aest, erest = ar_fit.ar_fit(data, pr_.maxp, criterion=crit)
+    if pr_.v:
+        print 'Will calculate the', mnames_[pr_.alg], 'of the data, with statistics'
+        print 'Dimensions of the data:', data.shape
+        if pr_.fixp:
+            print 'Using fixed VAR order'
+        else:
+            print 'Using AIC for VAR order' 
+        print 'Error type I used:', pr_.alpha*100, '%'
+        
+        print '\nEstimating VAR'
     
+    #Estimate AR parameters with Nuttall-Strand
+    Aest, erest = ar_fit.ar_fit(data, pr_.maxp, criterion=crit)
+         
+         
+         
+    if pr_.v:
+        print '\nVAR estimaded. Order:', Aest.shape
+   
     #print  'A:', Aest
-    #erest = (erest+erest.T)/2   #TODO: conferir isso. porque nao eh sempre simetrico?
+    #erest = (erest+erest.T)/2   #TODO: conferir isso.
     #print 'evar:', erest
+    
     #Calculate the connectivity and statistics
     
-    print 'A:', Aest.shape
-    print 'data:', data.shape
-    
-    if pr_.stat == 'asymp':
-        mes, th, ic1, ic2 = as_.asymp_pdc(data, Aest, pr_.nf, erest, 
+    if pr_.stat == 'asymp': 
+        if pr_.v:
+            print 'Calculating asymptotic statistics'
+        as_method = vars(as_)['asymp_' + pr_.alg]
+        mes, th, ic1, ic2 = as_method(data, Aest, pr_.nf, erest, 
                                    pr_.maxp, alpha = pr_.alpha, metric = pr_.metric)
     elif pr_.stat == 'boot':
-        mes, th, ic1, ic2 = bt_.bootstrap(pdc_alg, nd, pr_.n_boot, Aest, erest, 
+        if pr_.v:
+            print 'Calculating bootstrap statistics'
+        alg_method = globals()[measure + '_alg']
+        mes, th, ic1, ic2 = bt_.bootstrap(alg_method, nd, pr_.n_boot, Aest, erest, 
                                           pr_.nf, alpha = pr_.alpha, metric = pr_.metric)
     else:
-        mes = abs(pdc_alg(Aest, erest, pr_.nf, pr_.metric))**2
+        if pr_.v:
+            print 'Choosing no statistics'
+        alg_method = globals()[measure + '_alg']
+        mes = alg_method(Aest, erest, nf)
         th = zeros(mes.shape)
         ic1 = zeros(mes.shape)
         ic2 = zeros(mes.shape)
-         
+        
+    
+    
+    if pr_.v:
+        print '\n', mnames_[pr_.alg], 'estimaded'
+        if pr_.alg == 'pdc':
+            print 'Used metric:', pr_.metric
+        print '\nNumber of frequencies:', pr_.nf
+        print 'From 0 to ', pr_.sample_f/2.0, 'Hz\n'
+        
+        
     if (pr_.ss == True):
+        if pr_.v:
+            print 'Calculates also the spectrum\n'
         ssm = ss_alg(Aest, erest, pr_.nf)
     else:
         ssm = None
@@ -659,150 +601,54 @@ def pdc_full(data, **args):
     res_.th = th
     res_.ic1 = ic1
     res_.ic2 = ic2
-    res_.alg = 'pdc'
+    res_.alg = pr_.alg
     res_.ss = ssm
-        
-    log_results()
-    #load_results()
-        
-    #pl_.plot_all(mes, th, ic1, ic2, 
-    #         ss = ssm, sample_f = pr_.sample_f, plotf = pr_.plotf)
+     
+    if pr_.do_log:   
+        if pr_.v:
+            print 'Logging the results in file:', res_.log_file  
+        log_results()
     
-    pl_.plot_all(res_, pr_)
+    if pr_.do_plot:
+        pl_.plot_all(res_, pr_)
     
-def coh_full(data, maxp = 5, nf = 64, sample_f = 1, 
-             ss = True, alpha = 0.05, detrend = True, normalize = False, stat = 'asymp', n_boot = 1000, fixp = False, metric = None):
-    measure_full(data, 'coh', maxp, nf, sample_f, ss, alpha, detrend, normalize, stat = stat, n_boot = n_boot, fixp = fixp)
-
-def dtf_full(data, maxp = 5, nf = 64, sample_f = 1, 
-             ss = True, alpha = 0.05, detrend = True, normalize = False, stat = 'asymp', n_boot = 1000, fixp = False, metric = None):
-    measure_full(data, 'dtf', maxp, nf, sample_f, ss, alpha, detrend, normalize, stat = stat, n_boot = n_boot, fixp = fixp)
-
-def ss_full(data, maxp = 5, nf = 64, sample_f = 1, 
-             ss = True, alpha = 0.05, detrend = True, normalize = False, stat = 'asymp', n_boot = 1000, fixp = False, metric = None):
-    measure_full(data, 'ss', maxp, nf, sample_f, ss, alpha, detrend, normalize, stat = stat, n_boot = n_boot, fixp = fixp)
-
-def pc_full(data, maxp = 5, nf = 64, sample_f = 1, 
-             ss = True, alpha = 0.05, detrend = True, normalize = False, stat = 'asymp', n_boot = 1000, fixp = False, metric = None):
-    measure_full(data, 'pc', maxp, nf, sample_f, ss, alpha, detrend, normalize, stat = stat, n_boot = n_boot, fixp = fixp)
-
-def measure_full(data, measure, maxp = 5, nf = 64, sample_f = 1, 
-                 ss = True, alpha = 0.05, detrend = True, 
-                 normalize = False, stat = 'asymp', n_boot = 1000, fixp = False):
-    '''Interface that calculates measure from data, calculates asymptotics statistics and plots everything.
-       measure: 'dtf', 'coh', 'ss', 'pc'
-       '''
-    
-    
-    if(type(data) == type([])):
-        data = list_to_array(data)
-    
-    n,nd = data.shape
-        
-    data = pre_data(data, normalize, detrend)
-        
-    crit = 0 #AIC
-    if fixp:
-        crit = 1
-    
-    #Estimate AR parameters with Nuttall-Strand
-    Aest, erest = ar_fit.ar_fit(data, maxp, criterion=crit)
-
-    print  'A:', Aest
-    #erest = (erest+erest.T)/2   #TODO: conferir isso.
-    print 'evar:', erest
-    #Calculate the connectivity and statistics
-    
-    
-    if stat == 'asymp': 
-        if (measure == 'dtf'):
-            mes, th, ic1, ic2 = as_.asymp_dtf(data, Aest, nf, erest, 
-                                              maxp, alpha = alpha)
-        if (measure == 'coh'):
-            mes, th, ic1, ic2 = as_.asymp_coh(data, Aest, nf, erest, 
-                                              maxp, alpha = alpha)
-        if (measure == 'ss'):
-            mes, th, ic1, ic2 = as_.asymp_ss(data, Aest, nf, erest, 
-                                              maxp, alpha = alpha)
-        if (measure == 'pc'):
-            mes, th, ic1, ic2 = as_.asymp_pc(data, Aest, nf, erest, 
-                                              maxp, alpha = alpha)
-    elif stat == 'boot':
-        methcall = globals()[measure + '_alg']
-        mes, th, ic1, ic2 = bt_.bootstrap(methcall, nd, n_boot, Aest, erest, 
-                                          nf, alpha = alpha)
-    else:
-        methcall = var()[measure + '_alg']
-        mes = methcall(Aest, erest, nf)
-        th = zeros(mes.shape)
-        ic1 = zeros(mes.shape)
-        ic2 = zeros(mes.shape)
-        
-    if (ss == True):
-        ssm = ss_alg(Aest, erest, nf)
-    else:
-        ssm = None
-    
-    pl_.plot_all(mes, th, ic1, ic2, nf = nf, ss = ssm, sample_f = sample_f)
+    return mes, th, ic1, ic2
 
 #data, maxp = 30, nf = 64, sample_f = 1, ss = True, metric = 'gen',
 #                 detrend = True, normalize = False, fixp = False, logss = False
 def pdc_and_plot(data, **args):
-    '''Interface that calculates PDC from data and plots it'''
-    if(type(data) == type([])):
-        data = list_to_array(data)
+    read_args(args)
+    return measure_and_plot(data, alg = 'pdc')
     
+#maxp = 30, nf = 64, sample_f = 1, ss = True,
+#detrend = True, normalize = False, fixp = False, power = True):
+def coh_and_plot(data, **args):
+    read_args(args)
+    return measure_and_plot(data, alg = 'coh')
+    
+def dtf_and_plot(data, **args):
+    read_args(args)
+    return measure_and_plot(data, alg = 'coh')
+    
+def ss_and_plot(data, **args):
+    read_args(args)
+    return measure_and_plot(data, alg = 'coh')
+        
+def pc_and_plot(data, **args):
+    read_args(args)
+    return measure_and_plot(data, alg = 'coh')
+    
+def measure_and_plot(data, **args):
+    '''Interface that calculates alg from data and plots it'''
+     
     read_args(args)
     
-    #pdc_, ss_ = pdc(data, maxp = maxp, nf = nf, detrend = detrend, normalize = normalize, 
-    #                fixp = fixp, metric = metric)
-    
-    pdc(data)
-    
-    #print pdc_
-    #pl_.pdc_plot(pdc_, ss_, sample_f, logss = logss)
-    
-    pl_.pdc_plot(res_, pr_)
-    
-
-def coh_and_plot(data, maxp = 30, nf = 64, sample_f = 1, ss = True, metric = None,
-                 detrend = True, normalize = False, fixp = False):
-    measure_and_plot(data, 'coh', maxp, nf, sample_f, ss, fixp = fixp)
-    
-def dtf_and_plot(data, maxp = 30, nf = 64, sample_f = 1, ss = True, metric = None,
-                 detrend = True, normalize = False, fixp = False):
-    measure_and_plot(data, 'dtf', maxp, nf, sample_f, ss, fixp = fixp)
-    
-def ss_and_plot(data, maxp = 30, nf = 64, sample_f = 1, ss = True, metric = None,
-                detrend = True, normalize = False, fixp = False):
-    measure_and_plot(data, 'ss', maxp, nf, sample_f, ss, fixp = fixp)
-    
-def pc_and_plot(data, maxp = 30, nf = 64, sample_f = 1, ss = True, metric = None,
-                detrend = True, normalize = False, fixp = False):
-    measure_and_plot(data, 'pc', maxp, nf, sample_f, ss, fixp = fixp)
-    
-def measure_and_plot(data, measure, maxp = 30, nf = 64, sample_f = 1, ss = True,
-                     detrend = True, normalize = False, fixp = False, power = True):
-    '''Interface that calculates PDC from data and plots it'''
     if(type(data) == type([])):
         data = list_to_array(data)
-        
     
-    if (measure == 'dtf'):
-        alg = dtf
-    if (measure == 'coh'):
-        alg = coh
-    if (measure == 'ss'):
-        alg = ss
-    if (measure == 'pc'):
-        alg = pc
-    
-    if (ss):
-        mea, ss_ = alg(data, maxp, nf, detrend = detrend, normalize = normalize, 
-                    fixp = fixp, ss = True)
-    else:
-        mea = alg(data, maxp, nf, detrend = detrend, normalize = normalize, 
-                    fixp = fixp, ss = False)
-        ss_ = None
+    method = globals()[pr_.alg]
         
-    pl_.pdc_plot(mea, ss_, sample_f, power = power)
+    method(data)
+    
+    pl_.pdc_plot()
+    
