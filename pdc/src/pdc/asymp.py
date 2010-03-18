@@ -368,7 +368,7 @@ def asymp_pdc(x, A, nf, e_var, p, metric = 'gen', alpha = 0.05):
     return pdc, th, ic1, ic2
 
 
-def asymp_dtf(x, A, nf, e_var, p, alpha = 0.05):
+def asymp_dtf(x, A, nf, e_var, p, alpha = 0.05, metric = 'dummy'):
     '''Asymptotic statistics for the DTF
         x -> data
         A -> autoregressive matrix
@@ -460,7 +460,7 @@ def fk2(e_var_inv, i,j,n):
     return kron(I(2), ci)*e_var_inv*kron(array([[0,1],[-1,0]]),cj).T
     
     
-def asymp_pc(x, A, nf, e_var, p, alpha = 0.05):
+def asymp_pc(x, A, nf, e_var, p, alpha = 0.05, metric = 'dummy'):
     '''Asymptotic statistics for the Partial Coherence (PC)
         x -> data
         A -> autoregressive matrix
@@ -633,7 +633,7 @@ def fkl2(evar_big, i,j,n):
     
     return kron(I(2), li)*evar_big*kron(array([[0,1],[-1,0]]),lj).T
 
-def asymp_coh(x, A, nf, e_var, p, alpha = 0.05):
+def asymp_coh(x, A, nf, e_var, p, alpha = 0.05, metric = 'dummy'):
     '''Asymptotic statistics for the Coherence (coh)
         x -> data
         A -> autoregressive matrix
@@ -792,7 +792,7 @@ def asymp_coh(x, A, nf, e_var, p, alpha = 0.05):
                 
     return coh, th, ic1, ic2
 
-def asymp_ss(x, A, nf, e_var, p, alpha = 0.05):
+def asymp_ss(x, A, nf, e_var, p, alpha = 0.05, metric = 'dummy'):
     '''Asymptotic statistics for the Spectral density (SS)
         x -> data
         A -> autoregressive matrix
