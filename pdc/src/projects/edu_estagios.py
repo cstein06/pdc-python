@@ -25,10 +25,14 @@ def window_analysis(data, **args):
     
     nwins = T/win
     
-    resp = zeros([nwins, n, n, pr_.nf])
+    resp = zeros([nwins, n, n, pr_.nf], dtype = complex)
     
     for i in arange(nwins):
-        resp[i] = an_.measure(data[:,i*win:i*win+win], ss = False)
+        
+        aux = an_.measure(data[:,i*win:i*win+win], ss = False)
+        resp[i] = aux
+        
+        print aux[0,1,:10], resp[i,0,1,:10]
         
         print 'Processed', i+1, 'of', nwins, 'windows:', 100*(i+1.0)/nwins, '%'
         set_params(v = False)
@@ -36,13 +40,13 @@ def window_analysis(data, **args):
     return resp
 
 def mean_estag(mes, estag, maxe = 6, nulle = -1):
-    
+        
     nwins,n,n,nf = mes.shape
     
-    mpdc = zeros([maxe, n, n, nf])
-    spdc = zeros([maxe, n, n, nf])
-    m2 = zeros([maxe, n, n, nf])
-    s2 = zeros([maxe, n, n, nf])
+    mpdc = zeros([maxe, n, n, nf], dtype = mes.dtype)
+    spdc = zeros([maxe, n, n, nf], dtype = mes.dtype)
+    m2 = zeros([maxe, n, n, nf], dtype = mes.dtype)
+    s2 = zeros([maxe, n, n, nf], dtype = mes.dtype)
 #    npdc = zeros(maxe)
 #    
 #    for i in arange(nwins):
@@ -73,8 +77,6 @@ def states_analysis(data, states, plot_states = None, plot_freq = None, **args):
     read_args(args)
 
     tim = time.clock()
-    
-    print 'data loaded'
     
     result = window_analysis(data)
     
@@ -136,11 +138,12 @@ def main_analysis():
     plota = True
     
     
-    
     #nao mexer daqui pra frente
     
     data = loadtxt(input).T
     estag = loadtxt(inestag)
+    
+    print 'data loaded'
 
     set_params(alg = algoritmo, window_size = window_size, 
                nf = n_frequencies, sample_f = sampling_rate,
