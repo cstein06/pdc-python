@@ -229,13 +229,13 @@ com $x \to N(0, \Omega)$.
 Neste caso podemos fazer uma transformação de variáveis que torna o limite uma soma de chi-quadrados. Seja $\Omega = L \cdot L^{'}$ a decomposição de Choleski de $\Omega$, sendo $L$ matriz triangular inferior. Defina $x = Lz$, logo $z = (L^{'}L)^{-1} L^{'} x$.
 
 Temos que $E[z \cdot z^{'}] = I$. Assim se $D = L^{'} G_2 L$ e $D = U \Lambda U^{'}$ sua diagonalização, temos:
-que $\frac{\Omega}{N} \to 0$, e uma função $g = g(\hat{y})$, com $G_2 = \frac{\partial g(y)}{\partial y \partial y^{'}}$, temos:
+
 \begin{equation}
 x^{'} G_{2} x = z^{'} D z = \sum_{k} {l_{k} z^{'} u_{k} u_{k}^{'} z} = \sum_{k} {l_{k} \nu_{k}^{2}}
 \end{equation}
 pois $u_{k} u_{k}^{'} = I$, sendo $l_{k}$ os autovalores de $D$ e $\nu_{k}^{2}$ chi-quadrados com 1 grau de liberdade.
 
-Logo $N (g(\hat{y}) - g(y)) \to \sum_{k} {l_{k} \nu_{k}^{2}}$.
+Logo $N (g(\hat{y}) - g(y)) \to \frac{1}{2} \cdot \sum_{k} {l_{k} \nu_{k}^{2}}$.
 
 Assim para ter a distribuição assintótica de segunda ordem necessitamos a segunda derivada $G_{d_2}$, dada por:
 \begin{equation}
