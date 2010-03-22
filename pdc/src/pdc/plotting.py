@@ -7,29 +7,44 @@ from globals import *
 #def plot_all(mes, th, ic1, ic2, ss = None, sample_f = 1.0, 
 #             logss = False, sqrtmes = False, plotf = None):
 
-def plot_all(res_, pr_):
+def plot_all():
     '''Plots nxn graphics, with confidence intervals and threshold. 
        If ss == True, plots ss in the diagonal.
        Already expects data in power form: abs(x)^2'''
     
-    print 'Plotting...'
+    print '\nPlotting...'
     
-    r = res_.copy()
+    mes = res_.mes.copy()
+    th = res_.th.copy()
+    ic1 = res_.ic1.copy()
+    ic2 = res_.ic2.copy()
+    
+    if res_.ss != None:
+        ss = res_.ss.copy()
     
     if pr_.logss:
-        r.ss = log(r.ss)
+        ss = log(ss)
        
     if pr_.sqrtmes: 
-        r.mes = sqrt(r.mes)
-        r.th = sqrt(r.th)
-        r.ic1 = sqrt(r.ic1)
-        r.ic2 = sqrt(r.ic2)
+        mes = sqrt(mes)
+        th = sqrt(th)
+        ic1 = sqrt(ic1)
+        ic2 = sqrt(ic2)
         
-    n,n,nf = r.mes.shape
+    n,n,nf = mes.shape
     
-    #print 'mes', r.mes.min(), r.mes.max()
+    #print 'mes', mes.min(), mes.max()
     
     #pp.ion()
+    
+    if not pr_.power:
+        print 'Taking squared power for plotting!'
+        if mes.dtype != 'complex':
+            print 'But it was already non-complex data...'
+        mes = (mes*mes.conj()).real
+        
+    if mes.dtype == 'complex':
+        print 'Plotting complex data, something seems to be wrong.'
 
     x = pr_.sample_f*arange(pr_.nf)/(2.0*pr_.nf)
     for i in range(n):
@@ -37,7 +52,7 @@ def plot_all(res_, pr_):
             pp.subplot(n,n,i*n+j+1)
             #over = mes[i,j][mes[i,j]>th[i,j]]
             #overx = x[mes[i,j]>th[i,j]]
-            over = r.mes[i,j]
+            over = mes[i,j]
             overx = x
             
             #Old code
@@ -46,21 +61,21 @@ def plot_all(res_, pr_):
             #pp.plot(x, th[i,j], 'r:', x, ic1[i,j], 'k:', x, ic2[i,j], 'k:', 
             #        overx, over, 'b-', underx, under, 'r-')
             
-            pp.plot(x, r.th[i,j], 'r:', x, r.ic1[i,j], 'k:', x, r.ic2[i,j], 'k:', 
+            pp.plot(x, th[i,j], 'r:', x, ic1[i,j], 'k:', x, ic2[i,j], 'k:', 
                     overx, over, 'b-')
             
             #Complicated code for underthreshold painting
             k = 0
             while(k < pr_.nf):
-                while(r.mes[i,j,k] >= r.th[i,j,k]):
+                while(mes[i,j,k] >= th[i,j,k]):
                     k = k+1
                     if (k == pr_.nf): break
                 if (k == pr_.nf): break
                 kold = k
-                while(r.mes[i,j,k] < r.th[i,j,k]):
+                while(mes[i,j,k] < th[i,j,k]):
                     k = k+1
                     if (k == pr_.nf): break
-                pp.plot(x[kold:k], r.mes[i,j,kold:k], 'r-')
+                pp.plot(x[kold:k], mes[i,j,kold:k], 'r-')
             
             pp.ylim(-0.05,1.05)
             if (i < n-1):
@@ -73,11 +88,11 @@ def plot_all(res_, pr_):
                 
         if (pr_.ss):
             ax = pp.subplot(n,n,i*n+i+1).twinx()
-            ax.plot(pr_.sample_f*arange(pr_.nf)/(2.0*pr_.nf), r.ss[i,i,:], color='g')
+            ax.plot(pr_.sample_f*arange(pr_.nf)/(2.0*pr_.nf), ss[i,i,:], color='g')
             if pr_.logss:
-                ax.set_ylim(ymin = r.ss[i,i,:].min(), ymax = r.ss[i,i,:].max())
+                ax.set_ylim(ymin = ss[i,i,:].min(), ymax = ss[i,i,:].max())
             else:
-                ax.set_ylim(ymin = 0, ymax = r.ss[i,i,:].max())
+                ax.set_ylim(ymin = 0, ymax = ss[i,i,:].max())
                 
             if (i < n-1):
                 ax.set_xticks([])
@@ -88,7 +103,6 @@ def plot_all(res_, pr_):
         pp.draw()
     #pp.show()
     
-    del r
     
 #pdc, ss = None, sample_f = 1.0, power = True, logss = False
 def pdc_plot(mes = None, ss = None, **args):
@@ -100,32 +114,40 @@ def pdc_plot(mes = None, ss = None, **args):
     
     read_args(args)
     
-    print 'Plotting...'
-       
-    r = res_.copy()
+    print '\nPlotting...'
     
-    if mes != None:
-        r.mes = mes
+    if mes == None:
+        mes = res_.mes.copy()
         
-    if ss != None:
-        r.ss = ss
+    if res_.ss == None and pr_.ss:
+        ss = res_.ss.copy()
        
-    n,n,nf = r.mes.shape
+    n,n,nf = mes.shape
+    
     if not pr_.power:
-        r.mes = r.mes*r.mes.conj()
+        print 'Taking squared power for plotting!'
+        if mes.dtype != 'complex':
+            print 'But it was already non-complex data...'
+        mes = (mes*mes.conj()).real
+        
+    if mes.dtype == 'complex':
+        print 'Plotting complex data, something seems to be wrong.'
     
     if pr_.logss and pr_.ss:
-        r.ss = log(r.ss)
+        ss = log(ss)
     
-        #print r.ss.shape
-        #print r.ss[0,0,:10]
+        #print ss.shape
+        #print ss[0,0,:10]
     
     #pp.ion()
     
     for i in range(n):
         for j in range(n):
             pp.subplot(n,n,i*n+j+1)
-            pp.plot(pr_.sample_f*arange(nf)/(2.0*nf), r.mes[i,j,:])
+            if pr_.plot_color != None:
+                pp.plot(pr_.sample_f*arange(nf)/(2.0*nf), mes[i,j,:], color=pr_.plot_color)
+            else:
+                pp.plot(pr_.sample_f*arange(nf)/(2.0*nf), mes[i,j,:])
             pp.ylim(-0.05,1.05)
             if (i < n-1):
                 pp.xticks([])
@@ -133,16 +155,14 @@ def pdc_plot(mes = None, ss = None, **args):
                 pp.yticks([])
         if (pr_.ss):
             ax = pp.subplot(n,n,i*n+i+1).twinx()
-            ax.plot(pr_.sample_f*arange(nf)/(2.0*nf), r.ss[i,i,:], color='g')
+            ax.plot(pr_.sample_f*arange(nf)/(2.0*nf), ss[i,i,:], color='g')
             if pr_.logss:
-                ax.set_ylim(ymin = r.ss[i,i,:].min(), ymax = r.ss[i,i,:].max())
+                ax.set_ylim(ymin = ss[i,i,:].min(), ymax = ss[i,i,:].max())
             else:
-                ax.set_ylim(ymin = 0, ymax = r.ss[i,i,:].max())
+                ax.set_ylim(ymin = 0, ymax = ss[i,i,:].max())
                 
             if (i < n-1):
                 ax.set_xticks([])
     
         pp.draw()
     #pp.show()
-    
-    del r

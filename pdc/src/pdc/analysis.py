@@ -140,7 +140,7 @@ def pdc_alg(A, e_cov, nf = 64, metric = 'gen'):
         PDC(n, n, nf) - PDC matrix
     '''
     
-    print metric
+    #print metric
     
     n, n, r = A.shape
     if metric == 'euc':
@@ -327,7 +327,7 @@ def measure(data, **args):
     if pr_.power:
         if pr_.v:
             print 'Calculates squared power of the measure\n'
-        res_.mes = res_.mes*res_.mes.conj() #todo: check power consistency of everything
+        res_.mes = (res_.mes*res_.mes.conj()).real #todo: check power consistency of everything
     
     if pr_.ss:
         if pr_.v:
@@ -519,6 +519,8 @@ def measure_full(data, **args):
     
     read_args(args)
     
+    pr_.power == True
+    
     if(type(data) == type([])):
         data = list_to_array(data)
     
@@ -610,7 +612,7 @@ def measure_full(data, **args):
         log_results()
     
     if pr_.do_plot:
-        pl_.plot_all(res_, pr_)
+        pl_.plot_all()
     
     return mes, th, ic1, ic2
 
