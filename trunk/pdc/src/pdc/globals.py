@@ -7,6 +7,8 @@ mnames_ = {'coh':'Coherence',
           'ss':'Spectral Density',
           'pc': 'Partial Coherence'}
 
+state_colors = ['k', 'lightblue', 'darkblue', 'pink', 'red', 'green']
+
 class Param():  
     def __init__(self):
         self.metric = 'diag'
@@ -26,8 +28,10 @@ class Param():
         self.n_boot = 1000
         self.plotf = None
         self.window_size = None
+        self.plot_color = None
         self.do_plot = True
         self.do_log = True
+        self.do_window_log = True
         self.v = True #verbose
 
 pr_ = Param()
@@ -48,12 +52,6 @@ class Results():
         self.th = None
         self.ic1 = None   
         self.ic2 = None
-        
-    def copy(self):
-        r = Results()
-        for a,b in vars(self).items():
-            exec 'r.' + a + ' = b'
-        return r
             
 
 res_ = Results()
@@ -143,20 +141,18 @@ def load_results():
 def read_args(args):
     
     for a,b in args.items():
-        try:
-            vars(pr_)[a] = b
-        except KeyError:
+        if not vars(pr_).has_key(a):
             print "Parameter given misspelled"
+        vars(pr_)[a] = b
 
         #exec 'pr_.' + a + ' = b'
         
 def read_results(args):
     
     for a,b in args.items():
-        try:
-            vars(pr_)[a] = b
-        except KeyError:
-            print "Result parameter given misspelled"
+        if not vars(res_).has_key(a):
+            print "Parameter given misspelled"
+        vars(res_)[a] = b
         #exec 'res_.' + a + ' = b'
 
 def set_params(**args):
