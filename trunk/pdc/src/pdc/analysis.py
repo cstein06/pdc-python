@@ -7,6 +7,7 @@ import scipy.signal as sig
 from scipy.stats import f
 
 import cProfile
+import time
 
 from pdc.ar_data import ar_data
 import pdc.ar_fit as ar_fit
@@ -341,6 +342,7 @@ def measure(data, **args):
     if pr_.do_log:
         if pr_.v:
             print 'Logging the results in file:', res_.log_file   
+        pr_.time = time.ctime()
         log_results()
     
     if pr_.ss:
@@ -609,6 +611,7 @@ def measure_full(data, **args):
     if pr_.do_log:   
         if pr_.v:
             print 'Logging the results in file:', res_.log_file  
+        pr_.time = time.ctime()
         log_results()
     
     if pr_.do_plot:

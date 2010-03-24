@@ -1,6 +1,8 @@
 #from numpy import *
 import pickle
 
+__pdc_version__ = 0.1
+
 mnames_ = {'coh':'Coherence',
           'pdc':'Partial Directed Coherence',
           'dtf':'Directed Transfer Function',
@@ -32,6 +34,8 @@ class Param():
         self.do_plot = True
         self.do_log = True
         self.do_window_log = True
+        self.time = None
+        self.version = __pdc_version__
         self.v = True #verbose
 
 pr_ = Param()
