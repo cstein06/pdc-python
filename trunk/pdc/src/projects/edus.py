@@ -1,5 +1,7 @@
 from numpy import *
 
+import time
+
 from scipy.io import savemat
 
 import projects.edu_estagios as edu
@@ -12,8 +14,8 @@ def main_analysis():
         
     #input = 'C:/Documents and Settings/Stein/Desktop/teste edu/baccala2001a_ex4_sim_01.txt'
     #input = root + 'ES57_09_02_09_medias.txt'
-    input = root + 'ES57_09_02_09_medias_curto.txt'
-    #input = root + 'ES57_09_02_09_medias_test.txt'
+    #input = root + 'ES57_09_02_09_medias_curto.txt'
+    input = root + 'ES57_09_02_09_medias_test.txt'
     #input = root + 'ES57_09_02_09_melhores.txt'
     
     inestag = root + 'ES57_09_02_09_estagiamentojanela10s_limpo.txt'
@@ -32,7 +34,7 @@ def main_analysis():
     #plot_states = array([2])
     plot_freq = 150
     plota = True
-    do_window_log = False
+    do_window_log = True
     
     ordem_max = 25
     ordem_fixa = True
@@ -52,14 +54,15 @@ def main_analysis():
     set_params(alg = algoritmo, window_size = window_size, 
                nf = n_frequencies, sample_f = sampling_rate,
                maxp = ordem_max, fixp = ordem_fixa, detrend = detrend, 
-               power = espectro_em_potencia, metric = metrica_pdc, do_plot = plota)
+               power = espectro_em_potencia, metric = metrica_pdc, do_plot = plota, plotf = plot_freq)
     
-    res, meds, stds = edu.states_analysis(data, estag, plot_states = plot_states, plot_freq = plot_freq)
+    res, meds, stds = edu.states_analysis(data, estag, plot_states = plot_states)
 
     if pr_.do_window_log:
-        savemat(outputres, {'result':res})
+        savemat(outputres, {'result':res, 'shape':res.shape, 'time':time.ctime()})
         
-        savemat(outputmeds, {'medias':meds, 'stds':stds, 'shape':meds.shape})
+        savemat(outputmeds, {'medias':meds, 'stds':stds, 
+                             'shape':meds.shape, 'time':time.ctime()})
         #read with: medias2 = permute(reshape(medias', shape(4), shape(3), 
         # shape(2), shape(1)), [4,3,2,1]);
 
@@ -89,8 +92,8 @@ def batch_analysis():
     plot_states = array([1,2,3,4,5,6])
     #plot_states = array([2])
     plot_freq = 150
-    plota = True
-    do_window_log = False
+    plota = False
+    do_window_log = True
     
     ordem_max = 25
     ordem_fixa = True
@@ -126,18 +129,22 @@ def batch_analysis():
         set_params(alg = algoritmo, window_size = window_size, 
                    nf = n_frequencies, sample_f = sampling_rate,
                    maxp = ordem_max, fixp = ordem_fixa, detrend = detrend, 
-                   power = espectro_em_potencia, metric = metrica_pdc, do_plot = plota)
+                   power = espectro_em_potencia, metric = metrica_pdc, do_plot = plota, plotf = plot_freq)
         
-        res, meds, stds = edu.states_analysis(data, estag, plot_states = plot_states, plot_freq = plot_freq)
+        res, meds, stds = edu.states_analysis(data, estag, plot_states = plot_states)
     
         if pr_.do_window_log:
-            savemat(outputres[i], {'result':res})
+            savemat(outputres[i], {'result':res, 'shape':res.shape, 'time':time.ctime()})
             
-            savemat(outputmeds[i], {'medias':meds, 'stds':stds, 'shape':meds.shape})
+            savemat(outputmeds[i], {'medias':meds, 'stds':stds, 
+                                    'shape':meds.shape, 'time':time.ctime()})
             #read with: medias2 = permute(reshape(medias', shape(4), shape(3), 
             # shape(2), shape(1)), [4,3,2,1]);
 
     #return res, meds, stds
+  
+
+
     
     
 if __name__ == '__main__':

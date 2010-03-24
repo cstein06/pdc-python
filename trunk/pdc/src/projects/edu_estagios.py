@@ -68,7 +68,7 @@ def mean_estag(mes, estag, maxe = 6, nulle = -1):
             
     return mpdc, spdc
         
-def states_analysis(data, states, plot_states = None, plot_freq = None, **args):
+def states_analysis(data, states, plot_states = None, **args):
         
     read_args(args)
 
@@ -95,7 +95,7 @@ def states_analysis(data, states, plot_states = None, plot_freq = None, **args):
         for i in plot_states:
             if nstates[i-1] > 0:
                 pr_.plot_color = state_colors[i-1]
-                pl.pdc_plot(mpdc[i-1,:,:,:plot_freq])
+                pl.pdc_plot(mpdc[i-1,:,:])
         
     print '\nTotal time in secs:', time.clock() - tim
     
