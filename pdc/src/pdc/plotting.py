@@ -135,6 +135,7 @@ def pdc_plot(mes = None, ss = None, **args):
     
     if pr_.logss and pr_.ss:
         ss = log(ss)
+        
     
         #print ss.shape
         #print ss[0,0,:10]
@@ -153,6 +154,9 @@ def pdc_plot(mes = None, ss = None, **args):
                 pp.xticks([])
             if (j > 0):
                 pp.yticks([])
+            
+            if pr_.plotf != None:
+                pp.xlim([0, pr_.plotf])
         if (pr_.ss):
             ax = pp.subplot(n,n,i*n+i+1).twinx()
             ax.plot(pr_.sample_f*arange(nf)/(2.0*nf), ss[i,i,:], color='g')
@@ -163,6 +167,8 @@ def pdc_plot(mes = None, ss = None, **args):
                 
             if (i < n-1):
                 ax.set_xticks([])
+            if pr_.plotf != None:
+                ax.set_xlim(xmin = 0, xmax = pr_.plotf)
     
         pp.draw()
     #pp.show()
