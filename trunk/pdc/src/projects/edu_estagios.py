@@ -29,20 +29,25 @@ def window_analysis(data, **args):
     nwins = T/win
     
     print '\nCalculating first window verbosely (others will be silent):\n'
+    aux_v = pr_.v
     
     aux = an_.measure(data[:,0*win:0*win+win], ss = False)
-    
+    aux = an_.measure(data[:,0*win:0*win+win], ss = False)
     
     resp = zeros([nwins, n, n, pr_.nf], dtype = aux.dtype)
     resp[0] = aux
     
     for i in arange(1,nwins):
-        set_params(v = False)
+        pr_.v = False
+        
+        print i*win
         
         aux = an_.measure(data[:,i*win:i*win+win], ss = False)
         resp[i] = aux
         
         print '\nProcessed', i+1, 'of', nwins, 'windows:', 100*(i+1.0)/nwins, '%'
+    
+    pr_.v = aux_v
     
     return resp
 
@@ -59,6 +64,9 @@ def mean_estag(mes, estag, maxe = 6, nulle = -1):
     s2 = zeros([maxe, n, n, nf], dtype = mes.dtype)
     
     estag = estag[:nwins]
+    
+    if (nwins > size(estag)):
+        print 'More windows than states in the states file!'
     
     for i in arange(maxe):
         if sum(estag-1 == i) > 0:
@@ -81,9 +89,9 @@ def states_analysis(data, states, plot_states = None, **args):
     
     states = states[:nwins]
     
-    nstates = histogram(states, new = True, bins=arange(1,8))[0]
+    nstates = histogram(states, bins=arange(1,8))[0]
     
-    print '\nNumber of windows used:', states.shape
+    print '\nNumber of windows used:', states.shape[0]
     
     mpdc, spdc = mean_estag(result, states)
     
@@ -94,7 +102,7 @@ def states_analysis(data, states, plot_states = None, **args):
     if pr_.do_plot:
         for i in plot_states:
             if nstates[i-1] > 0:
-                pr_.plot_color = state_colors[i-1]
+                pr_.plot_color = pr_.state_colors[i-1]
                 pl.pdc_plot(mpdc[i-1,:,:])
         
     print '\nTotal time in secs:', time.clock() - tim
@@ -136,7 +144,7 @@ def window_analysis_A(data, **args):
     
     nwins = T/win
     
-    aux = fit_.ar_fit(data[:,0*win:0*win+win], pr_.maxp, criterion = 1)
+    aux = fit_.ar_fit(data[:,0*win:0*win+win], pr_.maxp, fixp = True)
     
     respA = zeros([nwins, n, n, pr_.maxp])
     respE = zeros([nwins, n, n])
@@ -145,7 +153,7 @@ def window_analysis_A(data, **args):
     
     for i in arange(1,nwins):
         
-        aux = fit_.ar_fit(data[:,i*win:i*win+win], pr_.maxp, criterion = 1)
+        aux = fit_.ar_fit(data[:,i*win:i*win+win], pr_.maxp, fixp = True)
         #aux = an_.measure(data[:,i*win:i*win+win], ss = False)
         respA[i] = aux[0]
         respE[i] = aux[1]
@@ -358,7 +366,7 @@ def testa_std_asymp():
 
     res, merA, strA, merE, strE = states_analysis_A(data, estag, plot_states = plot_states, plot_freq = plot_freq)
 
-    #Aest, er = fit_.ar_fit(data[:,:win], ordem_max, criterion=1) 
+    #Aest, er = fit_.ar_fit(data[:,:win], ordem_max, fixp = True) 
 
     #simd = ar_data(Aest, er, win)
     simd = ar_data(merA[est], merE[est], win)
