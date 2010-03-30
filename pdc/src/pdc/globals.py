@@ -54,6 +54,7 @@ class Results():
         self.mes = None   
         self.ss = None 
         self.alg = None   
+        self.metric = None 
         self.p = None   
         self.Af = None 
         self.th = None

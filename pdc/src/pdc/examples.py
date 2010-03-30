@@ -118,7 +118,7 @@ def gen_data_Guo(m, dummy = 100):
     return x[:,dummy:]
 
 def teste_Guo():
-    nd = 200
+    nd = 2000
     nf = 128
     alpha = 0.01
     n = 5
@@ -126,11 +126,14 @@ def teste_Guo():
     metric = 'diag'
     sample_f = 200
     
-    #Generate data from AR
+    
+    #Generate data from Guo`s model
     data = gen_data_Guo(nd)
     
-    pdc_.pdc_full(data, maxp = maxp, nf = nf, ss = True, sample_f = sample_f,
-                        alpha = alpha, metric = metric, normalize = False)
+    gl_.set_params(maxp = maxp, nf = nf, ss = True, sample_f = sample_f,
+                   alpha = alpha, metric = metric, normalize = False)
+    
+    pdc_.pdc_full(data)
     
     #print pdc_.gct(data, maxp=3)
     
