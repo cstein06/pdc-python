@@ -9,6 +9,8 @@ import pdc.ar_data as ard_
 import pdc.analysis as pdc_
 import pdc.examples as exa_
 
+from numpy import *
+
 def teste_simples():
     '''Simple test of connectivity routines
     
@@ -16,6 +18,8 @@ def teste_simples():
     MVAR matrix A and covariance matrix er.
     
     '''
+    
+    
     
     #Definition of the MVAR model
     A, er = ard_.ar_models(5)
@@ -35,17 +39,21 @@ def teste_simples():
     
     #type of PDC used (refer to manual to see what it means)
     metric = 'diag'
-    metric = 'euc'
+    #metric = 'euc'
     
     #Generate data from AR
-    data = ard_.ar_data(A, er, nd)
+    #data = ard_.ar_data(A, er, nd)
+    
+    data = loadtxt('D:\\work\\producao\\pdc congresso baccala\\ES57_09_02_09_medias_test.txt').T
+    
+    data = data[:2, :5000]
     
     #Call any connectivity routine routine. 
     #Here are some calling examples, uncomment your preferred one for use:
     
     #pdc_.measure_and_plot(data, 'dtf', nf = nf, ss = True)
     #pdc_.pdc_and_plot(data, nf = nf, ss = True)
-    pdc_.pdc_full(data, nf = nf, ss = False, metric = metric)
+    pdc_.pdc_full(data, nf = nf, ss = False, metric = metric, maxp = 20, fixp = True, sample_f = 500)
     #pdc_.coh_full(data, nf = nf, ss = True, metric = metric,
     #              detrend = True)
     
@@ -74,6 +82,8 @@ def teste_simples():
     #Plot result
     #pdc_.pdc_plot(mes)
     
+    pdc_.pp.show()
+    
 def winterhalter():
     
     subs = 50
@@ -94,6 +104,6 @@ def winterhalter():
     
 if __name__ == "__main__":
     
-    #teste_simples()
-    winterhalter()
+    teste_simples()
+    #winterhalter()
     
