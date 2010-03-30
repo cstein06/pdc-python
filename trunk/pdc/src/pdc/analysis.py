@@ -26,9 +26,13 @@ def list_to_array(data):
 def pre_data(data, normalize = False, detrend = True):
        
     if (detrend):
+        if pr_.v:
+            print '\nRemoving linear trend from data.'
         data = sig.detrend(data)
         
     if (normalize):
+        if pr_.v:
+            print '\nNormalizing data.'
         data = data/std(data, axis = 1).reshape(-1,1)
         
     return data
@@ -298,7 +302,7 @@ def measure(data, **args):
     
     
     res_.A, res_.er = ar_fit.ar_fit(data, pr_.maxp, fixp=pr_.fixp)
-    
+    res_.p = res_.A.shape[2]
     
     if pr_.v:
         print '\nVAR estimaded. Order:', res_.A.shape
@@ -333,6 +337,7 @@ def measure(data, **args):
     
     res_.data_shape = data.shape
     res_.alg = pr_.alg
+    res_.metric = pr_.metric
     
     
     if pr_.do_log:
@@ -587,6 +592,7 @@ def measure_full(data, **args):
         ssm = None
         
     res_.A = Aest
+    res_.p = Aest.shape[2]
     res_.er = erest
     res_.data_shape = data.shape
     res_.mes = mes
@@ -594,6 +600,7 @@ def measure_full(data, **args):
     res_.ic1 = ic1
     res_.ic2 = ic2
     res_.alg = pr_.alg
+    res_.metric = pr_.metric
     res_.ss = ssm
      
     if pr_.do_log:   
