@@ -359,7 +359,7 @@ def test_daniel_JAS_fig2():
     emp = zeros(n)
     for i in arange(n):
         data = ar_data_.ar_data(A, er, 1000)
-        Ae, ere = ar_fit.ar_fit(data, 2, criterion = 1)
+        Ae, ere = ar_fit.ar_fit(data, 2, fixp = True)
         aux = pdc_.pdc_alg(Ae, ere, nf = 5, metric = 'euc')
          
         Af = pdc_.A_to_f(Ae, 5)
@@ -371,7 +371,7 @@ def test_daniel_JAS_fig2():
     emp = sort(emp)
     
     data = ar_data_.ar_data(A, er, 10000)
-    #Ae, ere = ar_fit.ar_fit(data, 2, criterion = 1)
+    #Ae, ere = ar_fit.ar_fit(data, 2, fixp = True)
     
     Af = pdc_.A_to_f(A, 5)
     den = dot(Af[3,:,0],Af[3,:,0].conj()).real

@@ -9,7 +9,6 @@ mnames_ = {'coh':'Coherence',
           'ss':'Spectral Density',
           'pc': 'Partial Coherence'}
 
-state_colors = ['k', 'lightblue', 'darkblue', 'pink', 'red', 'green']
 
 class Param():  
     def __init__(self):
@@ -32,11 +31,13 @@ class Param():
         self.plot_diag = False
         self.window_size = None
         self.plot_color = None
+        self.plot_labels = None
         self.do_plot = True
         self.do_log = True
         self.do_window_log = True
         self.time = None
         self.version = __pdc_version__
+        self.state_colors = ['k', 'lightblue', 'darkblue', 'pink', 'red', 'green']
         self.v = True #verbose
 
 pr_ = Param()

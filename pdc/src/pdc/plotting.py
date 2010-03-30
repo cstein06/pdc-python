@@ -96,6 +96,26 @@ def plot_all():
             
             pp.ylim(-0.05,1.05)
             
+            if (i == n-1):
+                try:
+                    if pr_.plot_labels != None:
+                        pp.xlabel(pr_.plot_labels[j])
+                    else:
+                        pp.xlabel(str(j+1))
+                except:
+                    print '\nProblem with plot labels.'
+                    pp.xlabel(str(j+1))
+                    
+            if (j == 0):
+                try:
+                    if pr_.plot_labels != None:
+                        pp.ylabel(pr_.plot_labels[i])
+                    else:
+                        pp.ylabel(str(i+1))
+                except:
+                    print '\nProblem with plot labels.'
+                    pp.ylabel(str(i+1))
+            
             if pr_.plotf != None:
                 pp.xlim([0, pr_.plotf])
                 
@@ -167,8 +187,27 @@ def pdc_plot(mes = None, ss = None, **args):
             pp.ylim(-0.05,1.05)
             if (i < n-1):
                 pp.xticks([])
+            else:
+                try:
+                    if pr_.plot_labels != None:
+                        pp.xlabel(pr_.plot_labels[j])
+                    else:
+                        pp.xlabel(str(j+1))
+                except:
+                    print '\nProblem with plot labels.'
+                    pp.xlabel(str(j+1))
+                
             if (j > 0):
                 pp.yticks([])
+            else:
+                try:
+                    if pr_.plot_labels != None:
+                        pp.ylabel(pr_.plot_labels[i])
+                    else:
+                        pp.ylabel(str(i+1))
+                except:
+                    print '\nProblem with plot labels.'
+                    pp.ylabel(str(i+1))
             
             if pr_.plotf != None:
                 pp.xlim([0, pr_.plotf])

@@ -23,7 +23,7 @@ def list_to_array(data):
         d = concatenate([d, data[i].reshape(1,-1)], axis = 0)
     return d
 
-def pre_data(data, normalize = True, detrend = True):
+def pre_data(data, normalize = False, detrend = True):
     if (detrend):
         data = sig.detrend(data)
         
@@ -284,12 +284,7 @@ def measure(data, **args):
         data = list_to_array(data)
     
     data = pre_data(data, pr_.normalize, pr_.detrend)
-        
-    crit = 0 #AIC
-    if pr_.fixp:
-        crit = 1
-        
-        
+    
     if pr_.v:
         print 'Will calculate the', mnames_[pr_.alg], 'of the data'
         print 'Dimensions of the data:', data.shape
@@ -301,7 +296,7 @@ def measure(data, **args):
         print '\nEstimating VAR'
     
     
-    res_.A, res_.er = ar_fit.ar_fit(data, pr_.maxp, criterion=crit)
+    res_.A, res_.er = ar_fit.ar_fit(data, pr_.maxp, fixp=pr_.fixp)
     
     
     if pr_.v:
@@ -434,11 +429,9 @@ def igct(data, maxp = 30, detrend = True, fixp = False):
     if (detrend):
         data = sig.detrend(data)
         
-    crit = 0 #AIC
-    if fixp:
-        crit = 1
     
-    A, e_var = ar_fit.ar_fit(data, maxp, criterion = crit)
+    
+    A, e_var = ar_fit.ar_fit(data, pr_.maxp, fixp=pr_.fixp)
     
     n, nd = data.shape
         
@@ -446,11 +439,8 @@ def igct(data, maxp = 30, detrend = True, fixp = False):
 
 def white_test(data, maxp = 30, h = 20, fixp = False):
     
-    crit = 0 #AIC
-    if fixp:
-        crit = 1
     
-    A, res = ar_fit.ar_fit(data, maxp, return_ef=True, criterion = crit)
+    A, res = ar_fit.ar_fit(data, pr_.maxp, fixp=pr_.fixp, return_ef=True)
     
     n,n,p = A.shape
     
@@ -531,9 +521,6 @@ def measure_full(data, **args):
     data = pre_data(data, pr_.normalize, pr_.detrend)
         
     #Estimate AR parameters with Nuttall-Strand
-    crit = 0 #AIC
-    if pr_.fixp:
-        crit = 1
     
     if pr_.v:
         print 'Will calculate the', mnames_[pr_.alg], 'of the data, with statistics'
@@ -547,7 +534,7 @@ def measure_full(data, **args):
         print '\nEstimating VAR'
     
     #Estimate AR parameters with Nuttall-Strand
-    Aest, erest = ar_fit.ar_fit(data, pr_.maxp, criterion=crit)
+    Aest, erest = ar_fit.ar_fit(data, pr_.maxp, fixp=pr_.fixp)
          
          
          
@@ -576,7 +563,7 @@ def measure_full(data, **args):
         if pr_.v:
             print 'Choosing no statistics'
         alg_method = globals()[measure + '_alg']
-        mes = alg_method(Aest, erest, nf)
+        mes = alg_method(Aest, erest, pr_.nf)
         th = zeros(mes.shape)
         ic1 = zeros(mes.shape)
         ic2 = zeros(mes.shape)

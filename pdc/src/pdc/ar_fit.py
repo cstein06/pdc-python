@@ -36,9 +36,12 @@ def lyap(A, B, C=[]):
         real_flg = 0
     # perform schur decomposition on A and B (note: complex schur form forced by
     # adding small complex part so ua and ub are complex upper triangular)
-    i = 0+1j
-    ta,ua = schur(A+eps*eps*i*A)
-    tb,ub = schur(B+eps*eps*i*B)
+    #i = 0+1j
+    #ta,ua = schur(A+eps*eps*i*A)
+    #tb,ub = schur(B+eps*eps*i*B)
+    
+    ta,ua = schur(A, 'complex')
+    tb,ub = schur(B, 'complex')
     # check all combinations of ua(i,i)+ub(j,j) for zero
     p1 = ta.diagonal().transpose()
     p1.resize(1,p1.size)
@@ -170,15 +173,15 @@ def nstrand(u, maxp = 30, simplep = True):
     else:
         return pf,A,pb,B,ef,eb,ISTAT 
 
-def ar_fit(u, MaxIP = 0, alg=0, criterion=0, return_ef = False):
+def ar_fit(u, maxp = 0, alg=0, fixp=False, criterion = 0, return_ef = False):
     '''
     %
-    %[IP,pf,A,pb,B,ef,eb,vaic,Vaicv] = mvar(u,MaxIP,alg,criterion)
+    %[IP,pf,A,pb,B,ef,eb,vaic,Vaicv] = mvar(u,maxp,alg,fixp,criterion)
     %
     % input: u     - data rows
-    %        MaxIP - externaly defined maximum IP (default = 30)
+    %        maxp - externaly defined maximum IP (default = 30)
     %        alg   - for algorithm (0: Nutall-Strand)
-    %        criterion for order choice - 0: AIC; 1: fixed order in MaxIP
+    %        criterion for order choice - 0: AIC; 1: fixed order in maxp
     %                                     2(not yet): estimate up to max order
     %                                     Negative(not yet) - keep criterion changes
     %
@@ -187,11 +190,10 @@ def ar_fit(u, MaxIP = 0, alg=0, criterion=0, return_ef = False):
     [nSegLength,nChannels] = u.transpose().shape
 
     if criterion<0:
-        stopFlag=1
         criterion=abs(criterion)
     
-    if criterion==1:
-        [npf, na, npb, nb, nef, neb, ISTAT]=nstrand(u,MaxIP,False)
+    if fixp:
+        [npf, na, npb, nb, nef, neb, ISTAT]=nstrand(u,maxp,False)
         if (not return_ef):
             return na.transpose(1,2,0), npf/nSegLength
         else:
@@ -199,15 +201,15 @@ def ar_fit(u, MaxIP = 0, alg=0, criterion=0, return_ef = False):
         
     
     vaicv=0
-    if MaxIP == 0:
+    if maxp == 0:
        MaxOrder = 30;
        UpperboundOrder = round(3*sqrt(nSegLength)/nChannels)
        #% Marple Jr. page 409
        #% Suggested by Nuttall, 1976.
        UpperboundOrder = min([MaxOrder, UpperboundOrder])
     else:
-       MaxOrder=MaxIP
-       UpperboundOrder=MaxIP
+       MaxOrder=maxp
+       UpperboundOrder=maxp
     
     #print 'MaxOrder limited to ', MaxOrder
        
