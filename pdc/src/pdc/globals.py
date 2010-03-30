@@ -20,7 +20,7 @@ class Param():
         self.maxp = 30   
         self.fixp = False   
         self.alg = 'pdc' 
-        self.logss = False
+        self.logss = True
         self.sqrtmes = False
         self.ss = True   
         self.power = True   
@@ -32,6 +32,7 @@ class Param():
         self.window_size = None
         self.plot_color = None
         self.plot_labels = None
+        self.plot_title = None
         self.do_plot = True
         self.do_log = True
         self.do_window_log = True

@@ -100,35 +100,41 @@ def teste_simples():
     
     
 
-def gen_data_Ding(m):
+def gen_data_Guo(m, dummy = 100):
+    '''Guo et. al, 2008. Uncovering interactions in the freq. domain'''
     p = 3
-    x = zeros([5,m])
-    e = mnorm(zeros(7), identity(7), m).T
+    x = zeros([5,m+dummy])
+    e = mnorm(zeros(7), identity(7), m+dummy).T
     b = 2*ones(5)
     c = 5*ones(5)
     a = rand(5)
-    for i in arange(p, m):
+    for i in arange(p, m+dummy):
         x[0,i] = 0.95*sqrt(2)*x[0,i-1] - 0.9025*x[0,i-2] + e[0,i] + a[0]*e[5,i] + b[0]*e[6,i-1] + c[0]*e[6,i-2]
         x[1,i] = 0.5*x[0,i-2] + e[1,i] + a[1]*e[5,i] + b[1]*e[6,i-1] + c[1]*e[6,i-2]
         x[2,i] = -0.4*x[0,i-3] + e[2,i]+ a[2]*e[5,i] + b[2]*e[6,i-1] + c[2]*e[6,i-2]
         x[3,i] = -0.5*x[0,i-2] + 0.25*sqrt(2)*x[3,i-1] + 0.25*sqrt(2)*x[4,i-1] + e[3,i]+ a[3]*e[5,i] + b[3]*e[6,i-1] + c[3]*e[6,i-2]
         x[4,i] = -0.25*sqrt(2)*x[3,i-1] + 0.25*sqrt(2)*x[4,i-1] + e[4,i]+ a[4]*e[5,i] + b[4]*e[6,i-1] + c[4]*e[6,i-2]
 
-    return x
+    return x[:,dummy:]
 
-def teste_Ding():
-    nd = 20000
-    nf = 20
+def teste_Guo():
+    nd = 200
+    nf = 128
     alpha = 0.01
     n = 5
     maxp = 30
     metric = 'diag'
+    sample_f = 200
     
     #Generate data from AR
-    data = gen_data_Ding(nd)
+    data = gen_data_Guo(nd)
     
-    pdc_.dtf_full(data, maxp = maxp, nf = nf, ss = False, 
-                          alpha = alpha, metric = metric)
+    pdc_.pdc_full(data, maxp = maxp, nf = nf, ss = True, sample_f = sample_f,
+                        alpha = alpha, metric = metric, normalize = False)
+    
+    #print pdc_.gct(data, maxp=3)
+    
+    pp.show()
     
     #Estimate AR parameters with Nuttall-Strand
     #Aest, erest = ar_fit(data, maxp)
@@ -324,10 +330,10 @@ def artigo():
     return res1, res2
 
 if __name__ == "__main__":
-    artigo()
+    #artigo()
     #teste_simples()
     
-    #teste_Ding()
+    teste_Guo()
     #teste_sunspot_melanoma()
     #teste_data()
     #a = gen_winterhalter_2005_van_der_Pol(30, 30)

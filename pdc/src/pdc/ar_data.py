@@ -168,7 +168,7 @@ def ar_data(A, er = None, m = 1000, dummy = 100):
     
     n = A.shape[0]
     p = A.shape[2]
-    if er == None:
+    if er is None:
         er = identity(n)
     if er.ndim == 1:
         er = diag(er)
@@ -195,6 +195,8 @@ def ar_data(A, er = None, m = 1000, dummy = 100):
     weave.inline(code, ['data', 'p', 'm', 'dummy', 'n', 'A', 'w'], 
                        type_converters=converters.blitz, compiler = 'gcc')
 
+    if abs(data[0,-1]) > max(sqrt(er))*1e3:
+        print 'It seems that the model for the data is unstable!'
     
     return data[:,dummy:]
     
