@@ -29,6 +29,7 @@ class Param():
         self.stat = 'asymp' 
         self.n_boot = 1000
         self.plotf = None
+        self.plot_diag = False
         self.window_size = None
         self.plot_color = None
         self.do_plot = True
@@ -143,6 +144,8 @@ def load_results():
     #return prn_, resn_
     
 def read_args(args):
+    global res_
+    global pr_ 
     
     for a,b in args.items():
         if not vars(pr_).has_key(a):
