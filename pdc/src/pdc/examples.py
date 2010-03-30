@@ -29,6 +29,7 @@ import pdc.analysis as pdc_
 from pdc.ar_data import ar_data
 from pdc.ar_data import ar_models
 from pdc.ar_fit import ar_fit
+import pdc.globals as gl_
 
 def teste_simples():
     '''Simple test of connectivity routines
@@ -69,7 +70,8 @@ def teste_simples():
     #pdc_.measure_and_plot(data, 'dtf', nf = nf, ss = True)
     #pdc_.pdc_and_plot(data, nf = nf, ss = True)
     #pdc_.pdc_full(data, nf = nf, ss = True, metric = metric)
-    #pdc_.coh_full(data, nf = nf, ss = True, metric = metric)
+    pdc_.coh_full(data, nf = nf, ss = True, metric = metric,
+                  detrend = True)
     
     
     #If you want step by step, you can do it this way:
@@ -82,19 +84,19 @@ def teste_simples():
     #                               maxp, alpha = alpha, metric = metric)
     
     #Plot result
-    #pdc_.plot_all(mes, th, ic1, ic2, nf = nf)
+    #pdc_.plot_all(mes, th, ic1, ic2)
     
     
     #Another step-by-step way, without statistics:
     
     #Estimate AR parameters with Nuttall-Strand
-    Aest, erest = ar_fit(data, maxp)
+    #Aest, erest = ar_fit(data, maxp)
     
     #Calculate the connectivity
-    mes = pdc_.pdc_alg(Aest, erest, nf = nf, metric = metric)
+    #mes = pdc_.pdc_alg(Aest, erest, nf = nf, metric = metric)
     
     #Plot result
-    pdc_.pdc_plot(mes)
+    #pdc_.pdc_plot(mes)
     
     
 
@@ -136,11 +138,11 @@ def teste_Ding():
     #pdc_.plot_all(mes, th, ic1, ic2, nf = nf)
 
 def teste_sunspot_melanoma():
-   nf = 20
-   alpha = 0.05
+   nf = 64
+   alpha = 0.01
    
-   metric = 'euc'
-   maxp=3
+   metric = 'diag'
+   maxp=100
    #Generate data from AR
    y=array([[1936,  1.0, 0.9,  40],
         [ 1937, 0.8, 0.8, 115],
@@ -183,8 +185,10 @@ def teste_sunspot_melanoma():
    
    #data = data/std(data, axis = 1).reshape(-1,1)
    
+   gl_.set_params(plot_labels = ['sun spots', 'melanome'])
+   
    pdc_.pdc_full(data, maxp = maxp, nf = nf, ss = True, 
-                 alpha = alpha, metric = metric, normalize = True, stat = 'asymp', n_boot = 300)
+                 alpha = alpha, metric = metric, normalize = False, stat = 'asymp', n_boot = 300)
 #   pdc_.coh_full(data, maxp = maxp, nf = nf, ss = True, 
 #                 alpha = alpha, normalize = False, stat = 'asymp', n_boot = 300)
    
@@ -276,8 +280,53 @@ def teste_data():
     #                               maxp, alpha = alpha, metric = metric)
     #pdc_.plot_all(mes, th, ic1, ic2, nf = nf)
 
+def artigo():
+
+    nd = 10000
+    alpha = 0.05
+    maxp = 5
+    metric = 'diag'
+    nboot = 5000
+    nf = 64
+    
+    A, er = ar_models(5)
+    
+    data = ar_data(A, er, nd)
+    #data = ar_models(2)
+    
+    res1 = pdc_.pdc_full(data, maxp = maxp, nf = nf, logss = True,
+                         metric = metric, alpha = alpha, stat = 'asymp')
+    
+    pp.figure()
+    
+    
+    res2 = pdc_.pdc_full(data, maxp = maxp, metric = metric, nf = nf,
+                         alpha = alpha, stat = 'boot', n_boot = nboot)
+    
+    n=data.shape[0]
+    
+    pp.figure()
+    x = arange(nf)/(2.0*nf)
+    for i in arange(n):
+        for j in arange(n):
+            pp.subplot(n,n,i*n+j+1)
+            if i == j: continue
+            
+            if i == 1 and j == 0: 
+                pp.plot(x,res1[1][i,j])
+                pp.plot(x,res2[1][i,j])
+                continue
+            pp.plot(x,res1[3][i,j]-res1[2][i,j])
+            pp.plot(x,res2[3][i,j]-res2[2][i,j])
+    
+    pp.show()
+    
+    return res1, res2
+
 if __name__ == "__main__":
-    teste_simples()
+    artigo()
+    #teste_simples()
+    
     #teste_Ding()
     #teste_sunspot_melanoma()
     #teste_data()
