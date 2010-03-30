@@ -50,6 +50,21 @@ def plot_all():
     for i in range(n):
         for j in range(n):
             pp.subplot(n,n,i*n+j+1)
+            
+            if (i < n-1):
+                pp.xticks([])
+            if (j > 0):
+                pp.yticks([])
+                
+            if i == j and not pr_.plot_diag:
+                pp.xticks([])
+                if pr_.plotf != None:
+                    pp.xlim([0, pr_.plotf])
+                else:
+                    pp.xlim([0, pr_.sample_f/2.0])
+                continue
+
+            pp.subplot(n,n,i*n+j+1)
             #over = mes[i,j][mes[i,j]>th[i,j]]
             #overx = x[mes[i,j]>th[i,j]]
             over = mes[i,j]
@@ -61,7 +76,9 @@ def plot_all():
             #pp.plot(x, th[i,j], 'r:', x, ic1[i,j], 'k:', x, ic2[i,j], 'k:', 
             #        overx, over, 'b-', underx, under, 'r-')
             
-            pp.plot(x, th[i,j], 'r:', x, ic1[i,j], 'k:', x, ic2[i,j], 'k:', 
+            #pp.plot(x, th[i,j], 'r:', x, ic1[i,j], 'k:', x, ic2[i,j], 'k:', 
+            #        overx, over, 'b-')
+            pp.plot(x, th[i,j], 'r:', 
                     overx, over, 'b-')
             
             #Complicated code for underthreshold painting
@@ -78,10 +95,6 @@ def plot_all():
                 pp.plot(x[kold:k], mes[i,j,kold:k], 'r-')
             
             pp.ylim(-0.05,1.05)
-            if (i < n-1):
-                pp.xticks([])
-            if (j > 0):
-                pp.yticks([])
             
             if pr_.plotf != None:
                 pp.xlim([0, pr_.plotf])
@@ -99,6 +112,8 @@ def plot_all():
             
             if pr_.plotf != None:
                 ax.set_xlim(xmin = 0, xmax = pr_.plotf)
+            else:
+                ax.set_xlim(xmin = 0, xmax = pr_.sample_f/2.0)
         
         pp.draw()
     #pp.show()
