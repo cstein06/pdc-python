@@ -24,6 +24,7 @@ def list_to_array(data):
     return d
 
 def pre_data(data, normalize = False, detrend = True):
+       
     if (detrend):
         data = sig.detrend(data)
         
@@ -536,7 +537,7 @@ def measure_full(data, **args):
     #Estimate AR parameters with Nuttall-Strand
     Aest, erest = ar_fit.ar_fit(data, pr_.maxp, fixp=pr_.fixp)
          
-         
+    p = Aest.shape[2]
          
     if pr_.v:
         print '\nVAR estimaded. Order:', Aest.shape
@@ -552,7 +553,7 @@ def measure_full(data, **args):
             print 'Calculating asymptotic statistics'
         as_method = vars(as_)['asymp_' + pr_.alg]
         mes, th, ic1, ic2 = as_method(data, Aest, pr_.nf, erest, 
-                                   pr_.maxp, alpha = pr_.alpha, metric = pr_.metric)
+                                   p, alpha = pr_.alpha, metric = pr_.metric)
     elif pr_.stat == 'boot':
         if pr_.v:
             print 'Calculating bootstrap statistics'

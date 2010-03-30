@@ -46,6 +46,11 @@ def plot_all():
     if mes.dtype == 'complex':
         print 'Plotting complex data, something seems to be wrong.'
 
+    if pr_.plot_title is not None:
+        pp.suptitle(pr_.plot_title)
+    else:
+        pp.suptitle(mnames_[pr_.alg])
+
     x = pr_.sample_f*arange(pr_.nf)/(2.0*pr_.nf)
     for i in range(n):
         for j in range(n):
@@ -56,46 +61,6 @@ def plot_all():
             if (j > 0):
                 pp.yticks([])
                 
-            if i == j and not pr_.plot_diag:
-                pp.xticks([])
-                if pr_.plotf != None:
-                    pp.xlim([0, pr_.plotf])
-                else:
-                    pp.xlim([0, pr_.sample_f/2.0])
-                continue
-
-            pp.subplot(n,n,i*n+j+1)
-            #over = mes[i,j][mes[i,j]>th[i,j]]
-            #overx = x[mes[i,j]>th[i,j]]
-            over = mes[i,j]
-            overx = x
-            
-            #Old code
-            #under = mes[i,j][mes[i,j]<=th[i,j]]
-            #underx = x[mes[i,j]<=th[i,j]]
-            #pp.plot(x, th[i,j], 'r:', x, ic1[i,j], 'k:', x, ic2[i,j], 'k:', 
-            #        overx, over, 'b-', underx, under, 'r-')
-            
-            #pp.plot(x, th[i,j], 'r:', x, ic1[i,j], 'k:', x, ic2[i,j], 'k:', 
-            #        overx, over, 'b-')
-            pp.plot(x, th[i,j], 'r:', 
-                    overx, over, 'b-')
-            
-            #Complicated code for underthreshold painting
-            k = 0
-            while(k < pr_.nf):
-                while(mes[i,j,k] >= th[i,j,k]):
-                    k = k+1
-                    if (k == pr_.nf): break
-                if (k == pr_.nf): break
-                kold = k
-                while(mes[i,j,k] < th[i,j,k]):
-                    k = k+1
-                    if (k == pr_.nf): break
-                pp.plot(x[kold:k], mes[i,j,kold:k], 'r-')
-            
-            pp.ylim(-0.05,1.05)
-            
             if (i == n-1):
                 try:
                     if pr_.plot_labels != None:
@@ -115,6 +80,47 @@ def plot_all():
                 except:
                     print '\nProblem with plot labels.'
                     pp.ylabel(str(i+1))
+                
+            if i == j and not pr_.plot_diag:
+                #pp.xticks([])
+                if pr_.plotf != None:
+                    pp.xlim([0, pr_.plotf])
+                else:
+                    pp.xlim([0, pr_.sample_f/2.0])
+                continue
+
+            pp.subplot(n,n,i*n+j+1)
+            #over = mes[i,j][mes[i,j]>th[i,j]]
+            #overx = x[mes[i,j]>th[i,j]]
+            over = mes[i,j]
+            overx = x
+            
+            #Old code
+            #under = mes[i,j][mes[i,j]<=th[i,j]]
+            #underx = x[mes[i,j]<=th[i,j]]
+            #pp.plot(x, th[i,j], 'r:', x, ic1[i,j], 'k:', x, ic2[i,j], 'k:', 
+            #        overx, over, 'b-', underx, under, 'r-')
+            
+            pp.plot(x, th[i,j], 'r:', x, ic1[i,j], 'k:', x, ic2[i,j], 'k:', 
+                    overx, over, 'b-')
+            #pp.plot(x, th[i,j], 'r:', 
+            #        overx, over, 'b-')
+            
+            #Complicated code for underthreshold painting
+            k = 0
+            while(k < pr_.nf):
+                while(mes[i,j,k] >= th[i,j,k]):
+                    k = k+1
+                    if (k == pr_.nf): break
+                if (k == pr_.nf): break
+                kold = k
+                while(mes[i,j,k] < th[i,j,k]):
+                    k = k+1
+                    if (k == pr_.nf): break
+                pp.plot(x[kold:k], mes[i,j,kold:k], 'r-')
+            
+            pp.ylim(-0.05,1.05)
+            
             
             if pr_.plotf != None:
                 pp.xlim([0, pr_.plotf])
