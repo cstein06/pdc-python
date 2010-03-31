@@ -17,6 +17,7 @@ from numpy import *
 import matplotlib.pyplot as pp
 from scipy.stats import chi2
 import scipy.stats as st
+from pdc.globals import set_params
 import time
 from numpy.random import randn
 from numpy.random import rand
@@ -303,10 +304,18 @@ def artigo():
     #data = ar_data(A, er, nd)
     data = ar_models(2)
     
-    res1 = pdc_.pdc_full(data, maxp = maxp, nf = nf, logss = True,
-                         metric = metric, alpha = alpha, stat = 'asymp')
+    set_params(maxp = maxp, nf = nf, 
+               logss = True, plot_ic = True,
+               plot_color = 'pink',
+               metric = metric, alpha = alpha, stat = 'asymp')
+    
+    pdc_.measure_full(data, alg = 'coh', stat = 'asymp', do_plot = True)
     
     pp.show()
+    return
+    
+    res1 = pdc_.pdc_full(data)
+    
     return
     pp.figure()
     
