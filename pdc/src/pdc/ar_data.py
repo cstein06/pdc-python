@@ -195,7 +195,7 @@ def ar_data(A, er = None, m = 1000, dummy = 100):
     weave.inline(code, ['data', 'p', 'm', 'dummy', 'n', 'A', 'w'], 
                        type_converters=converters.blitz, compiler = 'gcc')
 
-    if abs(data[0,-1]) > max(sqrt(er))*1e3:
+    if abs(data[0,-1]) > sqrt(er).max()*1e3:
         print 'It seems that the model for the data is unstable!'
     
     return data[:,dummy:]
