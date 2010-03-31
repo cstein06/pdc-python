@@ -35,6 +35,8 @@ class Param():
         self.plot_labels = None
         self.plot_title = None
         self.do_plot = True
+        self.plot_th = True
+        self.plot_ic = False
         self.do_log = False
         self.log_matlab = False
         self.mat_file = 'current_log'

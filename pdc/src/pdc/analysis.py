@@ -280,76 +280,84 @@ def measure(data, **args):
     
     read_args(args)
     
-    if(type(data) == type([])):
-        data = list_to_array(data)
+    pr_.do_plot = False
     
-    data = pre_data(data, pr_.normalize, pr_.detrend)
-        
-    crit = 0 #AIC
-    if pr_.fixp:
-        crit = 1
-        
-        
-    if pr_.v:
-        print 'Will calculate the', mnames_[pr_.alg], 'of the data'
-        print 'Dimensions of the data:', data.shape
-        if pr_.fixp:
-            print 'Using fixed VAR order'
-        else:
-            print 'Using AIC for VAR order' 
-        
-        print '\nEstimating VAR'
+    ret = measure_full(data)[0]
     
+    pr_.do_plot = True
     
-    res_.A, res_.er = ar_fit.ar_fit(data, pr_.maxp, criterion=crit)
-    
-    
-    if pr_.v:
-        print '\nVAR estimaded. Order:', res_.A.shape
-    #print 'data:', data.shape
-    #print 'A:', res_.A.shape
-    #print er
-    
-    #print A
-    
-    method = globals()[pr_.alg + '_alg']
-    
-    res_.mes = method(res_.A, res_.er, nf = pr_.nf, metric = pr_.metric)
-    
-    
-    if pr_.v:
-        print '\n', mnames_[pr_.alg], 'estimaded.'
-        if pr_.alg == 'pdc':
-            print 'Used metric:', pr_.metric
-        print '\nNumber of frequencies:', pr_.nf
-        print 'From 0 to ', pr_.sample_f/2.0, 'Hz\n'
-    
-    
-    if pr_.power:
-        if pr_.v:
-            print 'Calculates squared power of the measure\n'
-        res_.mes = (res_.mes*res_.mes.conj()).real #todo: check power consistency of everything
-    
-    if pr_.ss:
-        if pr_.v:
-            print 'Calculates also the spectrum\n'
-        res_.ss = ss_alg(res_.A, res_.er, pr_.nf)
-    
-    res_.data_shape = data.shape
-    res_.alg = pr_.alg
-    
-    
-    if pr_.do_log:
-        if pr_.v:
-            print 'Logging the results in file:', res_.log_file   
-        pr_.time = time.ctime()
-        log_results()
-    
-    if pr_.ss:
-        return res_.mes, res_.ss
-    else:
-        return res_.mes
-    
+    return ret
+#    
+#    if(type(data) == type([])):
+#        data = list_to_array(data)
+#    
+#    data = pre_data(data, pr_.normalize, pr_.detrend)
+#        
+#    crit = 0 #AIC
+#    if pr_.fixp:
+#        crit = 1
+#        
+#        
+#    if pr_.v:
+#        print 'Will calculate the', mnames_[pr_.alg], 'of the data'
+#        print 'Dimensions of the data:', data.shape
+#        if pr_.fixp:
+#            print 'Using fixed VAR order'
+#        else:
+#            print 'Using AIC for VAR order' 
+#        
+#        print '\nEstimating VAR'
+#    
+#    
+#    res_.A, res_.er = ar_fit.ar_fit(data, pr_.maxp, criterion=crit)
+#    
+#    
+#    if pr_.v:
+#        print '\nVAR estimaded. Order:', res_.A.shape
+#    #print 'data:', data.shape
+#    #print 'A:', res_.A.shape
+#    #print er
+#    
+#    #print A
+#    
+#    method = globals()[pr_.alg + '_alg']
+#    
+#    res_.mes = method(res_.A, res_.er, nf = pr_.nf, metric = pr_.metric)
+#    
+#    
+#    if pr_.v:
+#        print '\n', mnames_[pr_.alg], 'estimaded.'
+#        if pr_.alg == 'pdc':
+#            print 'Used metric:', pr_.metric
+#        print '\nNumber of frequencies:', pr_.nf
+#        print 'From 0 to ', pr_.sample_f/2.0, 'Hz\n'
+#    
+#    
+#    if pr_.power:
+#        if pr_.v:
+#            print 'Calculates squared power of the measure\n'
+#        res_.mes = (res_.mes*res_.mes.conj()).real #todo: check power consistency of everything
+#    
+#    if pr_.ss:
+#        if pr_.v:
+#            print 'Calculates also the spectrum\n'
+#        res_.ss = ss_alg(res_.A, res_.er, pr_.nf)
+#    
+#    res_.data_shape = data.shape
+#    res_.alg = pr_.alg
+#    
+#    
+#    if pr_.do_log:
+#        if pr_.v:
+#            print 'Logging the results in file:', res_.log_file   
+#        pr_.time = time.ctime()
+#        log_results()
+#    
+#    if pr_.ss:
+#        return res_.mes, res_.ss
+#    else:
+#        return res_.mes
+#    
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 #%
@@ -547,12 +555,12 @@ def measure_full(data, **args):
         print '\nEstimating VAR'
     
     #Estimate AR parameters with Nuttall-Strand
-    Aest, erest = ar_fit.ar_fit(data, pr_.maxp, criterion=crit)
+    res_.A, res_.er = ar_fit.ar_fit(data, pr_.maxp, criterion=crit)
          
-    p = Aest.shape[2]
+    res_.p = res_.A.shape[2]
          
     if pr_.v:
-        print '\nVAR estimaded. Order:', Aest.shape
+        print '\nVAR estimaded. Order:', res_.A.shape
    
     #print  'A:', Aest
     #erest = (erest+erest.T)/2   #TODO: conferir isso.
@@ -564,23 +572,30 @@ def measure_full(data, **args):
         if pr_.v:
             print 'Calculating asymptotic statistics'
         as_method = vars(as_)['asymp_' + pr_.alg]
-        mes, th, ic1, ic2 = as_method(data, Aest, pr_.nf, erest, 
-                                   p, alpha = pr_.alpha, metric = pr_.metric)
+        res_.mes, res_.th, res_.ic1, res_.ic2 = \
+            as_method(data, res_.A, pr_.nf, res_.er, 
+                      res_.p, alpha = pr_.alpha, metric = pr_.metric)
     elif pr_.stat == 'boot':
         if pr_.v:
             print 'Calculating bootstrap statistics'
         alg_method = globals()[pr_.alg + '_alg']
-        mes, th, ic1, ic2 = bt_.bootstrap(alg_method, nd, pr_.n_boot, Aest, erest, 
-                                          pr_.nf, alpha = pr_.alpha, metric = pr_.metric)
+        res_.mes, res_.th, res_.ic1, res_.ic2 = \
+            bt_.bootstrap(alg_method, nd, pr_.n_boot, res_.A, res_.er, 
+            pr_.nf, alpha = pr_.alpha, metric = pr_.metric)
     else:
         if pr_.v:
             print 'Choosing no statistics'
         alg_method = globals()[pr_.alg + '_alg']
-        mes = alg_method(Aest, erest, pr_.nf)
-        th = zeros(mes.shape)
-        ic1 = zeros(mes.shape)
-        ic2 = zeros(mes.shape)
-        
+        res_.mes = alg_method(res_.A, res_.er, pr_.nf, metric = pr_.metric)
+        #th = zeros(mes.shape)
+        #ic1 = zeros(mes.shape)
+        #ic2 = zeros(mes.shape)
+    
+        if pr_.power:
+            if pr_.v:
+                print 'Calculates squared power of the measure\n'
+            res_.mes = (res_.mes*res_.mes.conj()).real #todo: check power consistency of everything
+    
     
     if pr_.v:
         print '\n', mnames_[pr_.alg], 'estimaded'
@@ -593,17 +608,11 @@ def measure_full(data, **args):
     if (pr_.ss == True):
         if pr_.v:
             print 'Calculates also the spectrum\n'
-        ssm = ss_alg(Aest, erest, pr_.nf)
+        ssm = ss_alg(res_.A, res_.er, nf = pr_.nf)
     else:
         ssm = None
         
-    res_.A = Aest
-    res_.er = erest
     res_.data_shape = data.shape
-    res_.mes = mes
-    res_.th = th
-    res_.ic1 = ic1
-    res_.ic2 = ic2
     res_.alg = pr_.alg
     res_.ss = ssm
      
@@ -615,8 +624,12 @@ def measure_full(data, **args):
     
     if pr_.do_plot:
         pl_.plot_all()
+        
+        
+    if pr_.v:
+        print '\nDone!\n'
     
-    return mes, th, ic1, ic2
+    return res_.mes, res_.th, res_.ic1, res_.ic2
 
 #data, maxp = 30, nf = 64, sample_f = 1, ss = True, metric = 'gen',
 #                 detrend = True, normalize = False, fixp = False, logss = False
@@ -644,15 +657,24 @@ def pc_and_plot(data, **args):
     
 def measure_and_plot(data, **args):
     '''Interface that calculates alg from data and plots it'''
-     
+    
     read_args(args)
     
-    if(type(data) == type([])):
-        data = list_to_array(data)
+    aux = pr_.stat
+    pr_.stat = 'no'
     
-    method = globals()[pr_.alg]
-        
-    method(data)
+    measure_full(data)
     
-    pl_.pdc_plot()
+    pr_.stat = aux
+    
+#    if(type(data) == type([])):
+#        data = list_to_array(data)
+#    
+#    method = globals()[pr_.alg]
+#        
+#    method(data)
+#    
+#    pl_.plot_all(plot_ic = False, plot_th = False)
+#    #pl_.pdc_plot()
+#    
     
