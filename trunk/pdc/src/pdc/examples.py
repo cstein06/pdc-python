@@ -301,7 +301,7 @@ def artigo():
     A, er = ar_models(5)
     
     data = ar_data(A, er, nd)
-    #data = ar_models(2)
+    data = ar_models(2)
     
     res1 = pdc_.pdc_full(data, maxp = maxp, nf = nf, logss = True,
                          metric = metric, alpha = alpha, stat = 'asymp')
@@ -333,10 +333,10 @@ def artigo():
     return res1, res2
 
 if __name__ == "__main__":
-    #artigo()
+    artigo()
     #teste_simples()
     
-    teste_Guo()
+    #teste_Guo()
     #teste_sunspot_melanoma()
     #teste_data()
     #a = gen_winterhalter_2005_van_der_Pol(30, 30)

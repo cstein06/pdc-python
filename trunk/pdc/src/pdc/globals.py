@@ -34,7 +34,10 @@ class Param():
         self.plot_labels = None
         self.plot_title = None
         self.do_plot = True
-        self.do_log = True
+        self.do_log = False
+        self.log_file = 'current_log.log'
+        self.pic_file = 'current_log.pic'
+        self.data_descr = 'Current log. Please give description.'  
         self.do_window_log = True
         self.time = None
         self.version = __pdc_version__
@@ -45,9 +48,6 @@ pr_ = Param()
 
 class Results():  
     def __init__(self):
-        self.log_file = 'current_log.log'
-        self.pic_file = 'current_log.pic'
-        self.data_descr = 'Current log. Please give description.'  
         self.data_shape = None
         self.A = None  
         self.er = None   
@@ -114,9 +114,9 @@ def log_results(**args):
 
     read_args(args)
 
-    f = open(res_.log_file, 'w')
+    f = open(pr_.log_file, 'w')
     
-    f.write(res_.data_descr + '\n\n')
+    f.write(pr_.data_descr + '\n\n')
     
     f.write('Parameters:' + '\n\n')
     f.write(str(vars(pr_)) + '\n\n')
@@ -126,7 +126,7 @@ def log_results(**args):
     
     f.close()
     
-    f = open(res_.pic_file, 'w')
+    f = open(pr_.pic_file, 'w')
     
     pickle.dump(pr_, f)    
     pickle.dump(res_, f)
@@ -137,7 +137,7 @@ def load_results():
     global res_
     global pr_ 
     
-    f = open(res_.pic_file, 'r')
+    f = open(pr_.pic_file, 'r')
     
     pr_ = pickle.load(f)
     res_ = pickle.load(f)

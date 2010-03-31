@@ -342,7 +342,7 @@ def measure(data, **args):
     
     if pr_.do_log:
         if pr_.v:
-            print 'Logging the results in file:', res_.log_file   
+            print 'Logging the results in file:', pr_.log_file   
         pr_.time = time.ctime()
         log_results()
     
@@ -562,7 +562,7 @@ def measure_full(data, **args):
     elif pr_.stat == 'boot':
         if pr_.v:
             print 'Calculating bootstrap statistics'
-        alg_method = globals()[measure + '_alg']
+        alg_method = globals()[pr_.alg + '_alg']
         mes, th, ic1, ic2 = bt_.bootstrap(alg_method, nd, pr_.n_boot, Aest, erest, 
                                           pr_.nf, alpha = pr_.alpha, metric = pr_.metric)
     else:
@@ -605,7 +605,7 @@ def measure_full(data, **args):
      
     if pr_.do_log:   
         if pr_.v:
-            print 'Logging the results in file:', res_.log_file  
+            print 'Logging the results in file:', pr_.log_file  
         pr_.time = time.ctime()
         log_results()
     
