@@ -298,18 +298,18 @@ def artigo():
     metric = 'diag'
     nboot = 5000
     nf = 64
+    sample_f = 1
     
     A, er = ar_models(5)
     
     #data = ar_data(A, er, nd)
     data = ar_models(2)
     
-    set_params(maxp = maxp, nf = nf, 
-               logss = True, plot_ic = True,
-               plot_color = 'pink',
+    set_params(maxp = maxp, nf = nf, plot_labels = ['Sunspot', 'Melanoma'],
+               logss = False, plot_ic = False, sample_f = sample_f,
                metric = metric, alpha = alpha, stat = 'asymp')
     
-    pdc_.measure_full(data, alg = 'coh', stat = 'asymp', do_plot = True)
+    pdc_.pdc_full(data)
     
     pp.show()
     return
