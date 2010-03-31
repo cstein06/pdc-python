@@ -42,6 +42,8 @@ def lyap(A, B, C=[]):
     
     ta,ua = schur(A, 'complex')
     tb,ub = schur(B, 'complex')
+    
+    
     # check all combinations of ua(i,i)+ub(j,j) for zero
     p1 = ta.diagonal().transpose()
     p1.resize(1,p1.size)
@@ -105,9 +107,9 @@ def nstrand(u, maxp = 30, simplep = True):
     #    Initialization
     ISTAT=0
     if (IP > MAXORDER):
-       ISTAT=3
-       print('IP > 200')
-       return
+        ISTAT=3
+        print('IP > 200')
+        return
     
     ef=array(u)                    #% Eq. (15.91)
     eb=array(u)                    #% Eq. (15.91)
@@ -149,10 +151,10 @@ def nstrand(u, maxp = 30, simplep = True):
         
         #%  Update forward and backward predictor coeficients - Eqs.(15.84),(15.85)
         if not (M == 1):
-          for K in range(1,M):
-             temp1=A[K-1,:,:].copy()
-             A[K-1,:,:]=A[K-1,:,:]+dot(AM,B[M-K-1,:,:])
-             B[M-K-1,:,:]=B[M-K-1,:,:]+dot(BM,temp1)
+            for K in range(1,M):
+                temp1=A[K-1,:,:].copy()
+                A[K-1,:,:]=A[K-1,:,:]+dot(AM,B[M-K-1,:,:])
+                B[M-K-1,:,:]=B[M-K-1,:,:]+dot(BM,temp1)
         #%  Update residues
         #%  existe erro no calculo dos residuos
         Tef=array(ef)
@@ -173,15 +175,15 @@ def nstrand(u, maxp = 30, simplep = True):
     else:
         return pf,A,pb,B,ef,eb,ISTAT 
 
-def ar_fit(u, maxp = 0, alg=0, fixp=False, criterion = 0, return_ef = False):
+def ar_fit(u, MaxIP = 0, alg=0, criterion=0, return_ef = False):
     '''
     %
-    %[IP,pf,A,pb,B,ef,eb,vaic,Vaicv] = mvar(u,maxp,alg,fixp,criterion)
+    %[IP,pf,A,pb,B,ef,eb,vaic,Vaicv] = mvar(u,MaxIP,alg,criterion)
     %
     % input: u     - data rows
-    %        maxp - externaly defined maximum IP (default = 30)
+    %        MaxIP - externaly defined maximum IP (default = 30)
     %        alg   - for algorithm (0: Nutall-Strand)
-    %        criterion for order choice - 0: AIC; 1: fixed order in maxp
+    %        criterion for order choice - 0: AIC; 1: fixed order in MaxIP
     %                                     2(not yet): estimate up to max order
     %                                     Negative(not yet) - keep criterion changes
     %
@@ -190,10 +192,11 @@ def ar_fit(u, maxp = 0, alg=0, fixp=False, criterion = 0, return_ef = False):
     [nSegLength,nChannels] = u.transpose().shape
 
     if criterion<0:
+        stopFlag=1
         criterion=abs(criterion)
     
-    if fixp:
-        [npf, na, npb, nb, nef, neb, ISTAT]=nstrand(u,maxp,False)
+    if criterion==1:
+        [npf, na, npb, nb, nef, neb, ISTAT]=nstrand(u,MaxIP,False)
         if (not return_ef):
             return na.transpose(1,2,0), npf/nSegLength
         else:
@@ -201,15 +204,15 @@ def ar_fit(u, maxp = 0, alg=0, fixp=False, criterion = 0, return_ef = False):
         
     
     vaicv=0
-    if maxp == 0:
-       MaxOrder = 30;
-       UpperboundOrder = round(3*sqrt(nSegLength)/nChannels)
-       #% Marple Jr. page 409
-       #% Suggested by Nuttall, 1976.
-       UpperboundOrder = min([MaxOrder, UpperboundOrder])
+    if MaxIP == 0:
+        MaxOrder = 30;
+        UpperboundOrder = round(3*sqrt(nSegLength)/nChannels)
+        #% Marple Jr. page 409
+        #% Suggested by Nuttall, 1976.
+        UpperboundOrder = min([MaxOrder, UpperboundOrder])
     else:
-       MaxOrder=maxp
-       UpperboundOrder=maxp
+        MaxOrder=MaxIP
+        UpperboundOrder=MaxIP
     
     #print 'MaxOrder limited to ', MaxOrder
        
@@ -235,9 +238,9 @@ def ar_fit(u, maxp = 0, alg=0, fixp=False, criterion = 0, return_ef = False):
         A  = array(na)
         ef = array(nef)
         if alg==0:
-           B  = array(nb)
-           eb = array(neb)
-           pb = array(npb)
+            B  = array(nb)
+            eb = array(neb)
+            pb = array(npb)
         IP=IP+1
 
     IP=IP-1

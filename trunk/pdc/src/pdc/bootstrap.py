@@ -16,14 +16,14 @@ def bootstrap(method_func, nd, nm, A, er,
     '''Estatistica bootstrap'''
     
     n = A.shape[0]
-    mes = empty([nm, n, n, nf])
+    mes = zeros([nm, n, n, nf])
     th  = zeros([nm, n, n, nf])
     #ic1 = empty([nm, n, n, nf])
     #ic2 = empty([nm, n, n, nf])
     maxp = A.shape[2]
     tbegin = time.clock()
     for i in range(nm):
-        if (i%1 == 0):
+        if (i%10 == 0):
             print 'nm:', i, 'time:', time.clock()-tbegin
         #Generate data from AR
         data = ar_data(A, er, nd)
@@ -39,6 +39,8 @@ def bootstrap(method_func, nd, nm, A, er,
         for a in range(n):
             for b in range(n):
                 
+                print 'Bootstrap for:', a, b
+                
                 if a == b:
                     continue
                 
@@ -46,7 +48,7 @@ def bootstrap(method_func, nd, nm, A, er,
                 Anew[a,b,:] = 0
                 
                 for i in range(nm):
-                    if (i%1 == 0):
+                    if (i%10 == 0):
                         print 'nm:', i, 'time:', time.clock()-tbegin
                     #Generate data from AR
                     data = ar_data(Anew, er, nd)

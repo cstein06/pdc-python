@@ -664,7 +664,6 @@ def asymp_coh(x, A, nf, e_var, p, alpha = 0.05, metric = 'dummy'):
     
     
     for ff in range(nf):
-        
         #print 'ff', ff
         
         f = ff/(2.0*nf)

@@ -23,16 +23,11 @@ def list_to_array(data):
         d = concatenate([d, data[i].reshape(1,-1)], axis = 0)
     return d
 
-def pre_data(data, normalize = False, detrend = True):
-       
+def pre_data(data, normalize = True, detrend = True):
     if (detrend):
-        if pr_.v:
-            print '\nRemoving linear trend from data.'
         data = sig.detrend(data)
         
     if (normalize):
-        if pr_.v:
-            print '\nNormalizing data.'
         data = data/std(data, axis = 1).reshape(-1,1)
         
     return data
@@ -289,7 +284,12 @@ def measure(data, **args):
         data = list_to_array(data)
     
     data = pre_data(data, pr_.normalize, pr_.detrend)
-    
+        
+    crit = 0 #AIC
+    if pr_.fixp:
+        crit = 1
+        
+        
     if pr_.v:
         print 'Will calculate the', mnames_[pr_.alg], 'of the data'
         print 'Dimensions of the data:', data.shape
@@ -301,8 +301,8 @@ def measure(data, **args):
         print '\nEstimating VAR'
     
     
-    res_.A, res_.er = ar_fit.ar_fit(data, pr_.maxp, fixp=pr_.fixp)
-    res_.p = res_.A.shape[2]
+    res_.A, res_.er = ar_fit.ar_fit(data, pr_.maxp, criterion=crit)
+    
     
     if pr_.v:
         print '\nVAR estimaded. Order:', res_.A.shape
@@ -337,12 +337,11 @@ def measure(data, **args):
     
     res_.data_shape = data.shape
     res_.alg = pr_.alg
-    res_.metric = pr_.metric
     
     
     if pr_.do_log:
         if pr_.v:
-            print 'Logging the results in file:', pr_.log_file   
+            print 'Logging the results in file:', res_.log_file   
         pr_.time = time.ctime()
         log_results()
     
@@ -435,9 +434,11 @@ def igct(data, maxp = 30, detrend = True, fixp = False):
     if (detrend):
         data = sig.detrend(data)
         
+    crit = 0 #AIC
+    if fixp:
+        crit = 1
     
-    
-    A, e_var = ar_fit.ar_fit(data, pr_.maxp, fixp=pr_.fixp)
+    A, e_var = ar_fit.ar_fit(data, maxp, criterion = crit)
     
     n, nd = data.shape
         
@@ -445,8 +446,11 @@ def igct(data, maxp = 30, detrend = True, fixp = False):
 
 def white_test(data, maxp = 30, h = 20, fixp = False):
     
+    crit = 0 #AIC
+    if fixp:
+        crit = 1
     
-    A, res = ar_fit.ar_fit(data, pr_.maxp, fixp=pr_.fixp, return_ef=True)
+    A, res = ar_fit.ar_fit(data, maxp, return_ef=True, criterion = crit)
     
     n,n,p = A.shape
     
@@ -527,6 +531,9 @@ def measure_full(data, **args):
     data = pre_data(data, pr_.normalize, pr_.detrend)
         
     #Estimate AR parameters with Nuttall-Strand
+    crit = 0 #AIC
+    if pr_.fixp:
+        crit = 1
     
     if pr_.v:
         print 'Will calculate the', mnames_[pr_.alg], 'of the data, with statistics'
@@ -540,7 +547,7 @@ def measure_full(data, **args):
         print '\nEstimating VAR'
     
     #Estimate AR parameters with Nuttall-Strand
-    Aest, erest = ar_fit.ar_fit(data, pr_.maxp, fixp=pr_.fixp)
+    Aest, erest = ar_fit.ar_fit(data, pr_.maxp, criterion=crit)
          
     p = Aest.shape[2]
          
@@ -568,13 +575,12 @@ def measure_full(data, **args):
     else:
         if pr_.v:
             print 'Choosing no statistics'
-        alg_method = globals()[measure + '_alg']
+        alg_method = globals()[pr_.alg + '_alg']
         mes = alg_method(Aest, erest, pr_.nf)
         th = zeros(mes.shape)
         ic1 = zeros(mes.shape)
         ic2 = zeros(mes.shape)
         
-    
     
     if pr_.v:
         print '\n', mnames_[pr_.alg], 'estimaded'
@@ -592,7 +598,6 @@ def measure_full(data, **args):
         ssm = None
         
     res_.A = Aest
-    res_.p = Aest.shape[2]
     res_.er = erest
     res_.data_shape = data.shape
     res_.mes = mes
@@ -600,12 +605,11 @@ def measure_full(data, **args):
     res_.ic1 = ic1
     res_.ic2 = ic2
     res_.alg = pr_.alg
-    res_.metric = pr_.metric
     res_.ss = ssm
      
     if pr_.do_log:   
         if pr_.v:
-            print 'Logging the results in file:', pr_.log_file  
+            print 'Logging the results in file:', res_.log_file  
         pr_.time = time.ctime()
         log_results()
     
