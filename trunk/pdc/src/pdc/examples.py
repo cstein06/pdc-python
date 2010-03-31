@@ -292,7 +292,7 @@ def teste_data():
 def artigo():
 
     nd = 10000
-    alpha = 0.05
+    alpha = 0.01
     maxp = 5
     metric = 'diag'
     nboot = 5000
@@ -300,12 +300,14 @@ def artigo():
     
     A, er = ar_models(5)
     
-    data = ar_data(A, er, nd)
+    #data = ar_data(A, er, nd)
     data = ar_models(2)
     
     res1 = pdc_.pdc_full(data, maxp = maxp, nf = nf, logss = True,
                          metric = metric, alpha = alpha, stat = 'asymp')
     
+    pp.show()
+    return
     pp.figure()
     
     

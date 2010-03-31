@@ -1,4 +1,5 @@
 #from numpy import *
+from scipy.io.matlab.mio import savemat
 import pickle
 
 __pdc_version__ = 0.1
@@ -35,6 +36,8 @@ class Param():
         self.plot_title = None
         self.do_plot = True
         self.do_log = False
+        self.log_matlab = False
+        self.mat_file = 'current_log'
         self.log_file = 'current_log.log'
         self.pic_file = 'current_log.pic'
         self.data_descr = 'Current log. Please give description.'  
@@ -130,6 +133,9 @@ def log_results(**args):
     
     pickle.dump(pr_, f)    
     pickle.dump(res_, f)
+    
+    if pr_.log_matlab:
+        savemat(pr_.mat_file, {'result':res_.mes})
     
     f.close()
     
