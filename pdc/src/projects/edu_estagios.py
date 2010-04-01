@@ -103,7 +103,8 @@ def states_analysis(data, states, plot_states = None, **args):
         for i in plot_states:
             if nstates[i-1] > 0:
                 pr_.plot_color = pr_.state_colors[i-1]
-                pl.pdc_plot(mpdc[i-1,:,:])
+                res_.mes = spdc[i-1]
+                pl.plot_all()
         
     print '\nTotal time in secs:', time.clock() - tim
     

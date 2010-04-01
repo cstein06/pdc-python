@@ -12,7 +12,8 @@ from pdc.globals import *
 def main_analysis():
     
     #root = 'C:\\Documents and Settings\\Stein\\My Documents\\dados\\teste edu\\'
-    root = 'G:\\stein\\dados\\teste edu\\'
+    #root = 'G:\\stein\\dados\\teste edu\\'
+    root = 'G:\\stein\\dados\\teste edu\\gotas psd\\'
         
     #input = 'C:/Documents and Settings/Stein/Desktop/teste edu/baccala2001a_ex4_sim_01.txt'
     #input = root + 'ES57_09_02_09_medias.txt'
@@ -20,16 +21,17 @@ def main_analysis():
     #input = root + 'ES57_09_02_09_medias_test.txt'
     #input = root + 'ES57_09_02_09_melhores.txt'
     #input = root + 'ES60_21_07_09_melhores4.txt'
-    input = root + 'ES60_21_07_09_melhores4.txt'
-    input = root + 'test.txt'
+    #input = root + 'ES60_21_07_09_melhores4.txt'
+    input = root + 'ES57_13_02_09_melhores3_test.txt'
+    #input = root + 'test.txt'
     
-    inestag = root + 'ES57_09_02_09_estagiamentojanela10s_limpo.txt'
+    inestag = root + 'ES57_13_02_09_estagiamentojanela10s_limpo.txt'
     
     outputres = root + 'ES57_09_02_09_medias_res'
     outputmeds = root + 'ES57_09_02_09_medias_meds'
 
-    algoritmo = 'pdc'
-    #algoritmo = 'coh'
+    #algoritmo = 'pdc'
+    algoritmo = 'coh'
     
     window_size = 10
     n_frequencies = 250
@@ -87,7 +89,8 @@ def main_analysis():
 def batch_analysis():
     
     #root = 'C:\\Documents and Settings\\Stein\\My Documents\\dados\\teste edu\\'
-    root = 'G:\\stein\\dados\\teste edu\\'
+    #root = 'G:\\stein\\dados\\teste edu\\'
+    root = 'G:\\stein\\dados\\teste edu\\gotas psd\\'
         
     #input = 'C:/Documents and Settings/Stein/Desktop/teste edu/baccala2001a_ex4_sim_01.txt'
     #input = root + 'ES57_09_02_09_medias.txt'
