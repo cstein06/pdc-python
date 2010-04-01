@@ -280,11 +280,16 @@ def measure(data, **args):
     
     read_args(args)
     
+    auxp = pr_.do_plot
     pr_.do_plot = False
+    
+    auxs = pr_.stat
+    pr_.stat = 'no'
     
     ret = measure_full(data)[0]
     
-    pr_.do_plot = True
+    pr_.stat = auxs
+    pr_.do_plot = auxp
     
     return ret
 #    

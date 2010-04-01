@@ -31,10 +31,11 @@ def plot_all(**args):
     #    ic1 = zeros(mes.shape)
     #    ic2 = zeros(mes.shape)
     
+    ss = None
     if res_.ss is not None:
         ss = res_.ss.copy()
     
-    if pr_.logss:
+    if pr_.logss and ss is not None:
         ss = log(ss)
        
     if pr_.sqrtmes: 

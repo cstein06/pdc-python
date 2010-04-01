@@ -31,6 +31,7 @@ from pdc.ar_data import ar_data
 from pdc.ar_data import ar_models
 from pdc.ar_fit import ar_fit
 import pdc.globals as gl_
+import pdc.plotting as pl_
 
 def teste_simples():
     '''Simple test of connectivity routines
@@ -120,39 +121,55 @@ def gen_data_Guo(m, dummy = 100):
 
 def teste_Guo():
     nd = 2000
-    nf = 128
+    nf = 8
     alpha = 0.01
     n = 5
-    maxp = 30
+    maxp = 3
     metric = 'diag'
     sample_f = 200
+    n_boot = 100
     
-    
-    #Generate data from Guo`s model
-    data = gen_data_Guo(nd)
-    
-    gl_.set_params(maxp = maxp, nf = nf, ss = True, sample_f = sample_f,
+    gl_.set_params(maxp = maxp, fixp = True, nf = nf, ss = False, sample_f = sample_f,
                    alpha = alpha, metric = metric, normalize = False)
     
-    pdc_.pdc_full(data)
+#    data = gen_data_Guo(nd)
+#    pdc_.pdc_full(data, do_plot = True)
+#    pp.show()
+#    return
     
+    er = zeros([5, 5, nf])
+    for i in arange(n_boot):
+        #Generate data from Guo`s model
+        data = gen_data_Guo(nd)
+    
+        mes, th, ic1, ic2 = pdc_.pdc_full(data, do_plot = False)
+        er += (mes > th)
+        
+        gl_.pr_.v = False
+        
+        if i%10 == 0:
+            print i
+        
+    #mea = mean(mes, axis = 0)
+    #smea = sort(mes, axis = 0)
+    #th = smea[(1-alpha)*n_boot]
+    
+    #print mes[:,0,0,5], th[0,0,5]
+    #er = sum(mes > th, axis = 0)/float(n_boot)
+    er = er/float(n_boot)
+    
+    print mean(er, axis = -1)
+    
+    gl_.res_.mes = er
+    #gl_.res_.th = th
+    
+    pl_.plot_all()
+        
     #print pdc_.gct(data, maxp=3)
     
     pp.show()
-    
-    #Estimate AR parameters with Nuttall-Strand
-    #Aest, erest = ar_fit(data, maxp)
-    #Calculate the connectivity and statistics
-    #mes, th, ic1, ic2 = ass_.asymp_pdc(data, Aest, nf, erest, 
-    #                               maxp, alpha = alpha, metric = metric)
-    #pdc_.plot_all(mes, th, ic1, ic2, nf = nf)
 
 def teste_sunspot_melanoma():
-   nf = 64
-   alpha = 0.01
-   
-   metric = 'diag'
-   maxp=100
    #Generate data from AR
    y=array([[1936,  1.0, 0.9,  40],
         [ 1937, 0.8, 0.8, 115],
@@ -193,15 +210,17 @@ def teste_sunspot_melanoma():
         [ 1972, 5.3, 4.8,  65]])
    data=y[:,[3,2]].transpose()
    
-   #data = data/std(data, axis = 1).reshape(-1,1)
+   nf = 64
+   alpha = 0.01
+   metric = 'diag'
+   maxp = 10
    
    gl_.set_params(plot_labels = ['sun spots', 'melanome'])
    
    pdc_.pdc_full(data, maxp = maxp, nf = nf, ss = True, 
-                 alpha = alpha, metric = metric, normalize = False, stat = 'asymp', n_boot = 300)
-#   pdc_.coh_full(data, maxp = maxp, nf = nf, ss = True, 
-#                 alpha = alpha, normalize = False, stat = 'asymp', n_boot = 300)
-   
+                 alpha = alpha, metric = metric, normalize = False, 
+                 stat = 'asymp')
+
 
 def gen_winterhalter_2005_van_der_Pol(n, dummy = 100, dt = 0.01):
     
@@ -309,7 +328,13 @@ def artigo():
                logss = False, plot_ic = False, sample_f = sample_f,
                metric = metric, alpha = alpha, stat = 'asymp')
     
-    pdc_.pdc_full(data)
+    res1 = pdc_.pdc_full(data)
+    res2 = pdc_.pdc_full(data, stat = 'boot', n_boot = nboot)
+    
+    ratio = res1[1]/res2[1]
+    
+    gl_.res_.mes = ratio
+    pl_.plot_all()
     
     pp.show()
     return
@@ -344,10 +369,10 @@ def artigo():
     return res1, res2
 
 if __name__ == "__main__":
-    artigo()
+    #artigo()
     #teste_simples()
     
-    #teste_Guo()
+    teste_Guo()
     #teste_sunspot_melanoma()
     #teste_data()
     #a = gen_winterhalter_2005_van_der_Pol(30, 30)
