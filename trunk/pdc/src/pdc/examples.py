@@ -75,6 +75,8 @@ def teste_simples():
     pdc_.coh_full(data, nf = nf, ss = True, metric = metric,
                   detrend = True)
     
+    pp.show()
+    
     
     #If you want step by step, you can do it this way:
     
