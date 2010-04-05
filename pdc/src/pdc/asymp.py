@@ -184,7 +184,7 @@ def fChol(omega):
     # If there's a small negative eigenvalue, diagonalize
     except LinAlgError:
         val, vec = eigh(omega)
-        if sum(val<0) > 0:
+        if sum(val<-1E-10) > 0:
             print 'negative eig. in omega:', val[val<0]
         #print omega
         L = zeros(vec.shape)
@@ -207,7 +207,6 @@ def fEig(L, G2):
         print 'more than two chi-square in the sum:'
         print d
     return d
-
 
 def asymp_pdc(x, A, nf, e_var, p, metric = 'gen', alpha = 0.05):
     '''Asymptotic statistics for the three PDC formulations
@@ -233,7 +232,8 @@ def asymp_pdc(x, A, nf, e_var, p, metric = 'gen', alpha = 0.05):
     varass1 = empty([n, n, nf])
     varass2 = empty([n, n, nf])
     
-    gammai = inv(bigautocorr(x, p))
+    gamma = mat(bigautocorr(x, p))
+    gammai = inv(gamma)
     omega = kron(gammai, e_var)
     
     omega_evar = 2*Dup(n).I*kron(e_var, e_var)*Dup(n).I.T

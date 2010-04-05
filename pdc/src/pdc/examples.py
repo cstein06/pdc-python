@@ -370,9 +370,9 @@ def artigo():
 
 if __name__ == "__main__":
     #artigo()
-    #teste_simples()
+    teste_simples()
     
-    teste_Guo()
+    #teste_Guo()
     #teste_sunspot_melanoma()
     #teste_data()
     #a = gen_winterhalter_2005_van_der_Pol(30, 30)

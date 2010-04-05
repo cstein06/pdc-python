@@ -1,5 +1,8 @@
 #from numpy import *
 from scipy.io.matlab.mio import savemat
+import os.path
+import os
+import time
 import pickle
 
 __pdc_version__ = 0.1
@@ -8,11 +11,16 @@ mnames_ = {'coh':'Coherence',
           'pdc':'Partial Directed Coherence',
           'dtf':'Directed Transfer Function',
           'ss':'Spectral Density',
-          'pc': 'Partial Coherence'}
+          'pc': 'Partial Coherence',
+          'ar': 'VAR model'}
 
 
 class Param():  
     def __init__(self):
+        
+        #Analysis specs
+        
+        self.alg = 'pdc' 
         self.metric = 'diag'
         self.normalize = False  
         self.detrend = True   
@@ -20,33 +28,59 @@ class Param():
         self.sample_f = 1   
         self.maxp = 30   
         self.fixp = False   
-        self.alg = 'pdc' 
-        self.logss = True
-        self.sqrtmes = False
         self.ss = True   
         self.power = True   
+        
+        #Statistics specs
+        
         self.alpha = 0.05   
         self.stat = 'asymp' 
         self.n_boot = 1000
+        
+        #Plotting specs
+        
+        self.do_plot = True
         self.plotf = None
         self.plot_diag = False
         self.window_size = None
         self.plot_color = None
         self.plot_labels = None
         self.plot_title = None
-        self.do_plot = True
+        self.logss = True
+        self.sqrtmes = False
         self.plot_th = True
         self.plot_ic = False
+        self.plot_states = None
+        self.state_colors = ['k', 'lightblue', 'darkblue', 'pink', 'red', 'green']
+        
+        #States specs
+     
+        self.valid_states = None
+        self.st_dict = None
+        
+        #Logging specs
+        
         self.do_log = False
         self.log_matlab = False
-        self.mat_file = 'current_log'
-        self.log_file = 'current_log.log'
-        self.pic_file = 'current_log.pic'
+        self.root_dir = 'C:/pdcpython/'
+        self.log_string = 'current_log'
+        self.mat_file = '%s%s'
+        self.log_file = '%s%s.log'
+        self.pic_file = '%s%s.pic'
         self.data_descr = 'Current log. Please give description.'  
-        self.do_window_log = True
+        
+        #States logging specs
+        
+        self.do_states_log = True
+        self.stinput = 'current_state'
+        self.stlog_pr = '%s%s_param.log'
+        self.stlog_res = '%s%s_res'
+        self.stlog_mean = '%s%s_mean'
+        
+        #MISC
+        
         self.time = None
         self.version = __pdc_version__
-        self.state_colors = ['k', 'lightblue', 'darkblue', 'pink', 'red', 'green']
         self.v = True #verbose
 
 pr_ = Param()
@@ -117,7 +151,16 @@ def log_results(**args):
     global res_
     global pr_
 
+    pr_.log_file = pr_.log_file % (pr_.root_dir, pr_.log_string) 
+    pr_.pic_file = pr_.pic_file % (pr_.root_dir, pr_.log_string) 
+    pr_.mat_file = pr_.mat_file % (pr_.root_dir, pr_.log_string) 
+
+    if pr_.v:
+        print 'Logging the results in file:', pr_.log_file  
+    
     read_args(args)
+    
+    pr_.time = time.ctime()
 
     f = open(pr_.log_file, 'w')
     
@@ -137,7 +180,7 @@ def log_results(**args):
     pickle.dump(res_, f)
     
     if pr_.log_matlab:
-        savemat(pr_.mat_file, {'result':res_.mes})
+        savemat(pr_.mat_file, {'result':res_.mes}, oned_as = 'row')
     
     f.close()
     
@@ -154,13 +197,43 @@ def load_results():
 
     #return prn_, resn_
     
+
+def log_windows_results(stres, stmean, ststds, nstates):
+    
+    pr_.stinput = pr_.stinput.replace('.txt', '') + '_' + pr_.alg
+    
+    pr_.stlog_res = pr_.stlog_res % (pr_.root_dir, pr_.stinput)
+    pr_.stlog_mean = pr_.stlog_mean % (pr_.root_dir, pr_.stinput)
+    #pr_.stlog_pr = pr_.stlog_pr % (pr_.root_dir, pr_.stinput)
+    
+    print '\nLogging the raw results in file:', pr_.stlog_res  
+    print 'Logging the mean results in file:', pr_.stlog_mean  
+    #print 'Logging the parameters used in file:', pr_.stlog_pr  
+    
+    if os.path.isfile(pr_.stlog_res + '.mat'):
+        print '\nOverwriting results .mat file!'
+            
+    if os.path.isfile(pr_.stlog_mean + '.mat'):
+        print '\nOverwriting mean .mat file!'
+            
+    #if os.path.isfile(pr_.stlog_pr + '.mat'):
+    #    print '\nOverwriting parameters .mat file!'
+            
+    savemat(pr_.stlog_res, {'result':stres, 'time':time.ctime()}, oned_as = 'row')
+    
+    savemat(pr_.stlog_mean, {pr_.alg + '_mean':stmean, pr_.alg + '_stds':ststds, 
+                             'nstates':nstates,
+                             'time':time.ctime()}, oned_as = 'row')
+        
+    #savemat(pr_.stlog_pr, {'medias':pr_, 'time':time.ctime()})
+    
 def read_args(args):
     global res_
     global pr_ 
     
     for a,b in args.items():
         if not vars(pr_).has_key(a):
-            print "Parameter given misspelled"
+            print "Parameter given misspelled:", a
         vars(pr_)[a] = b
 
         #exec 'pr_.' + a + ' = b'

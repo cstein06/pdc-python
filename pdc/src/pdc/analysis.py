@@ -56,6 +56,15 @@ def A_to_f(A, nf = 64):
     return AL
 
 
+def ar_alg(A, e_cov, nf = 64, metric = 'dummy'):
+    '''Calculates the Partial Coherence
+        A -> autoregressive matrix
+        e_cov -> residues
+        nf -> number of frequencies
+        '''
+        
+    return ar_fit.ar_fit()
+
 def pc_alg(A, e_cov, nf = 64, metric = 'dummy'):
     '''Calculates the Partial Coherence
         A -> autoregressive matrix
@@ -203,7 +212,13 @@ def pdc_ss_coh(data, maxp = 30, nf = 64, detrend = True):
     A, er = ar_fit.ar_fit(data, maxp)
     return abs(pdc_alg(A, er, nf))**2, abs(ss_alg(A, er, nf))**2, abs(coh_alg(A, er, nf))**2
 
-        
+
+def arfit(data, **args):
+    '''Interface that calculate the Coherence from data'''
+    read_args(args)
+    
+    return measure(data, alg = 'ar')
+
 #        
 #def read_args(args):
 #    
@@ -561,11 +576,16 @@ def measure_full(data, **args):
     
     #Estimate AR parameters with Nuttall-Strand
     res_.A, res_.er = ar_fit.ar_fit(data, pr_.maxp, criterion=crit)
-         
+    
     res_.p = res_.A.shape[2]
+    
+    #print res_.A, res_.er
          
     if pr_.v:
         print '\nVAR estimaded. Order:', res_.A.shape
+        
+    if pr_.alg == 'ar':
+        return res_.A, res_.er
    
     #print  'A:', Aest
     #erest = (erest+erest.T)/2   #TODO: conferir isso.
@@ -622,9 +642,6 @@ def measure_full(data, **args):
     res_.ss = ssm
      
     if pr_.do_log:   
-        if pr_.v:
-            print 'Logging the results in file:', res_.log_file  
-        pr_.time = time.ctime()
         log_results()
     
     if pr_.do_plot:
