@@ -65,7 +65,7 @@ def plot_all(**args):
     else:
         pp.suptitle(mnames_[pr_.alg])
 
-    x = pr_.sample_f*arange(pr_.nf)/(2.0*pr_.nf)
+    x = pr_.sample_f*arange(nf)/(2.0*nf)
     for i in range(n):
         for j in range(n):
             pp.subplot(n,n,i*n+j+1)
@@ -131,15 +131,15 @@ def plot_all(**args):
             if pr_.plot_th and th is not None:
                 #Complicated code for underthreshold painting
                 k = 0
-                while(k < pr_.nf):
+                while(k < nf):
                     while(mes[i,j,k] >= th[i,j,k]):
                         k = k+1
-                        if (k == pr_.nf): break
-                    if (k == pr_.nf): break
+                        if (k == nf): break
+                    if (k == nf): break
                     kold = k
                     while(mes[i,j,k] < th[i,j,k]):
                         k = k+1
-                        if (k == pr_.nf): break
+                        if (k == nf): break
                     pp.plot(x[kold:k], mes[i,j,kold:k], 'r-')
             
             pp.ylim(-0.05,1.05)
@@ -150,7 +150,7 @@ def plot_all(**args):
                 
         if (pr_.ss):
             ax = pp.subplot(n,n,i*n+i+1).twinx()
-            ax.plot(pr_.sample_f*arange(pr_.nf)/(2.0*pr_.nf), ss[i,i,:], color='g')
+            ax.plot(pr_.sample_f*arange(nf)/(2.0*nf), ss[i,i,:], color='g')
             if pr_.logss:
                 ax.set_ylim(ymin = ss[i,i,:].min(), ymax = ss[i,i,:].max())
             else:
