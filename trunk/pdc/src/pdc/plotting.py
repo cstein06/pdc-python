@@ -148,7 +148,7 @@ def plot_all(**args):
             if pr_.plotf != None:
                 pp.xlim([0, pr_.plotf])
                 
-        if (pr_.ss):
+        if (pr_.ss and ss is not None):
             ax = pp.subplot(n,n,i*n+i+1).twinx()
             ax.plot(pr_.sample_f*arange(nf)/(2.0*nf), ss[i,i,:], color='g')
             if pr_.logss:
