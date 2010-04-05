@@ -1,7 +1,6 @@
 #from numpy import *
 from scipy.io.matlab.mio import savemat
 import os.path
-import os
 import time
 import pickle
 
@@ -42,7 +41,6 @@ class Param():
         self.do_plot = True
         self.plotf = None
         self.plot_diag = False
-        self.window_size = None
         self.plot_color = None
         self.plot_labels = None
         self.plot_title = None
@@ -55,6 +53,7 @@ class Param():
         
         #States specs
      
+        self.window_size = None
         self.valid_states = None
         self.st_dict = None
         
@@ -151,18 +150,18 @@ def log_results(**args):
     global res_
     global pr_
 
-    pr_.log_file = pr_.log_file % (pr_.root_dir, pr_.log_string) 
-    pr_.pic_file = pr_.pic_file % (pr_.root_dir, pr_.log_string) 
-    pr_.mat_file = pr_.mat_file % (pr_.root_dir, pr_.log_string) 
+    aux_log = pr_.log_file % (pr_.root_dir, pr_.log_string) 
+    aux_pic = pr_.pic_file % (pr_.root_dir, pr_.log_string) 
+    aux_mat = pr_.mat_file % (pr_.root_dir, pr_.log_string) 
 
     if pr_.v:
-        print 'Logging the results in file:', pr_.log_file  
+        print 'Logging the results in file:', aux_log  
     
     read_args(args)
     
     pr_.time = time.ctime()
 
-    f = open(pr_.log_file, 'w')
+    f = open(aux_log, 'w')
     
     f.write(pr_.data_descr + '\n\n')
     
@@ -174,13 +173,13 @@ def log_results(**args):
     
     f.close()
     
-    f = open(pr_.pic_file, 'w')
+    f = open(aux_pic, 'w')
     
     pickle.dump(pr_, f)    
     pickle.dump(res_, f)
     
     if pr_.log_matlab:
-        savemat(pr_.mat_file, {'result':res_.mes}, oned_as = 'row')
+        savemat(aux_mat, {'result':res_.mes}, oned_as = 'row')
     
     f.close()
     
@@ -202,28 +201,34 @@ def log_windows_results(stres, stmean, ststds, nstates):
     
     pr_.stinput = pr_.stinput.replace('.txt', '') + '_' + pr_.alg
     
-    pr_.stlog_res = pr_.stlog_res % (pr_.root_dir, pr_.stinput)
-    pr_.stlog_mean = pr_.stlog_mean % (pr_.root_dir, pr_.stinput)
+    aux_res = pr_.stlog_res % (pr_.root_dir, pr_.stinput)
+    aux_mean = pr_.stlog_mean % (pr_.root_dir, pr_.stinput)
     #pr_.stlog_pr = pr_.stlog_pr % (pr_.root_dir, pr_.stinput)
     
-    print '\nLogging the raw results in file:', pr_.stlog_res  
-    print 'Logging the mean results in file:', pr_.stlog_mean  
+    print '\nLogging the raw results in file:', aux_res  
+    print 'Logging the mean results in file:', aux_mean
     #print 'Logging the parameters used in file:', pr_.stlog_pr  
     
-    if os.path.isfile(pr_.stlog_res + '.mat'):
+    if os.path.isfile(aux_res + '.mat'):
         print '\nOverwriting results .mat file!'
             
-    if os.path.isfile(pr_.stlog_mean + '.mat'):
+    if os.path.isfile(aux_mean + '.mat'):
         print '\nOverwriting mean .mat file!'
             
     #if os.path.isfile(pr_.stlog_pr + '.mat'):
     #    print '\nOverwriting parameters .mat file!'
-            
-    savemat(pr_.stlog_res, {'result':stres, 'time':time.ctime()}, oned_as = 'row')
     
-    savemat(pr_.stlog_mean, {pr_.alg + '_mean':stmean, pr_.alg + '_stds':ststds, 
-                             'nstates':nstates,
-                             'time':time.ctime()}, oned_as = 'row')
+    for i in range(len(stmean)):
+        suf = ""
+        if i > 0:
+            suf = '_' + str(i)
+        savemat(aux_res + suf,
+                {'result':stres[i], 'time':time.ctime()}, oned_as = 'row')
+    
+        savemat(aux_mean + suf,
+                {pr_.alg + '_mean':stmean[i], pr_.alg + '_stds':ststds[i], 
+                'nstates':nstates,
+                'time':time.ctime()}, oned_as = 'row')
         
     #savemat(pr_.stlog_pr, {'medias':pr_, 'time':time.ctime()})
     

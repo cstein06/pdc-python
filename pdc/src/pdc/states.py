@@ -39,40 +39,43 @@ def window_analysis(data, **args):
     aux_v = pr_.v
     
     aux = an_.measure(data[:,0*win:0*win+win], ss = False)
+    if type(aux) is not tuple:
+        aux = [aux]
     
     resp = []
-    if type(aux) is 'tuple':
-        for i in arange(len(aux)):
-            resp.append(zeros([nwins]+list(aux[i].shape), dtype = aux[i].dtype))
-            resp[i][0] = aux
-    else:
-        resp = [zeros([nwins]+list(aux.shape), dtype = aux.dtype)]
+    for i in arange(len(aux)):
+        resp.append(zeros([nwins]+list(aux[i].shape), dtype = aux[i].dtype))
+        resp[i][0] = aux[i]
             
     for i in arange(0,nwins):
         
+        pr_.v = False
         #print i*win
         
         aux = an_.measure(data[:,i*win:i*win+win], ss = False)
+        if type(aux) is not tuple:
+            aux = [aux]
+            
+                  
         for j in arange(len(resp)):
             resp[j][i] = aux[j]
         
         print '\nProcessed', i+1, 'of', nwins, 'windows:', 100*(i+1.0)/nwins, '%'
         
-        pr_.v = False
     
     pr_.v = aux_v
     
     return resp
 
 def mean_states(mes, states):
-        
-    nwins,n,n,nf = mes.shape
     
+    nwins = mes.shape[0]
+        
     if mes.dtype == 'complex':
         print 'Taking mean of complex measure!`'
     
-    mpdc = zeros([len(pr_.valid_states), n, n, nf], dtype = mes.dtype)
-    spdc = zeros([len(pr_.valid_states), n, n, nf], dtype = mes.dtype)
+    mpdc = zeros([len(pr_.valid_states)]+list(mes[0].shape), dtype = mes.dtype)
+    spdc = zeros([len(pr_.valid_states)]+list(mes[0].shape), dtype = mes.dtype)
     
     states = states[:nwins]
     
@@ -142,14 +145,69 @@ def states_analysis(data, states, **args):
                 pl.plot_all()
         pp.show()
         
-    if len(mpdc) == 1:
-        result = result[0]
-        mpdc = mpdc[0]
-        spdc = spdc[0]
+#    if len(mpdc) == 1:
+#        result = result[0]
+#        mpdc = mpdc[0]
+#        spdc = spdc[0]
                 
     print '\nTotal time in secs:', time.clock() - tim
     
     if pr_.do_states_log:
         log_windows_results(result, mpdc, spdc, nstates)
+    
+    return result, mpdc, spdc, nstates
+
+
+def states_analysis_bind(data, states, **args):
+        
+    read_args(args)
+
+    tim = time.clock()
+    
+    n, nd = data.shape
+    win = int(pr_.window_size*pr_.sample_f)
+    
+    states = states[:int(nd/win)]
+    
+    if pr_.valid_states is None:
+        set_params(valid_states = list(sorted(set(states[states >= 0]))))
+    
+    nstates = zeros(len(pr_.valid_states))
+    pr_.st_dict = {}
+    for i in arange(len(pr_.valid_states)):
+        pr_.st_dict[pr_.valid_states[i]] = i
+        nstates[i] = sum(states == pr_.valid_states[i])
+        
+    
+    mpdc = zeros([len(pr_.valid_states), n, n, pr_.nf]) 
+    spdc = zeros([len(pr_.valid_states), n, n, pr_.nf]) 
+    for i in arange(len(pr_.valid_states)):
+        if nstates[i] > 0:  
+            datast = array([]).reshape(n,-1)
+            for j in where(states == pr_.valid_states[i])[0]:
+                datast = concatenate((datast, data[:,win*j:win*j+win]), axis = 1)
+            
+            mpdc[i], th, ic1, ic2 = an_.measure_full(datast)
+            spdc[i] = mpdc[i] - ic1 
+    
+    result = []
+    
+    print '\nNumber of windows per state:', nstates
+        
+#    if pr_.do_plot:
+#        if pr_.plot_states is None:
+#            pr_.plot_states = pr_.valid_states
+#        for st in pr_.plot_states:
+#            i = pr_.st_dict[st]
+#            if nstates[i] > 0:
+#                pr_.plot_color = pr_.state_colors[i]
+#                res_.mes = mpdc[0][i]
+#                pl.plot_all()
+    pp.show()
+                
+    print '\nTotal time in secs:', time.clock() - tim
+    
+    if pr_.do_states_log:
+        log_windows_results([result], [mpdc], [spdc], nstates)
     
     return result, mpdc, spdc, nstates

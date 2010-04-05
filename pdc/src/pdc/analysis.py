@@ -564,7 +564,7 @@ def measure_full(data, **args):
         crit = 1
     
     if pr_.v:
-        print 'Will calculate the', mnames_[pr_.alg], 'of the data, with statistics'
+        print 'Will calculate the', mnames_[pr_.alg], 'of the data'
         print 'Dimensions of the data:', data.shape
         if pr_.fixp:
             print 'Using fixed VAR order'
@@ -585,7 +585,7 @@ def measure_full(data, **args):
         print '\nVAR estimaded. Order:', res_.A.shape
         
     if pr_.alg == 'ar':
-        return res_.A, res_.er
+        return [(res_.A, res_.er)]
    
     #print  'A:', Aest
     #erest = (erest+erest.T)/2   #TODO: conferir isso.
