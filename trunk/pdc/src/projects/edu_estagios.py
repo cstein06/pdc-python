@@ -1,4 +1,3 @@
-import pdc.analysis as an_
 
 from numpy import *
 
@@ -12,6 +11,7 @@ from scipy.io import savemat
 
 import pdc.plotting as pl
 import pdc.ar_fit as fit_
+import pdc.analysis as an_
 from pdc.globals import *
 from pdc.ar_data import ar_data 
 
