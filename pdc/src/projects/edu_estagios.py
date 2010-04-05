@@ -32,51 +32,66 @@ def window_analysis(data, **args):
     aux_v = pr_.v
     
     aux = an_.measure(data[:,0*win:0*win+win], ss = False)
-    aux = an_.measure(data[:,0*win:0*win+win], ss = False)
     
-    resp = zeros([nwins, n, n, pr_.nf], dtype = aux.dtype)
-    resp[0] = aux
-    
-    for i in arange(1,nwins):
-        pr_.v = False
+    resp = []
+    if type(aux) is 'tuple':
+        for i in arange(len(aux)):
+            resp.append(zeros([nwins]+list(aux[i].shape), dtype = aux[i].dtype))
+            resp[i][0] = aux
+    else:
+        resp = [zeros([nwins]+list(aux.shape), dtype = aux.dtype)]
+            
+    for i in arange(0,nwins):
         
-        print i*win
+        #print i*win
         
         aux = an_.measure(data[:,i*win:i*win+win], ss = False)
-        resp[i] = aux
+        for j in arange(len(resp)):
+            resp[j][i] = aux[j]
         
         print '\nProcessed', i+1, 'of', nwins, 'windows:', 100*(i+1.0)/nwins, '%'
+        
+        pr_.v = False
     
     pr_.v = aux_v
     
     return resp
 
-def mean_estag(mes, estag, maxe = 6, nulle = -1):
+def mean_states(mes, states):
         
     nwins,n,n,nf = mes.shape
     
     if mes.dtype == 'complex':
         print 'Taking mean of complex measure!`'
     
-    mpdc = zeros([maxe, n, n, nf], dtype = mes.dtype)
-    spdc = zeros([maxe, n, n, nf], dtype = mes.dtype)
-    m2 = zeros([maxe, n, n, nf], dtype = mes.dtype)
-    s2 = zeros([maxe, n, n, nf], dtype = mes.dtype)
+    mpdc = zeros([len(pr_.valid_states), n, n, nf], dtype = mes.dtype)
+    spdc = zeros([len(pr_.valid_states), n, n, nf], dtype = mes.dtype)
     
-    estag = estag[:nwins]
+    states = states[:nwins]
     
-    if (nwins > size(estag)):
+    if (nwins > size(states)):
         print 'More windows than states in the states file!'
     
-    for i in arange(maxe):
-        if sum(estag-1 == i) > 0:
-            mpdc[i] = mean(mes[estag-1 == i], 0)
-            spdc[i] = std(mes[estag-1 == i], 0)
+    for i in pr_.valid_states:
+        if sum(states == i) > 0:
+            auxi = pr_.st_dict[i]
+            mpdc[auxi] = mean(mes[states == i], 0)
+            spdc[auxi] = std(mes[states == i], 0)
             
+    return mpdc, spdc
+
+def mean_states_list(mes, estag, maxe = 6):
+        
+    mpdc = []
+    spdc = []
+    for i in arange(len(mes)):
+        aux = mean_states(mes[i], estag)
+        mpdc.append(aux[0])
+        spdc.append(aux[1])
             
     return mpdc, spdc
         
-def states_analysis(data, states, plot_states = None, **args):
+def states_analysis(data, states, **args):
         
     read_args(args)
 
@@ -85,182 +100,54 @@ def states_analysis(data, states, plot_states = None, **args):
     
     result = window_analysis(data)
     
-    nwins = result.shape[0]
-    
-    states = states[:nwins]
-    
-    nstates = histogram(states, bins=arange(1,8))[0]
-    
-    print '\nNumber of windows used:', states.shape[0]
-    
-    mpdc, spdc = mean_estag(result, states)
-    
-    nf = mpdc.shape[3]
-    
-    print '\nNumber of windows per state:', nstates
-    
-    if pr_.do_plot:
-        for i in plot_states:
-            if nstates[i-1] > 0:
-                pr_.plot_color = pr_.state_colors[i-1]
-                res_.mes = spdc[i-1]
-                pl.plot_all()
-        
-    print '\nTotal time in secs:', time.clock() - tim
-    
-    pp.show()
-    
-    return result, mpdc, spdc
-
-
-def mean_estag_A(mes, estag, maxe = 6, nulle = -1):
-        
-    nwins,n,n,dum = mes[0].shape
-    
-    mpdcA = zeros([maxe, n, n, pr_.maxp])
-    spdcA = zeros([maxe, n, n, pr_.maxp])
-    mpdcE = zeros([maxe, n, n])
-    spdcE = zeros([maxe, n, n])
-    
-    estag = estag[:nwins]
-    
-    for i in arange(maxe):
-        mpdcA[i] = mean(mes[0][estag-1 == i], 0)
-        spdcA[i] = std(mes[0][estag-1 == i], 0)
-        
-    for i in arange(maxe):
-        mpdcE[i] = mean(mes[1][estag-1 == i], 0)
-        spdcE[i] = std(mes[1][estag-1 == i], 0)
-        
-    return mpdcA, spdcA, mpdcE, spdcE
-
-def window_analysis_A(data, **args):
-    
-    read_args(args)
-    
-    print data.shape
-    n, T = data.shape
-    
-    win = int(pr_.window_size*pr_.sample_f)
-    
-    nwins = T/win
-    
-    aux = fit_.ar_fit(data[:,0*win:0*win+win], pr_.maxp, fixp = True)
-    
-    respA = zeros([nwins, n, n, pr_.maxp])
-    respE = zeros([nwins, n, n])
-    respA[0] = aux[0]
-    respE[0] = aux[1]
-    
-    for i in arange(1,nwins):
-        
-        aux = fit_.ar_fit(data[:,i*win:i*win+win], pr_.maxp, fixp = True)
-        #aux = an_.measure(data[:,i*win:i*win+win], ss = False)
-        respA[i] = aux[0]
-        respE[i] = aux[1]
-        
-        print 'Processed', i+1, 'of', nwins, 'windows:', 100*(i+1.0)/nwins, '%'
-        set_params(v = False)
-    
-    return respA,respE
-
-def states_analysis_A(data, states, plot_states = None, plot_freq = None, **args):
-        
-    read_args(args)
-
-    tim = time.clock()
-    
-    result = window_analysis_A(data)
-    
     nwins = result[0].shape[0]
     
     states = states[:nwins]
     
-    nstates = histogram(states, new = True, bins=arange(1,8))[0]
+    if pr_.valid_states is None:
+        set_params(valid_states = list(sorted(set(states[states >= 0]))))
     
-    print states.shape
+    nstates = zeros(len(pr_.valid_states))
     
-    mpdcA, spdcA, mpdcE, spdcE = mean_estag_A(result, states)
+    pr_.st_dict = {}
+    for i in arange(len(pr_.valid_states)):
+        pr_.st_dict[pr_.valid_states[i]] = i
+        nstates[i] = sum(states == pr_.valid_states[i])
     
-#    dum,a,b,c = mpdcA.shape
+    #nstates = histogram(states, bins=arange(1,8))[0]
     
-#    mpdc = zeros([6, a, b, c])
-#    for i in arange(6):
-#        mpdc[i] = an_.pdc_alg(mpdcA[i], mpdcE[i], ss = False)
-#        mpdc[i] = abs(mpdc[i])**2
-#        
-#        
-#    print nstates
-#    if pr_.do_plot:
-#        for i in plot_states:
-#            if nstates[i-1] > 0:
-#                pl.pdc_plot(mpdc[i-1,:,:,:plot_freq])
-#        
-#    pp.show()
+    print '\nNumber of windows used:', states.shape[0]
     
-    print 'tempo gasto:', time.clock() - tim
+    mpdc, spdc = mean_states_list(result, states)
     
-    #savetxt('C:/Documents and Settings/Stein/Desktop/teste edu/baccala2001pdc.txt', pdcan)
-    #savetxt('C:/Documents and Settings/Stein/Desktop/teste edu/baccala2001coh.txt', cohan)
+    #nf = mpdc.shape[3]
     
-    return result, mpdcA, spdcA, mpdcE, spdcE
-
-
-def main_analysis():
-    
-    root = 'C:\\Documents and Settings\\Stein\\My Documents\\dados\\teste edu\\'
+    print '\nNumber of windows per state:', nstates
         
-    #input = 'C:/Documents and Settings/Stein/Desktop/teste edu/baccala2001a_ex4_sim_01.txt'
-    #input = root + 'ES57_09_02_09_medias.txt'
-    #input = root + 'ES57_09_02_09_medias_curto.txt'
-    input = root + 'ES57_09_02_09_medias_test.txt'
-    #input = root + 'ES57_09_02_09_melhores.txt'
-    
-    inestag = root + 'ES57_09_02_09_estagiamentojanela10s_limpo.txt'
-    
-    
-    outputres = root + 'ES57_09_02_09_medias_res'
-    outputmeds = root + 'ES57_09_02_09_medias_meds'
-    
-    plot_states = array([1,2,3,4,5,6])
-    #plot_states = array([2])
-
-    algoritmo = 'pdc'
-    #algoritmo = 'coh'
-    window_size = 10
-    n_frequencies = 250
-    plot_freq = 150
-    sampling_rate = 500
-    ordem_max = 25
-    ordem_fixa = True
-    detrend = True
-    espectro_em_potencia = True
-    metrica_pdc = 'diag'
-    plota = False
-    
-    
-    #nao mexer daqui pra frente
-    
-    data = loadtxt(input).T
-    estag = loadtxt(inestag)
-    
-    print 'Data loaded'
-
-    set_params(alg = algoritmo, window_size = window_size, 
-               nf = n_frequencies, sample_f = sampling_rate,
-               maxp = ordem_max, fixp = ordem_fixa, detrend = detrend, 
-               power = espectro_em_potencia, metric = metrica_pdc, do_plot = plota)
-    
-    res, meds, stds = states_analysis(data, estag, plot_states = plot_states, plot_freq = plot_freq)
-
-    if pr_.do_window_log:
-        savemat(outputres, {'result':res})
+    if pr_.do_plot:
+        if pr_.plot_states is None:
+            pr_.plot_states = pr_.valid_states
+        for st in pr_.plot_states:
+            i = pr_.st_dict[st]
+            if nstates[i] > 0:
+                pr_.plot_color = pr_.state_colors[i]
+                res_.mes = mpdc[0][i]
+                pl.plot_all()
+        pp.show()
         
-        savemat(outputmeds, {'medias':meds, 'stds':stds, 'shape':meds.shape})
-        #read with: medias2 = permute(reshape(medias', shape(4), shape(3), 
-        # shape(2), shape(1)), [4,3,2,1]);
+    if len(mpdc) == 1:
+        result = result[0]
+        mpdc = mpdc[0]
+        spdc = spdc[0]
+                
+    print '\nTotal time in secs:', time.clock() - tim
+    
+    if pr_.do_states_log:
+        log_windows_results(result, mpdc, spdc, nstates)
+    
+    return result, mpdc, spdc, nstates
 
-    return res, meds, stds
+
 
 def group_analysis():
     
@@ -485,10 +372,7 @@ def testa_ordens():
     pp.show()
     
 if __name__ == '__main__':
-    
+    pass
     #testa_std_asymp()
-    main_analysis()
     #testa_aic()
     #testa_ordens()
-    
-    

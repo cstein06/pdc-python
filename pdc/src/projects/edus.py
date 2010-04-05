@@ -5,46 +5,37 @@ import os
 
 from scipy.io import savemat
 
-import projects.edu_estagios as edu
+import pdc.states as sta_
 
 from pdc.globals import *
 
 def main_analysis():
     
-    #root = 'C:\\Documents and Settings\\Stein\\My Documents\\dados\\teste edu\\'
     #root = 'G:\\stein\\dados\\teste edu\\'
     root = 'G:\\stein\\dados\\teste edu\\gotas psd\\'
         
-    #input = 'C:/Documents and Settings/Stein/Desktop/teste edu/baccala2001a_ex4_sim_01.txt'
-    #input = root + 'ES57_09_02_09_medias.txt'
-    #input = root + 'ES57_09_02_09_medias_curto.txt'
-    #input = root + 'ES57_09_02_09_medias_test.txt'
-    #input = root + 'ES57_09_02_09_melhores.txt'
     #input = root + 'ES60_21_07_09_melhores4.txt'
-    #input = root + 'ES60_21_07_09_melhores4.txt'
-    input = root + 'ES57_13_02_09_melhores3_test.txt'
+    input = 'ES57_13_02_09_melhores3_test.txt'
     #input = root + 'test.txt'
     
-    inestag = root + 'ES57_13_02_09_estagiamentojanela10s_limpo.txt'
+    inestag = 'ES57_13_02_09_estagiamentojanela10s_limpo.txt'
     
-    outputres = root + 'ES57_09_02_09_medias_res'
-    outputmeds = root + 'ES57_09_02_09_medias_meds'
-
     #algoritmo = 'pdc'
-    algoritmo = 'coh'
+    algoritmo = 'ar'
     
     window_size = 10
     n_frequencies = 250
     sampling_rate = 500
     
-    #plot_labels = ['Ca1e', 'Ca2e', 'Ca1d', 'Ca2d', 'Ca3d']
-    plot_labels = ['Ca1e', 'Ca2e', 'Ca1d']
+    plot_labels = ['Ca1e', 'Ca2e', 'Ca1d', 'Ca2d', 'Ca3d']
+    #plot_labels = ['Ca1e', 'Ca2e', 'Ca1d']
     plot_states = array([1,2,3,4,5,6])
     #plot_states = array([2])
     plot_freq = 150
     plota = True
     do_window_log = True
     
+    valid_states = [1,2,3,4,5,6]
     ordem_max = 25
     ordem_fixa = True
     detrend = True
@@ -55,32 +46,23 @@ def main_analysis():
     
     #nao mexer daqui pra frente
     
-    data = loadtxt(input).T
-    estag = loadtxt(inestag)
+    data = loadtxt(root+input).T
+    estag = loadtxt(root+inestag)
     
     print 'Data loaded:', input
+    
 
     set_params(alg = algoritmo, window_size = window_size, 
                nf = n_frequencies, sample_f = sampling_rate,
                maxp = ordem_max, fixp = ordem_fixa, detrend = detrend, 
                do_window_log = do_window_log,
                power = espectro_em_potencia, metric = metrica_pdc, 
-               do_plot = plota, plotf = plot_freq, plot_labels = plot_labels)
+               do_plot = plota, plotf = plot_freq, plot_labels = plot_labels,
+               root_dir = root, stinput = input, plot_states = plot_states,
+               valid_states = valid_states)
     
-    res, meds, stds = edu.states_analysis(data, estag, plot_states = plot_states)
+    res, meds, stds, nstates = sta_.states_analysis(data, estag)
 
-    if pr_.do_window_log:
-            
-        if os.path.isfile(outputres + '.mat'):
-            print '\nOverwriting result .mat file!'
-            
-        if os.path.isfile(outputmeds + '.mat'):
-            print '\nOverwriting mean .mat file!'
-        
-        savemat(outputres, {'result':res, 'shape':res.shape, 'time':time.ctime()})
-        
-        savemat(outputmeds, {'medias':meds, 'stds':stds, 
-                             'shape':meds.shape, 'time':time.ctime()})
         #read with: medias2 = permute(reshape(medias', shape(4), shape(3), 
         # shape(2), shape(1)), [4,3,2,1]);
 
@@ -127,28 +109,11 @@ def batch_analysis():
     #nao mexer daqui pra frente
     
     for i in arange(size(inputs)):
-        inputs[i] = root + inputs[i]
-    #input = root + 'ES57_09_02_09_melhores.txt'
-    
-    for i in arange(size(inestags)):
-        inestags[i] = root + inestags[i]
+        
+        data = loadtxt(root+inputs[i]).T
+        estag = loadtxt(root+inestags[i])
         
         
-    outputres = []
-    outputmeds = []
-    for i in arange(size(inputs)):
-        if inputs[i][-4:] == '.txt':
-            auxin = inputs[i][:-4]
-        else:
-            auxin = inputs[i]
-        outputres.append(auxin + '_' + algoritmo + '_res')
-        outputmeds.append(auxin + '_' + algoritmo + '_meds')
-    
-    
-    for i in arange(size(inputs)):
-        
-        data = loadtxt(inputs[i]).T
-        estag = loadtxt(inestags[i])
         
         print 'Data loaded:', inputs[i]
     
@@ -157,25 +122,11 @@ def batch_analysis():
                    maxp = ordem_max, fixp = ordem_fixa, detrend = detrend, 
                    do_window_log = do_window_log,
                    power = espectro_em_potencia, metric = metrica_pdc, 
-                   do_plot = plota, plotf = plot_freq)
+                   do_plot = plota, plotf = plot_freq, plot_states = plot_states,
+                   stinput = inputs[i])
         
-        res, meds, stds = edu.states_analysis(data, estag, plot_states = plot_states)
+        res, meds, stds = sta_.states_analysis(data, estag)
     
-        if pr_.do_window_log:
-            
-            import os
-            if os.path.isfile(outputres[i] + '.mat'):
-                print '\nOverwriting result .mat file!'
-                
-            if os.path.isfile(outputmeds[i] + '.mat'):
-                print '\nOverwriting mean .mat file!'
-            
-            savemat(outputres[i], {'result':res, 'shape':res.shape, 'time':time.ctime()})
-            
-            savemat(outputmeds[i], {'mean':meds, 'stds':stds, 
-                                    'shape':meds.shape, 'time':time.ctime()})
-            #read with: medias2 = permute(reshape(medias', shape(4), shape(3), 
-            # shape(2), shape(1)), [4,3,2,1]);
 
     #return res, meds, stds
   
