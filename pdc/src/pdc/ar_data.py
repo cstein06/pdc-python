@@ -184,7 +184,7 @@ def ar_data(A, er = None, m = 1000, dummy = 100):
                         data[t,i];
                         s += A(k,t,j)*data(t,i-j-1);
                     }
-                    data(k,i) = data(k,i) + s;
+                    data(k,i) = data(k,i) + s
                 }
             }
             for (int k = 0; k < n; k++) {
@@ -195,8 +195,10 @@ def ar_data(A, er = None, m = 1000, dummy = 100):
     
     try:
         weave.inline(code, ['data', 'p', 'm', 'dummy', 'n', 'A', 'w'], 
-                       type_converters=converters.blitz, compiler = 'gcc')
+                       type_converters=converters.blitz, compiler = 'gcc',
+                       verbose=False)
     except:
+        print 'C code for ar_data failed, using python instead...\n'
         return ar_data_old(A, er, m, dummy)
 
     if abs(data[0,-1]) > sqrt(er).max()*1e3:
