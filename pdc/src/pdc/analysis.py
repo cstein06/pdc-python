@@ -23,7 +23,8 @@ def list_to_array(data):
         d = concatenate([d, data[i].reshape(1,-1)], axis = 0)
     return d
 
-def pre_data(data, normalize = True, detrend = True):
+def pre_data(data, normalize = False, detrend = True):
+    
     if (detrend):
         data = sig.detrend(data)
         
