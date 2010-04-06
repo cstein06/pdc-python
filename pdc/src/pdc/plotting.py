@@ -3,6 +3,7 @@ from numpy import *
 import matplotlib.pyplot as pp
 
 from globals import *
+from matplotlib.pyplot import imshow
 
 #def plot_all(mes, th, ic1, ic2, ss = None, sample_f = 1.0, 
 #             logss = False, sqrtmes = False, plotf = None):
@@ -166,6 +167,38 @@ def plot_all(**args):
         
         pp.draw()
     #pp.show()
+    
+def plot_coherogram(res, states = None):
+    
+    nwin,n,n,nf = res.shape
+    
+    for i in range(n):
+        pp.subplot(n+1,n,i+1)
+        if states is not None:
+            #saux = zeros([5, size(states)])
+            #saux[0] = states
+            saux = states.reshape(1,-1)
+            imshow(saux, origin='lower', extent=(0,5,0,3))
+            pp.xticks([])
+            pp.yticks([])
+        
+        
+    for i in range(n):
+        for j in range(n):
+            pp.subplot(n+1,n,n+i*n+j+1)
+            
+#            if i == j:
+#                if states is not None:
+#                    imshow(states.reshape(1,-1), extent=(0,1,0,1))
+#                    pp.xticks([])
+#                    pp.yticks([])
+#                continue
+            
+            imshow(res[:,i,j,:100].T, origin='lower', extent=(0,5,0,3))
+            pp.xticks([])
+            pp.yticks([])
+    
+    
     
 #    
 ##pdc, ss = None, sample_f = 1.0, power = True, logss = False

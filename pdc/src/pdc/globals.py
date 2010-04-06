@@ -72,7 +72,7 @@ class Param():
         
         self.do_states_log = True
         self.stinput = 'current_state'
-        self.stlog_pr = '%s%s_param.log'
+        self.stlog_pr = '%s%s_param.pic'
         self.stlog_res = '%s%s_res'
         self.stlog_mean = '%s%s_mean'
         
@@ -153,11 +153,11 @@ def log_results(**args):
     aux_log = pr_.log_file % (pr_.root_dir, pr_.log_string) 
     aux_pic = pr_.pic_file % (pr_.root_dir, pr_.log_string) 
     aux_mat = pr_.mat_file % (pr_.root_dir, pr_.log_string) 
+    
+    read_args(args)
 
     if pr_.v:
         print 'Logging the results in file:', aux_log  
-    
-    read_args(args)
     
     pr_.time = time.ctime()
 
@@ -177,11 +177,11 @@ def log_results(**args):
     
     pickle.dump(pr_, f)    
     pickle.dump(res_, f)
+    f.close()
     
     if pr_.log_matlab:
         savemat(aux_mat, {'result':res_.mes}, oned_as = 'row')
     
-    f.close()
     
 def load_results():
     global res_
@@ -195,28 +195,58 @@ def load_results():
     f.close()
 
     #return prn_, resn_
-    
 
-def log_windows_results(stres, stmean, ststds, nstates):
+def log_params(file = None, **args):
+    global pr_
+
+    aux_log = pr_.log_file % (pr_.root_dir, pr_.log_string) 
+    
+    read_args(args)
+    
+    if file is not None:
+        aux_log = file
+
+    if pr_.v:
+        print 'Logging the parameters to file:', aux_log  
+    
+    pr_.time = time.ctime()
+
+    f = open(aux_log, 'w')
+    
+    pickle.dump(pr_, f)  
+    
+    f.close()
+    
+def load_params():
+    global pr_ 
+    
+    f = open(pr_.pic_file, 'r')
+    
+    pr_ = pickle.load(f)
+    
+    f.close()
+
+    #return prn_, resn_
+
+def log_windows_results(stres, stmean, ststds, nstates, bind = False):
     
     pr_.stinput = pr_.stinput.replace('.txt', '') + '_' + pr_.alg
     
+    if bind is True:
+        pr_.stinput += '_bind'
+    
     aux_res = pr_.stlog_res % (pr_.root_dir, pr_.stinput)
     aux_mean = pr_.stlog_mean % (pr_.root_dir, pr_.stinput)
-    #pr_.stlog_pr = pr_.stlog_pr % (pr_.root_dir, pr_.stinput)
+    aux_pr = pr_.stlog_pr % (pr_.root_dir, pr_.stinput)
     
     print '\nLogging the raw results in file:', aux_res  
     print 'Logging the mean results in file:', aux_mean
-    #print 'Logging the parameters used in file:', pr_.stlog_pr  
     
     if os.path.isfile(aux_res + '.mat'):
         print '\nOverwriting results .mat file!'
             
     if os.path.isfile(aux_mean + '.mat'):
         print '\nOverwriting mean .mat file!'
-            
-    #if os.path.isfile(pr_.stlog_pr + '.mat'):
-    #    print '\nOverwriting parameters .mat file!'
     
     for i in range(len(stmean)):
         suf = ""
@@ -230,7 +260,7 @@ def log_windows_results(stres, stmean, ststds, nstates):
                 'nstates':nstates,
                 'time':time.ctime()}, oned_as = 'row')
         
-    #savemat(pr_.stlog_pr, {'medias':pr_, 'time':time.ctime()})
+    log_params(file = aux_pr)
     
 def read_args(args):
     global res_
