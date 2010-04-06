@@ -5,6 +5,8 @@ from pdc.globals import *
 
 import matplotlib.pyplot as pp
 from scipy.io.matlab.mio import loadmat
+import pdc.plotting as pl_
+import pdc.analysis as an
 
 def main_analysis():
     
@@ -132,52 +134,180 @@ def batch_analysis():
     
     return res, meds, stds, nstates
   
+ds = [['09_02_09', '10_02_09', '11_02_09', '12_02_09', '13_02_09'],
+      ['13_07_09', '14_07_09', '15_07_09', '16_07_09', '17_07_09'],
+      ['19_07_09', '20_07_09', '21_07_09', '22_07_09']]
+
+files = [['ES%(r)s_%(d)s_AD%(c)d_limpo_sem_filt.mat',
+         'ES%(r)s_AD%(c)d_dia_%(d)s.mat',
+         'ES%(r)s_AD%(c)dcombed_dia_%(d)s.mat',
+         'ES%(r)s_%(d)s_AD%(c)d_combed_runicado.mat',
+         'ES%(r)s_%(d)s_AD%(c)d_runicado.mat'],
+         ['ES%(r)s_%(d)s_AD%(c)d_limpo_sem_filt.mat',
+          'ES%(r)s_AD%(c)d_dia_%(d)s.mat',
+          'ES%(r)s_AD%(c)dcombed_dia_%(d)s.mat'],
+         ['ES%(r)s_%(d)s_AD%(c)d_limpo_sem_filt.mat',
+          'ES%(r)s_AD%(c)d_dia_%(d)s.mat',
+          'ES%(r)s_AD%(c)dcombed_dia_%(d)s.mat']]
+
+rs = ['57', '59', '60']
+
+chs = [12, 21, 46, 38, 53]
+         
+cdata = 'ES%(r)s_%(d)s_AD%(c)d_limpo_sem_filt.mat'
+         
+         
+#    d1 = loadmat(root+'ES59_AD22_dia_13_07_09.mat')
+#    d2 = loadmat(root+'ES59_AD22combed_dia_13_07_09.mat')
+#    d3 = loadmat(root+'ES59_13_07_09_AD22_limpo_sem_filt.mat')
+#    d3 = d3['ADlimpo']
+#    d2 = d2['ad_combed']
+#    d1 = d1['ad_downsampled']
+
+fields = [['ADlimpo',
+          'ad',
+          'ad_combed',
+          'ADcombed_runicado',
+          'ADrunicado'],
+          ['ADlimpo',
+           'ad_downsampled',
+          'ad_combed'],
+          ['ADlimpo',
+          'ad_downsampled',
+          'ad_combed']]
+
+chs = [[12,21,46,38,53],
+       [14,27,22,47,38,54],
+       [14,12,22,47,38,54]]
+
+ls = [['Ca1e', 'Ca3e', 'Ca1d', 'Ca2d', 'Ca3d'],
+      ['Ca1e', 'Ca2e', 'Ca3e','Ca1d', 'Ca2d', 'Ca3d'],
+      ['Ca1e', 'Ca2e', 'Ca3e','Ca1d', 'Ca2d', 'Ca3d']]
+
+def get_data(t = 0, r = 0, d = 0, cs = None):
+    root = "G:\\stein\\dados\\edu_comp\\"
+
+    if cs is None:
+        cs = arange(len(chs[r]))
+        
+    #pr_.plot_labels = ls[r][cs]
+    #print ls[r], ls[r][cs], cs
+    
+    field = fields[r][t]
+    fi = files[r][t]
+    
+    da1 = loadmat(root+fi % {'d':ds[r][d], 'r':rs[r], 'c':chs[r][cs[0]]})
+    d1s = size(da1[field])
+    
+    d1 = zeros([len(cs), d1s])
+
+    d1[0] = da1[field].ravel()
+    
+    for c in arange(len(cs)):
+        da1 = loadmat(root+fi % {'d':ds[r][d], 'r':rs[r], 'c':chs[r][cs[c]]})
+        d1[c] = da1[field].ravel()
+        
+    if t == 1:
+        #downsample raw data that comes in 1000HZ to 500HZ like the others
+        return d1[:,::2]
+        
+    return d1
+
+
+def set_def():
+    #algoritmo = 'pdc'
+    pr_.alg = 'coh'
+    
+    pr_.window_size = 10
+    pr_.nf = 250
+    pr_.sample_f = 500
+    
+    pr_.plot_labels = ['Ca1e', 'Ca2e', 'Ca1d', 'Ca2d', 'Ca3d']
+    #plot_labels = ['Ca1e', 'Ca2e', 'Ca1d']
+    #plot_states = array([1,2,3,4,5,6])
+    #plot_states = array([2])
+    pr_.plotf = 120
+    pr_.plota = True
+    pr_.plot_ic = True
+    pr_.do_window_log = False
+    
+    pr_.ss = True
+    pr_.logss = True
+    #pr_.plot_diag = True
+    #valid_states = [1,2,3,4,5,6]
+    pr_.maxp = 25
+    pr_.fixp = True
+    pr_.detrend = True
+    pr_.power = True
+    pr_.metric = 'diag'
+    
+    
+def check_filt(data):
+    
+    set_def()
+    pr_.alg = 'coh'
+    
+    res = sta_.window_analysis(data[:,:100000])[0]
+    
+    pl_.plot_coherogram(res)
+
+    return res
+  
 
 
 def check_hist():
     
-    root = "G:\\stein\\dados\\edu_comp\\"
+    si = 100000
+    nf = 1024
     
-    d1 = loadmat(root+'ES57_AD23_dia_09_02_09.mat')
-    d2 = loadmat(root+'ES57_AD23combed_dia_09_02_09.mat')
-    d3 = loadmat(root+'ES57_09_02_09_AD23_combed_runicado.mat')
-    d4 = loadmat(root+'ES57_09_02_09_AD23_limpo_sem_filt.mat')
-    d5 = loadmat(root+'ES57_09_02_09_AD23_runicado.mat')
+    for i in arange(5):
     
-    d5 = d5['ADrunicado']
-    d4 = d4['ADlimpo']
-    d3 = d3['ADcombed_runicado']
-    d2 = d2['ad_combed']
-    d1 = d1['ad']
+        pp.subplot(2,3,i+1)
+        pp.specgram(get_data(t = i)[:si,0], NFFT = nf)
     
-    pp.subplot(2,3,1)
-    pp.specgram(d1[:1000000:2,0], NFFT = 1000)
-    pp.subplot(2,3,2)
-    pp.specgram(d2[0,:500000], NFFT = 1000)
-    pp.subplot(2,3,3)
-    pp.specgram(d3[0,:500000], NFFT = 1000)
-    pp.subplot(2,3,4)
-    pp.specgram(d4[0,:500000], NFFT = 1000)
-    pp.subplot(2,3,5)
-    pp.specgram(d5[0,:500000], NFFT = 1000)
+    pp.show()
     
-    d1 = loadmat(root+'ES59_AD22_dia_13_07_09.mat')
-    d2 = loadmat(root+'ES59_AD22combed_dia_13_07_09.mat')
-    d3 = loadmat(root+'ES59_13_07_09_AD22_limpo_sem_filt.mat')
-    d3 = d3['ADlimpo']
-    d2 = d2['ad_combed']
-    d1 = d1['ad_downsampled']
+def all_cohero():
+    
+    for i in arange(5):
+        pp.figure(i+1)
+        check_filt(get_data(i))
+        
+    pp.show()
+    
 
-    pp.figure()
-    pp.subplot(2,3,1)
-    pp.specgram(d1[:1000000:2,0], NFFT = 1000)
-    pp.subplot(2,3,2)
-    pp.specgram(d2[0,:500000], NFFT = 1000)
-    pp.subplot(2,3,3)
-    pp.specgram(d3[0,:500000], NFFT = 1000)
+def all_coh():
+       
+    set_def()
+       
+    for i in arange(5):
+        pp.figure(i+1)
+        an.pdc_full(get_data(i)[:,:30000])
+        
+    pp.show()
+    
+def all_psd():
+       
+    set_def()
+       
+    for i in arange(5):
+        pp.figure(i+1)
+        pp.psd(get_data(i)[1,:40000])
+        
+    pp.show()
+    
     
 if __name__ == '__main__':
     
-    main_analysis()
+    #main_analysis()
+    
+    #check_hist()
     
     #batch_analysis()
+
+    #all_filters()
+    
+    all_coh()
+    
+    #all_psd()
+    
