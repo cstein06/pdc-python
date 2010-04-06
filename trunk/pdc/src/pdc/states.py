@@ -38,7 +38,7 @@ def window_analysis(data, **args):
     print '\nCalculating first window verbosely (others will be silent):\n'
     aux_v = pr_.v
     
-    aux = an_.measure(data[:,0*win:0*win+win], ss = False)
+    aux = an_.measure(data[:,0*win:0*win+win])
     if type(aux) is not tuple:
         aux = [aux]
     
@@ -52,13 +52,17 @@ def window_analysis(data, **args):
         pr_.v = False
         #print i*win
         
-        aux = an_.measure(data[:,i*win:i*win+win], ss = False)
+        aux = an_.measure(data[:,i*win:i*win+win])
         if type(aux) is not tuple:
             aux = [aux]
             
                   
         for j in arange(len(resp)):
             resp[j][i] = aux[j]
+            
+        if pr_.ss is True:
+            for k in arange(n):
+                resp[0][i,k,k,:] = res_.ss[k,k,:]
         
         print '\nProcessed', i+1, 'of', nwins, 'windows:', 100*(i+1.0)/nwins, '%'
         
@@ -140,6 +144,7 @@ def states_analysis(data, states, **args):
         for st in pr_.plot_states:
             i = pr_.st_dict[st]
             if nstates[i] > 0:
+                res_.ss = res_.mes
                 pr_.plot_color = pr_.state_colors[i]
                 res_.mes = mpdc[0][i]
                 pl.plot_all()
@@ -208,6 +213,6 @@ def states_analysis_bind(data, states, **args):
     print '\nTotal time in secs:', time.clock() - tim
     
     if pr_.do_states_log:
-        log_windows_results([result], [mpdc], [spdc], nstates)
+        log_windows_results([result], [mpdc], [spdc], nstates, bind = True)
     
     return result, mpdc, spdc, nstates
