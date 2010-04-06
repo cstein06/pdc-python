@@ -146,7 +146,7 @@ def plot_all(**args):
             pp.ylim(-0.05,1.05)
             
             
-            if pr_.plotf != None:
+            if pr_.plotf is not None:
                 pp.xlim([0, pr_.plotf])
                 
         if (pr_.ss and ss is not None):
@@ -172,6 +172,8 @@ def plot_coherogram(res, states = None):
     
     nwin,n,n,nf = res.shape
     
+    #pp.ion()
+    
     for i in range(n):
         pp.subplot(n+1,n,i+1)
         if states is not None:
@@ -193,11 +195,14 @@ def plot_coherogram(res, states = None):
 #                    pp.xticks([])
 #                    pp.yticks([])
 #                continue
-            
-            imshow(res[:,i,j,:100].T, origin='lower', extent=(0,5,0,3))
+            if i == j and pr_.ss and pr_.logss:
+                imshow(log(res[:,i,j,:]).T, origin='lower', extent=(0,5,0,3))
+            else:
+                imshow(res[:,i,j,:].T, origin='lower', extent=(0,5,0,3))
             pp.xticks([])
             pp.yticks([])
     
+    pp.draw()
     
     
 #    
