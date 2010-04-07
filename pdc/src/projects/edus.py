@@ -223,6 +223,8 @@ def get_res(r = 0, d = 0, alg = 'coh'):
     
     fi = 'R%s_D%s_%s_res.pic' % (rs[r], ds[r][d], alg) 
     
+    print fi
+    
     return load_win_pic(fi)
 
 
@@ -261,16 +263,6 @@ def set_def():
     pr_.metric = 'diag'
     
     
-def check_filt(data):
-    
-    set_def()
-    pr_.alg = 'coh'
-    
-    res = sta_.window_analysis(data[:,:100000])[0]
-    
-    pl_.plot_coherogram(res)
-
-    return res
   
 
     
@@ -346,5 +338,7 @@ if __name__ == '__main__':
     
     #all_psd()
     
-    final_analysis()
+    #final_analysis()
+    
+    pass
     
