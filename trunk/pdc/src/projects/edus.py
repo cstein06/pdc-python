@@ -72,17 +72,17 @@ def main_analysis():
 
 def batch_analysis():
     
-    #root = 'C:\\Documents and Settings\\Stein\\My Documents\\dados\\teste edu\\'
-    root = 'G:\\stein\\dados\\teste edu\\'
+    #root = 'G:\\stein\\dados\\teste edu\\'
     #root = 'G:\\stein\\dados\\teste edu\\gotas psd\\'
+    root = "G:\\stein\\dados\\edu_comp\\"
         
     #input = 'C:/Documents and Settings/Stein/Desktop/teste edu/baccala2001a_ex4_sim_01.txt'
     #input = root + 'ES57_09_02_09_medias.txt'
     #input = root + 'ES57_09_02_09_medias_curto.txt'
 
-    #inputs = ['ES57_09_02_09_medias_test.txt', 'ES57_09_02_09_medias_test2.txt']
+    inputs = ['ES57_09_02_09_medias_test.txt', 'ES57_09_02_09_medias_test2.txt']
     #inputs = ['ES60_21_07_09_melhores4.txt', 'ES59_16_07_09_melhores3.txt']
-    inestags = ['ES57_09_02_09_estagiamentojanela10s_limpo.txt','ES57_09_02_09_estagiamentojanela10s_limpo.txt']
+    instates = ['ES57_09_02_09_estagiamentojanela10s_limpo.txt','ES57_09_02_09_estagiamentojanela10s_limpo.txt']
     
 #    d1 = loadmat(root+'ES57_AD23_dia_09_02_09.mat')
 #    d2 = loadmat(root+'ES57_AD23combed_dia_09_02_09.mat')
@@ -116,21 +116,23 @@ def batch_analysis():
     
     #nao mexer daqui pra frente
     
-    for i in arange(size(inputs)):
+    set_params(alg = algoritmo, window_size = window_size, 
+               nf = n_frequencies, sample_f = sampling_rate,
+               maxp = ordem_max, fixp = ordem_fixa, detrend = detrend, 
+               do_window_log = do_window_log,
+               power = espectro_em_potencia, metric = metrica_pdc, 
+               do_plot = plota, plotf = plot_freq, plot_states = plot_states,
+               root_dir = root)   
     
-        set_params(alg = algoritmo, window_size = window_size, 
-                   nf = n_frequencies, sample_f = sampling_rate,
-                   maxp = ordem_max, fixp = ordem_fixa, detrend = detrend, 
-                   do_window_log = do_window_log,
-                   power = espectro_em_potencia, metric = metrica_pdc, 
-                   do_plot = plota, plotf = plot_freq, plot_states = plot_states,
-                   stinput = inputs[i], root_dir = root)    
+    for i in arange(size(inputs)): 
+        
+        pr_.stinput = inputs[i]
         
         data = loadtxt(root+inputs[i]).T
-        estag = loadtxt(root+inestags[i])
+        state = loadtxt(root+instates[i])
                 
         print 'Data loaded:', inputs[i]
-        res, meds, stds, nstates = sta_.states_analysis(data, estag)
+        res, meds, stds, nstates = sta_.states_analysis(data, state)
     
     return res, meds, stds, nstates
   
@@ -193,6 +195,8 @@ def get_data(t = 0, r = 0, d = 0, cs = None):
     #pr_.plot_labels = ls[r][cs]
     #print ls[r], ls[r][cs], cs
     
+    
+    
     field = fields[r][t]
     fi = files[r][t]
     
@@ -204,7 +208,8 @@ def get_data(t = 0, r = 0, d = 0, cs = None):
     d1[0] = da1[field].ravel()
     
     for c in arange(len(cs)):
-        da1 = loadmat(root+fi % {'d':ds[r][d], 'r':rs[r], 'c':chs[r][cs[c]]})
+        fst = root+fi % {'d':ds[r][d], 'r':rs[r], 'c':chs[r][cs[c]]}
+        da1 = loadmat(fst)
         d1[c] = da1[field].ravel()
         
     if t == 1:
@@ -213,6 +218,20 @@ def get_data(t = 0, r = 0, d = 0, cs = None):
         
     return d1
 
+def get_res(r = 0, d = 0, alg = 'coh'):
+    #root = "G:\\stein\\dados\\edu_comp\\results\\"
+    
+    fi = 'R%s_D%s_%s_res.pic' % (rs[r], ds[r][d], alg) 
+    
+    return load_win_pic(fi)
+
+
+def get_state(r = 0, d = 0):
+    root = "G:\\stein\\dados\\edu_comp\\"
+    
+    fst = 'ES%s_%s_estagiamentojanela10s_limpo.txt' % (rs[r], ds[r][d])
+    
+    return loadtxt(root+fst)
 
 def set_def():
     #algoritmo = 'pdc'
@@ -296,6 +315,63 @@ def all_psd():
         
     pp.show()
     
+def final_analysis():
+    
+    root = "G:\\stein\\dados\\edu_comp\\"
+    pr_.output_dir = "G:\\stein\\dados\\edu_comp\\results\\"
+    
+    algoritmo = 'pdc'
+    #algoritmo = 'coh'
+    
+    window_size = 10
+    n_frequencies = 250
+    sampling_rate = 500
+    
+    plot_states = array([1,2,3,4,5,6])
+    #plot_states = array([2])
+    plot_freq = 150
+    plota = False
+    pr_.do_states_log = True
+    
+    ordem_max = 25
+    ordem_fixa = True
+    detrend = True
+    espectro_em_potencia = True
+    metrica_pdc = 'diag'
+    
+    pr_.ar_fit = 'yw'
+    
+    set_params(alg = algoritmo, window_size = window_size, 
+               nf = n_frequencies, sample_f = sampling_rate,
+               maxp = ordem_max, fixp = ordem_fixa, detrend = detrend, 
+               power = espectro_em_potencia, metric = metrica_pdc, 
+               do_plot = plota, plotf = plot_freq, plot_states = plot_states,
+               root_dir = root)    
+        
+    for r in [0,1,2]:
+        for d in arange(len(ds[r])):
+            
+            data = get_data(r = r, d = d)
+            
+            #data = data[:,:10000]
+            
+            print 'Data loaded:', 'r=', r, ' d=', d
+        
+            pr_.plot_labels = ls[r]
+            pr_.stinput = 'R%s_D%s' % (rs[r], ds[r][d]) 
+                
+            state = get_state(r = r, d = d)
+            
+            pr_.alg = 'pdc'
+            res, meds, stds, nstates = sta_.states_analysis(data, state)
+            
+            return
+            
+            pr_.alg = 'coh'
+            res, meds, stds, nstates = sta_.states_analysis(data, state)
+    
+    return res, meds, stds, nstates
+    
     
 if __name__ == '__main__':
     
@@ -307,7 +383,9 @@ if __name__ == '__main__':
 
     #all_filters()
     
-    all_coh()
+    #all_coh()
     
     #all_psd()
+    
+    final_analysis()
     

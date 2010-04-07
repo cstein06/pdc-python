@@ -8,81 +8,119 @@ Created on 22/03/2010
 import pdc.ar_data as ard_
 import pdc.analysis as pdc_
 import pdc.examples as exa_
+from pdc.globals import *
+import pdc.ar_fit as fit_
+import pdc.asymp as asy_
 
 from numpy import *
+from numpy.random import rand
 
-def teste_simples():
-    '''Simple test of connectivity routines
-    
-    Here we simulate some data using the ar_data module, from a given
-    MVAR matrix A and covariance matrix er.
-    
+import scipy.stats as st
+
+import matplotlib.pyplot as pp
+
+def histogram_Guo(m = 5000):
+    '''Make histogram of a frequency for the gPDC in Guos model
+    and compare with asymp
     '''
     
-    
-    
     #Definition of the MVAR model
-    A, er = ard_.ar_models(5)
+    #A, er = ard_.ar_models(5)
+    #nd = 2000
     
-    #number of data points generated
+    pr_.alpha = 0.05
+    
+    pr_.maxp = 3
+    pr_.fixp = True
+    pr_.sample_f = 1
+    pr_.ss = False
+    
+    pr_.plot_ic = True
+    
+    pr_.alg = 'pdc'
+    pr_.metric = 'diag'
+    
+    pr_.nf = 5
+    
+    a = rand(5)
+    print a
+    
+    #data = ard_.ar_data(A, er, nd)
+    #data = loadtxt('D:\\work\\producao\\pdc congresso baccala\\ES57_09_02_09_medias_test.txt').T
+    #data = data[:2, :5000]
+    #data = ard_.ar_models(2)
+    
+    n = 5
     nd = 2000
     
-    #number of frequency points analyzed
-    nf = 64
+    res = zeros([m, n, n, pr_.nf])
     
-    #error of the confidence interval and threshold
-    alpha = 0.05
+    for i in arange(m):
     
-    #model order parameters
-    n = A.shape[0]
-    maxp = A.shape[2]
+        data = exa_.gen_data_Guo(nd, a=a)
     
-    #type of PDC used (refer to manual to see what it means)
-    metric = 'diag'
-    #metric = 'euc'
+        res[i] = pdc_.measure(data)
+        
+        pr_.v = False
+        if (i+1) % 20 == 0:
+            print 'iter:', i+1
+           
+    pr_.do_plot = False
     
-    #Generate data from AR
-    #data = ard_.ar_data(A, er, nd)
+    pr_.v = True
     
-    data = loadtxt('D:\\work\\producao\\pdc congresso baccala\\ES57_09_02_09_medias_test.txt').T
-    
-    data = data[:2, :5000]
-    
-    #Call any connectivity routine routine. 
-    #Here are some calling examples, uncomment your preferred one for use:
-    
-    #pdc_.measure_and_plot(data, 'dtf', nf = nf, ss = True)
-    #pdc_.pdc_and_plot(data, nf = nf, ss = True)
-    pdc_.pdc_full(data, nf = nf, ss = False, metric = metric, maxp = 20, fixp = True, sample_f = 500)
-    #pdc_.coh_full(data, nf = nf, ss = True, metric = metric,
-    #              detrend = True)
+    big = 400
+    bins = 40
     
     
-    #If you want step by step, you can do it this way:
+    data = exa_.gen_data_Guo(nd*big, a=a)
+    #data2 = exa_.gen_data_Guo(nd, a=a)
+    #A, er = fit_.nstrand(data, maxp = 3)
+    #pdc, th, ic1, ic2 = asy_.asymp_pdc()
+    pdc, th, ic1, ic2 = pdc_.measure_full(data)
+    std = sqrt(big)*(pdc-ic1)/st.norm.ppf(1-pr_.alpha/2.0)    
+        
+    pp.hist(res[:,3,0,2], bins = bins, normed = True)
     
-    #Estimate AR parameters with Nuttall-Strand
-    #Aest, erest = ar_fit(data, maxp)
+    pa = pdc[3,0,2]
+    sa = std[3,0,2]
+    #$x = linspace(pa-3*sa, pa+3*sa, 100)
+    x = linspace(0, 0.6, 100)
+    pp.plot(x, st.norm.pdf(x, loc = pa, scale = sa))
     
-    #Calculate the connectivity and statistics
-    #mes, th, ic1, ic2 = ass_.asymp_pdc(data, Aest, nf, erest, 
-    #                               maxp, alpha = alpha, metric = metric)
+    pp.figure()
     
-    #Plot result
-    #pdc_.plot_all(mes, th, ic1, ic2)
+    pp.hist(res[:,4,0,2], bins = bins, normed = True)
+    
+    #std = sqrt(big)*(pdc-ic1)/st.norm.ppf(1-pr_.alpha/2.0)  
+    std = big*th
+    
+    pa = pdc[4,0,2]
+    #sa = std[4,0,2]
     
     
-    #Another step-by-step way, without statistics:
+#                patdf = sum(d)**2/sum(d**2)
+#                patden = sum(d)/sum(d**2)
+#                th[i, j, ff] = st.chi2.ppf(1-alpha, patdf)/(patden*2*nd)
+#                varass2[i, j, ff] = 2*patdf/(patden*2*nd)**2
+                
     
-    #Estimate AR parameters with Nuttall-Strand
-    #Aest, erest = ar_fit(data, maxp)
+    x = linspace(0, 0.1, 100)
+    pp.plot(x, st.chi2.pdf(x, pr_.patdf[4,0,2], scale = 1/(pr_.patden[4,0,2]*2*nd)))
     
-    #Calculate the connectivity
-    #mes = pdc_.pdc_alg(Aest, erest, nf = nf, metric = metric)
+    f = open('G:\\stein\\producao\\pdc congresso baccala\\py\\hist.pic', 'w')
     
-    #Plot result
-    #pdc_.pdc_plot(mes)
+    pickle.dump(res[:,3:5,0,2], f)
+    pickle.dump(pdc[3:5,0,2], f)
+    pickle.dump(std[3,0,2], f)
+    pickle.dump(pr_.patdf[4,0,2], f)
+    pickle.dump(1/(pr_.patden[4,0,2]*2*nd), f)
+        
+    f.close()
     
-    pdc_.pp.show()
+    pp.show()
+    
+    return res
     
 def winterhalter():
     
@@ -104,6 +142,6 @@ def winterhalter():
     
 if __name__ == "__main__":
     
-    teste_simples()
+    histogram_Guo()
     #winterhalter()
     
