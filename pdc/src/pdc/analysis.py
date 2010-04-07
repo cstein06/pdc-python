@@ -56,16 +56,6 @@ def A_to_f(A, nf = 64):
     
     return AL
 
-
-def ar_alg(A, e_cov, nf = 64, metric = 'dummy'):
-    '''Calculates the Partial Coherence
-        A -> autoregressive matrix
-        e_cov -> residues
-        nf -> number of frequencies
-        '''
-        
-    return ar_fit.ar_fit()
-
 def pc_alg(A, e_cov, nf = 64, metric = 'dummy'):
     '''Calculates the Partial Coherence
         A -> autoregressive matrix
@@ -201,17 +191,16 @@ def dtf_alg(A, er, nf = 64, metric = 'dummy'):
     return DTF.transpose(1,2,0)
 
 
-def pdc_ss_coh(data, maxp = 30, nf = 64, detrend = True):
-    '''Interface that returns the PDC, SS and coh'''
-
-    if(type(data) == 'list'):
-        data = list_to_array(data)
-        
-    if (detrend):
-        data = sig.detrend(data)
-    
-    A, er = ar_fit.ar_fit(data, maxp)
-    return abs(pdc_alg(A, er, nf))**2, abs(ss_alg(A, er, nf))**2, abs(coh_alg(A, er, nf))**2
+#def pdc_ss_coh(data, maxp = 30, nf = 64, detrend = True):
+#    '''Interface that returns the PDC, SS and coh'''
+#
+#    if(type(data) == 'list'):
+#        data = list_to_array(data)
+#        
+#    data = pre_data(data, pr_.normalize, pr_.detrend)
+#    
+#    A, er = ar_fit.ar_fit(data, maxp)
+#    return abs(pdc_alg(A, er, nf))**2, abs(ss_alg(A, er, nf))**2, abs(coh_alg(A, er, nf))**2
 
 
 def arfit(data, **args):
@@ -380,135 +369,6 @@ def measure(data, **args):
 #        return res_.mes
 #    
 
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-#%
-#%  Computes granger causality index
-#%
-#%  Input: 
-#%    D(n, N) - data (n channels)
-#%    MaxIP - externaly defined maximum IP
-#%
-#%  Output:
-#%    Gr(n, n) - Granger causalit index
-#%    
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-#
-#function [Gr] = alg_ganger(u, maxIP)
-#
-#[n N] = size(u);
-#
-#[IP,pf,A,pb,B,ef,eb,vaic,Vaicv] = mvar(u,maxIP,[0 0]);
-#
-#va = diag(pf);
-#
-#va_n = zeros(n, n);
-#
-#for iu = 1:n
-#  aux_u = u;
-#  aux_u(iu,:) = [];
-#  [IP,pf,A,pb,B,ef,eb,vaic,Vaicv] = mvar(aux_u,maxIP,[0 0]);
-#  aux = diag(pf)';
-#  va_n(iu,:) = cat(2, aux(1:iu-1), 0, aux(iu:n-1));
-#end
-#
-#Gr = zeros(n, n);
-#for iu = 1:n
-#  for ju = 1:n
-#    if (iu == ju) continue; end
-#    Gr(iu,ju) = log(va_n(ju,iu)/va(iu));
-#  end
-#end
-
-def gci(data, maxp = 30, detrend = True):
-    
-    n = data.shape[0]
-    
-    if (detrend):
-        data = sig.detrend(data)
-        
-    A0, er0 = ar_fit.ar_fit(data, maxp)
-    va0 = diag(er0)
-    
-    gci = zeros([n,n])
-    for i in arange(n): 
-        aux_data = delete(data, i, 0)
-        A1, er1 = ar_fit.ar_fit(aux_data, maxp)
-        va1 = diag(er1) 
-        va1 = insert(va1, i, 0)
-        gci[:,i] = log(float64(va1)/va0)
-        
-    return gci
-
-
-def gct(data, maxp = 30, detrend = True):
-    '''Asymptotic statistics for Wald statistic of the GC in time
-        data -> data
-        maxp -> max ar_fit order
-    '''
-
-    if (detrend):
-        data = sig.detrend(data)
-        
-    A, e_var = ar_fit.ar_fit(data, maxp)
-        
-    return as_.asymp_gct(data, A, e_var)
-
-def igct(data, maxp = 30, detrend = True, fixp = False):
-    '''Asymptotic statistics for Wald statistic of instantaneous GC
-        x -> data
-        maxp -> max ar_fit order
-        alpha -> confidence margin
-    '''
-
-    if (detrend):
-        data = sig.detrend(data)
-        
-    crit = 0 #AIC
-    if fixp:
-        crit = 1
-    
-    A, e_var = ar_fit.ar_fit(data, maxp, criterion = crit)
-    
-    n, nd = data.shape
-        
-    return as_.asymp_igct(e_var, nd)
-
-def white_test(data, maxp = 30, h = 20, fixp = False):
-    
-    crit = 0 #AIC
-    if fixp:
-        crit = 1
-    
-    A, res = ar_fit.ar_fit(data, maxp, return_ef=True, criterion = crit)
-    
-    n,n,p = A.shape
-    
-    return as_.asymp_white(data, res, p, h)
-
-#def gct(data, maxp = 30, detrend = True):
-#    #TODO: esta errado, apagar.
-#    n,T = data.shape
-#    
-#    if (detrend):
-#        data = sig.detrend(data)
-#        
-#    A0, er0 = ar_fit.ar_fit(data, maxp)
-#    va0 = diag(er0)
-#    
-#    p = A0.shape[2] #TODO: p pode variar depois. fixar para A1?
-#    print p 
-#    
-#    gci = zeros([n,n])
-#    for i in arange(n): 
-#        aux_data = delete(data, i, 0)
-#        A1, er1 = ar_fit.ar_fit(aux_data, maxp)
-#        va1 = float64(diag(er1)) 
-#        va1 = insert(va1, i, 0)
-#        gci[:,i] = ((va1-va0)/(n*p))/(va0/(T-n*p-1))
-#    
-#    gct = f.cdf(gci, n*p, T-n*p-1)
-#        
-#    return gct
         
 
 #maxp = 5, nf = 64, sample_f = 1, 
@@ -576,7 +436,7 @@ def measure_full(data, **args):
         print '\nEstimating VAR'
     
     #Estimate AR parameters with Nuttall-Strand
-    res_.A, res_.er = ar_fit.ar_fit(data, pr_.maxp, criterion=crit)
+    res_.A, res_.er = ar_fit.ar_fit(data)
     
     res_.p = res_.A.shape[2]
     
@@ -701,3 +561,127 @@ def measure_and_plot(data, **args):
 #    #pl_.pdc_plot()
 #    
     
+    
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#%
+#%  Computes granger causality index
+#%
+#%  Input: 
+#%    D(n, N) - data (n channels)
+#%    MaxIP - externaly defined maximum IP
+#%
+#%  Output:
+#%    Gr(n, n) - Granger causalit index
+#%    
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#
+#function [Gr] = alg_ganger(u, maxIP)
+#
+#[n N] = size(u);
+#
+#[IP,pf,A,pb,B,ef,eb,vaic,Vaicv] = mvar(u,maxIP,[0 0]);
+#
+#va = diag(pf);
+#
+#va_n = zeros(n, n);
+#
+#for iu = 1:n
+#  aux_u = u;
+#  aux_u(iu,:) = [];
+#  [IP,pf,A,pb,B,ef,eb,vaic,Vaicv] = mvar(aux_u,maxIP,[0 0]);
+#  aux = diag(pf)';
+#  va_n(iu,:) = cat(2, aux(1:iu-1), 0, aux(iu:n-1));
+#end
+#
+#Gr = zeros(n, n);
+#for iu = 1:n
+#  for ju = 1:n
+#    if (iu == ju) continue; end
+#    Gr(iu,ju) = log(va_n(ju,iu)/va(iu));
+#  end
+#end
+
+def gci(data, **args):
+    
+    read_args(args)
+    
+    n = data.shape[0]
+    
+    data = pre_data(data, pr_.normalize, pr_.detrend)
+        
+    A0, er0 = ar_fit.ar_fit(data)
+    va0 = diag(er0)
+    
+    gci = zeros([n,n])
+    for i in arange(n): 
+        aux_data = delete(data, i, 0)
+        A1, er1 = ar_fit.ar_fit(aux_data)
+        va1 = diag(er1) 
+        va1 = insert(va1, i, 0)
+        gci[:,i] = log(float64(va1)/va0)
+        
+    return gci
+
+
+def gct(data,**args):
+    '''Asymptotic statistics for Wald statistic of the GC in time
+    '''
+    
+    read_args(args)
+    
+    data = pre_data(data, pr_.normalize, pr_.detrend)
+    
+    A, e_var = ar_fit.ar_fit(data)
+        
+    return as_.asymp_gct(data, A, e_var)
+
+def igct(data, **args):
+    '''Asymptotic statistics for Wald statistic of instantaneous GC '''
+
+    read_args(args)
+    
+    data = pre_data(data, pr_.normalize, pr_.detrend)
+    
+    A, e_var = ar_fit.ar_fit(data)
+    
+    n, nd = data.shape
+        
+    return as_.asymp_igct(e_var, nd)
+
+def white_test(data, h = 20, **args):
+    
+    read_args(args)
+    
+    A, res = ar_fit.ar_fit(data, return_ef=True)
+    
+    p = A.shape[2]
+    
+    return as_.asymp_white(data, res, p, h)
+
+
+
+#def gct(data, maxp = 30, detrend = True):
+#    #TODO: esta errado, apagar.
+#    n,T = data.shape
+#    
+#    if (detrend):
+#        data = sig.detrend(data)
+#        
+#    A0, er0 = ar_fit.ar_fit(data, maxp)
+#    va0 = diag(er0)
+#    
+#    p = A0.shape[2] #TODO: p pode variar depois. fixar para A1?
+#    print p 
+#    
+#    gci = zeros([n,n])
+#    for i in arange(n): 
+#        aux_data = delete(data, i, 0)
+#        A1, er1 = ar_fit.ar_fit(aux_data, maxp)
+#        va1 = float64(diag(er1)) 
+#        va1 = insert(va1, i, 0)
+#        gci[:,i] = ((va1-va0)/(n*p))/(va0/(T-n*p-1))
+#    
+#    gct = f.cdf(gci, n*p, T-n*p-1)
+#        
+#    return gct

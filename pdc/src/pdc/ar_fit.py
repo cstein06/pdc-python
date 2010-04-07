@@ -7,6 +7,8 @@ from numpy.linalg import pinv, inv, eig
 from scipy.linalg.basic import det
 from scipy.linalg.decomp import schur
 
+from globals import *
+
 eps = finfo(float).eps.item()
 
 def lyap(A, B, C=[]):
@@ -73,7 +75,7 @@ def lyap(A, B, C=[]):
         X = X.real
     return X
 
-def nstrand(u, maxp = 30, simplep = True):
+def nstrand(u, p = None, return_ef = False):
     '''
     %   Calculate the coeficients of multi-channel auto-regressive matrix using
     %   Nuttall-Strand algorithm (a generalization of single channel harmonic
@@ -96,10 +98,14 @@ def nstrand(u, maxp = 30, simplep = True):
     if lx > cx:
         print ('Input matrix is probably transposed.')
         return
+    
+    if p is None:
+        p = pr_.maxp
+    
     NUMCHS=lx      #% Number of channels.
     MAXORDER=200   #% Maximum order of AR model allowed for calculation.
     N=max(u.shape) #% N - Number of samples per channel.
-    IP = maxp
+    IP = p
 
     #    Initialization
     ISTAT=0
@@ -167,23 +173,11 @@ def nstrand(u, maxp = 30, simplep = True):
     #print 'pf:', pf
     #pf = abs(pf) #TODO: conferir o pf, pq as vezes da matriz toda negativa?
     
-    if (simplep):
-        return A.transpose(1,2,0), abs(pf)/N 
+    if (return_ef):
+        return A.transpose(1,2,0), ef #TODO: porque o abs?
     else:
-        return pf,A,pb,B,ef,eb,ISTAT 
-
-
-#def bigautocorr(x, p):
-#    '''Autocorrelation. Data in rows. From order 0 to p-1.
-#    Output: nxn blocks of autocorr of lags i. (Nuttall Strand matrix)'''
-#    n, nd = x.shape
-#    gamma = zeros([n*p, n*p])
-#    for i in arange(p):
-#        for j in arange(p):
-#            gamma[i*n:i*n+n, j*n:j*n+n] = dot(xlag(x, i), xlag(x, j).T)/nd
-#
-#    return gamma
-
+        #return pf,A,pb,B,ef,eb,ISTAT 
+        return A.transpose(1,2,0), pf/N
 
 def xlag(x, lag):
     if(lag == 0):
@@ -192,7 +186,11 @@ def xlag(x, lag):
     xl[:, lag:] = x[:, :-lag]
     return xl
 
-def yule_walker(x, p):
+def yule_walker(x, p = None, return_ef = False):
+    
+    if p is None:
+        p = pr_.maxp
+    
     n, nd = x.shape
     gamma = zeros([n*(p+1), n*(p+1)])
     for i in arange(p+1):
@@ -204,10 +202,96 @@ def yule_walker(x, p):
     A = dot(yz, igamma)
     er = gamma[:n*1,:n*1] - dot(dot(yz, igamma), yz.T)
 
+    if return_ef:
+        print '\nreturn_ef for YW not implemented yet.'
+
     return A, er
     
 
-def ar_fit(u, MaxIP = 0, alg='ns', criterion=0, return_ef = False):
+#def ar_fit_old(u, MaxIP = 0, alg='ns', criterion=0, return_ef = False):
+#    '''
+#    %
+#    %[IP,pf,A,pb,B,ef,eb,vaic,Vaicv] = mvar(u,MaxIP,alg,criterion)
+#    %
+#    % input: u     - data rows
+#    %        MaxIP - externaly defined maximum IP (default = 30)
+#    %        alg   - for algorithm (0: Nutall-Strand)
+#    %        criterion for order choice - 0: AIC; 1: fixed order in MaxIP
+#    %                                     2(not yet): estimate up to max order
+#    %                                     Negative(not yet) - keep criterion changes
+#    %
+#    '''
+#    StopFlag=0
+#    [nSegLength,nChannels] = u.transpose().shape
+#
+#    if criterion<0:
+#        stopFlag=1
+#        criterion=abs(criterion)
+#    
+#    if criterion==1:
+#        [npf, na, npb, nb, nef, neb, ISTAT]=nstrand(u,MaxIP,False)
+#        if (not return_ef):
+#            return na.transpose(1,2,0), npf/nSegLength
+#        else:
+#            return na.transpose(1,2,0), nef
+#        
+#    if alg == 'yw':
+#        fitalg = yule_walker
+#    else:
+#        fitalg = nstrand
+#    
+#    vaicv=0
+#    if MaxIP == 0:
+#        MaxOrder = 30;
+#        UpperboundOrder = round(3*sqrt(nSegLength)/nChannels)
+#        #% Marple Jr. page 409
+#        #% Suggested by Nuttall, 1976.
+#        UpperboundOrder = min([MaxOrder, UpperboundOrder])
+#    else:
+#        MaxOrder=MaxIP
+#        UpperboundOrder=MaxIP
+#    
+#    #print 'MaxOrder limited to ', MaxOrder
+#       
+#    IP=1
+#    Vaicv=zeros((MaxOrder+1,1), float)
+#    while IP <= UpperboundOrder:
+#        if (IP > 10):
+#            print 'Testando ar_fit com P =', IP
+#            
+#        [npf, na, npb, nb, nef, neb, ISTAT]=fitalg(u,IP,False)
+#        
+#        vaic=max(u.shape)*log(det(npf))+2*nChannels*nChannels*IP;
+#        
+#        Vaicv[IP,0]=vaic
+#
+#        if (vaic>vaicv) and not (IP==1):
+#            vaic=vaicv
+#            if not StopFlag:
+#                break
+#        #% Akaike condition
+#        vaicv=vaic
+#        pf = array(npf)
+#        A  = array(na)
+#        ef = array(nef)
+##        if alg==0:
+##            B  = array(nb)
+##            eb = array(neb)
+##            pb = array(npb)
+#        IP=IP+1
+#
+#    IP=IP-1
+#    vaic=vaicv
+#    Vaicv=Vaicv[range(1,IP+1),0]
+#    Vaicv.shape = (Vaicv.size,1)
+#
+#    #return IP,pf,A,pb,B,ef,eb,vaic,Vaicv
+#    if (not return_ef):
+#        return A.transpose(1,2,0), pf/nSegLength
+#    else:
+#        return A.transpose(1,2,0), ef
+    
+def ar_fit(data, return_ef = False, **args):
     '''
     %
     %[IP,pf,A,pb,B,ef,eb,vaic,Vaicv] = mvar(u,MaxIP,alg,criterion)
@@ -220,75 +304,60 @@ def ar_fit(u, MaxIP = 0, alg='ns', criterion=0, return_ef = False):
     %                                     Negative(not yet) - keep criterion changes
     %
     '''
-    StopFlag=0
-    [nSegLength,nChannels] = u.transpose().shape
-
-    if criterion<0:
-        stopFlag=1
-        criterion=abs(criterion)
     
-    if criterion==1:
-        [npf, na, npb, nb, nef, neb, ISTAT]=nstrand(u,MaxIP,False)
-        if (not return_ef):
-            return na.transpose(1,2,0), npf/nSegLength
-        else:
-            return na.transpose(1,2,0), nef
-        
-    if alg == 'yw':
+    read_args(args)
+    
+    [n,nd] = data.shape
+
+    if pr_.ar_fit == 'yw':
+        if pr_.v:
+            print '\nUsing Yule-Walker VAR estimator.'
         fitalg = yule_walker
+    elif pr_.ar_fit == 'ns':
+        if pr_.v:
+            print '\nUsing Nutall-Strand VAR estimator.'
+        fitalg = nstrand
     else:
+        if pr_.v:
+            print '\nVar estimator invalid, using Nutall-Strand.'
         fitalg = nstrand
     
-    vaicv=0
-    if MaxIP == 0:
-        MaxOrder = 30;
-        UpperboundOrder = round(3*sqrt(nSegLength)/nChannels)
-        #% Marple Jr. page 409
-        #% Suggested by Nuttall, 1976.
-        UpperboundOrder = min([MaxOrder, UpperboundOrder])
-    else:
-        MaxOrder=MaxIP
-        UpperboundOrder=MaxIP
+    if pr_.fixp:
+        return fitalg(data,pr_.maxp,return_ef)
     
-    #print 'MaxOrder limited to ', MaxOrder
+    #if round(3*sqrt(nd)/n) < pr_.maxp:
+    #    print 'Using lower maxp, seems high for this data'
+    #    maxp = round(3*sqrt(nd)/n)
        
-    IP=1
-    Vaicv=zeros((MaxOrder+1,1), float)
-    while IP <= UpperboundOrder:
-        if (IP > 10):
-            print 'Testando ar_fit com P =', IP
+    aic = zeros(pr_.maxp+1, dtype=float)
+    for ip in arange(1,pr_.maxp+1):
+        if (ip > 10):
+            if pr_.v:
+                print 'Testando ar_fit com P =', ip
             
-        [npf, na, npb, nb, nef, neb, ISTAT]=fitalg(u,IP,False)
+        #[na, npf, npb, nb, nef, neb, ISTAT]=fitalg(data,ip,return_ef)
+        na, npf = fitalg(data,ip,return_ef)
         
-        vaic=max(u.shape)*log(det(npf))+2*nChannels*nChannels*IP;
+        aic[ip] = max(data.shape)*log(det(npf))+2*n*n*ip;
         
-        Vaicv[IP,0]=vaic
-
-        if (vaic>vaicv) and not (IP==1):
-            vaic=vaicv
-            if not StopFlag:
+        if aic[ip] > aic[ip-1] and ip > 1:
+            if not pr_.test_allp:
                 break
-        #% Akaike condition
-        vaicv=vaic
-        pf = array(npf)
-        A  = array(na)
-        ef = array(nef)
-#        if alg==0:
-#            B  = array(nb)
-#            eb = array(neb)
-#            pb = array(npb)
-        IP=IP+1
-
-    IP=IP-1
-    vaic=vaicv
-    Vaicv=Vaicv[range(1,IP+1),0]
-    Vaicv.shape = (Vaicv.size,1)
-
-    #return IP,pf,A,pb,B,ef,eb,vaic,Vaicv
-    if (not return_ef):
-        return A.transpose(1,2,0), pf/nSegLength
-    else:
-        return A.transpose(1,2,0), ef
+            
+        pf = npf
+        A  = na
+#       ef = nef
+#       B  = array(nb)
+#       eb = array(neb)
+#       pb = array(npb)
+    
+    if pr_.test_allp:
+        if pr_.v:
+            print '\nUsing global AIC minimum:', argmin(aic[1:])+1
+        return fitalg(data,argmin(aic[1:])+1)
+    
+    #return ip-1,pf,A,pb,B,ef,eb,vaic,Vaicv
+    return A, pf
 
 #def R_YW(data, maxp = 30):
 #    '''Estimates multivariate AR fit for data, using Yule-walker of R package.

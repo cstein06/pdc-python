@@ -253,36 +253,36 @@ def gen_winterhalter_2005_van_der_Pol(n, dummy = 100, dt = 0.01):
     data = data[:,dummy:]
     return data
 
-t = array([[0, 0.2, 0, 0],
-           [0.2, 0, 0, 0.2],
-           [0.2, 0, 0, 0.2],
-           [0, 0.2, 0, 0]])
-w = array([1.5,1.48,1.53,1.44])
-sg = 1.5
-
-mi = 5
-
-n = 0
-
-def odewinter_der(y, tm):
-
-    print 'ytm', y, tm
-    y, y1 = y.reshape(2,4)
-    
-    #nr = n[:,]
-    y2 = mi*(1 - y**2)*y1 - w**2 * y + \
-         sg*n + dot(t, y) - sum(t,1)*y
-    newy = concatenate((y1,y2)) 
-    
-    print 'new', newy
-    return newy 
-    
-def gen_winterhalter_2005_van_der_Pol_odeint(np, dummy = 100, dt = 0.01):
-    #esta com problemas por causa do random, eu acho.
-    n = randn(4,np+dummy)
-    data = odeint(odewinter_der, zeros(8), [0,1], mxstep = 10)#linspace(0,(np+dummy)*dt,np+dummy))
-    print data[:4, 100:140]
-    return data[:4,dummy:]
+#t = array([[0, 0.2, 0, 0],
+#           [0.2, 0, 0, 0.2],
+#           [0.2, 0, 0, 0.2],
+#           [0, 0.2, 0, 0]])
+#w = array([1.5,1.48,1.53,1.44])
+#sg = 1.5
+#
+#mi = 5
+#
+#n = 0
+#
+#def odewinter_der(y, tm):
+#
+#    print 'ytm', y, tm
+#    y, y1 = y.reshape(2,4)
+#    
+#    #nr = n[:,]
+#    y2 = mi*(1 - y**2)*y1 - w**2 * y + \
+#         sg*n + dot(t, y) - sum(t,1)*y
+#    newy = concatenate((y1,y2)) 
+#    
+#    print 'new', newy
+#    return newy 
+#    
+#def gen_winterhalter_2005_van_der_Pol_odeint(np, dummy = 100, dt = 0.01):
+#    #esta com problemas por causa do random, eu acho.
+#    n = randn(4,np+dummy)
+#    data = odeint(odewinter_der, zeros(8), [0,1], mxstep = 10)#linspace(0,(np+dummy)*dt,np+dummy))
+#    print data[:4, 100:140]
+#    return data[:4,dummy:]
 
 def teste_data():
     subs = 50
@@ -312,64 +312,7 @@ def teste_data():
     #                               maxp, alpha = alpha, metric = metric)
     #pdc_.plot_all(mes, th, ic1, ic2, nf = nf)
 
-def artigo():
 
-    nd = 10000
-    alpha = 0.01
-    maxp = 5
-    metric = 'diag'
-    nboot = 5000
-    nf = 64
-    sample_f = 1
-    
-    A, er = ar_models(5)
-    
-    #data = ar_data(A, er, nd)
-    data = ar_models(2)
-    
-    set_params(maxp = maxp, nf = nf, plot_labels = ['Sunspot', 'Melanoma'],
-               logss = False, plot_ic = False, sample_f = sample_f,
-               metric = metric, alpha = alpha, stat = 'asymp')
-    
-    res1 = pdc_.pdc_full(data)
-    res2 = pdc_.pdc_full(data, stat = 'boot', n_boot = nboot)
-    
-    ratio = res1[1]/res2[1]
-    
-    gl_.res_.mes = ratio
-    pl_.plot_all()
-    
-    pp.show()
-    return
-    
-    res1 = pdc_.pdc_full(data)
-    
-    return
-    pp.figure()
-    
-    
-    res2 = pdc_.pdc_full(data, maxp = maxp, metric = metric, nf = nf,
-                         alpha = alpha, stat = 'boot', n_boot = nboot)
-    
-    n=data.shape[0]
-    
-    pp.figure()
-    x = arange(nf)/(2.0*nf)
-    for i in arange(n):
-        for j in arange(n):
-            pp.subplot(n,n,i*n+j+1)
-            if i == j: continue
-            
-            if i == 1 and j == 0: 
-                pp.plot(x,res1[1][i,j])
-                pp.plot(x,res2[1][i,j])
-                continue
-            pp.plot(x,res1[3][i,j]-res1[2][i,j])
-            pp.plot(x,res2[3][i,j]-res2[2][i,j])
-    
-    pp.show()
-    
-    return res1, res2
 
 if __name__ == "__main__":
     #artigo()

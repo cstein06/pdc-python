@@ -8,6 +8,7 @@ from scipy.stats import chi2
 from pdc.analysis import pdc, gci
 import time
 from scipy import randn
+from pdc.globals import *
 
 import pdc.analysis as pdc_
 import pdc.asymp as ass_
@@ -513,17 +514,18 @@ def test_AMVAR2(m = 10, nd = 2000, n = 2, p = 3, step = 50, se = 100):
     
     return A, er
     
+def test_ar_fit():
+    da = ar_data_.ar_data(model = 0)
     
-def profile_arfit():
-    da = ar_data_.ar_data(model = 0, m = 10000)
+    print ar_fit.ar_fit(da, test_allp = True, maxp = 20, ar_fit = 'yw')
+    print ar_fit.ar_fit(da, test_allp = True, maxp = 20, ar_fit = 'ns')
     
-    A,e = ar_fit.yule_walker(da, 2)
 
 if __name__ == "__main__":
     #test_AIC()
     #compare_matlab_pdc_one()
     #test_patnaik2()
-    test_daniel_JAS_fig2()
+    #test_daniel_JAS_fig2()
     #tes#t_gci()
     #test_gct()
     #test_white()
@@ -531,3 +533,4 @@ if __name__ == "__main__":
     #test_igct_matlab()
     
     #test_AMVAR(nd = 200)
+    test_ar_fit()
