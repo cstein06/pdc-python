@@ -237,12 +237,21 @@ def load_params(file):
     #return prn_, resn_
 
 def load_win_pic(file):
+    
+    print pr_.output_dir + file
     f = open(pr_.output_dir + file, 'r')
     
     stres = pickle.load(f)    
-    stmean = pickle.load(f)  
-    ststds = pickle.load(f)  
-    nstates = pickle.load(f)
+    #stmean = pickle.load(f)  
+    #ststds = pickle.load(f)  
+    #nstates = pickle.load(f)
+    ststds = None  
+    stmean = None
+    nstates= None
+    
+    #print stres.shape
+    #print stmean.shape
+    #print ststds.shape
         
     f.close()
     

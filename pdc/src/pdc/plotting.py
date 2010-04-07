@@ -4,6 +4,7 @@ import matplotlib.pyplot as pp
 
 from globals import *
 from matplotlib.pyplot import imshow
+import matplotlib.colors as mc_
 
 #def plot_all(mes, th, ic1, ic2, ss = None, sample_f = 1.0, 
 #             logss = False, sqrtmes = False, plotf = None):
@@ -173,21 +174,61 @@ def plot_coherogram(res, states = None):
     nwin,n,n,nf = res.shape
     
     #pp.ion()
+    #print res.shape
+    #states = states[:400]
+    #res = res[:400,:,:,:120]
     
     for i in range(n):
         pp.subplot(n+1,n,i+1)
         if states is not None:
             #saux = zeros([5, size(states)])
             #saux[0] = states
-            saux = states.reshape(1,-1)
-            imshow(saux, origin='lower', extent=(0,5,0,3))
+            
+            saux = states.reshape(1,-1,1)
+            
+            srgb = repeat(saux, 3, axis = 2)
+            
+            for i in arange(saux.shape[1]):
+                if srgb[0,i,0] > 0:
+                    col = pr_.state_colors[int(srgb[0,i,0]-1)]
+                else:
+                    col = mc_.colorConverter.to_rgb('k')
+                srgb[0,i] = mc_.colorConverter.to_rgb(col)
+            
+            imshow(srgb, origin='lower', extent=(0,5,0,3))
             pp.xticks([])
             pp.yticks([])
         
         
     for i in range(n):
         for j in range(n):
+            
             pp.subplot(n+1,n,n+i*n+j+1)
+            
+            if (i == n-1):
+                try:
+                    if pr_.plot_labels != None:
+                        pp.xlabel(pr_.plot_labels[j])
+                    else:
+                        pp.xlabel(str(j+1))
+                except:
+                    print '\nProblem with plot labels.'
+                    pp.xlabel(str(j+1))
+                    
+            if (j == 0):
+                try:
+                    if pr_.plot_labels != None:
+                        pp.ylabel(pr_.plot_labels[i])
+                    else:
+                        pp.ylabel(str(i+1))
+                except:
+                    print '\nProblem with plot labels.'
+                    pp.ylabel(str(i+1))
+                    
+            if (i < n-1):
+                pp.xticks([])
+            if (j > 0):
+                pp.yticks([])
             
 #            if i == j:
 #                if states is not None:
@@ -199,8 +240,7 @@ def plot_coherogram(res, states = None):
                 imshow(log(res[:,i,j,:]).T, origin='lower', extent=(0,5,0,3))
             else:
                 imshow(res[:,i,j,:].T, origin='lower', extent=(0,5,0,3))
-            pp.xticks([])
-            pp.yticks([])
+            
     
     pp.draw()
     
