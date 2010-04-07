@@ -15,6 +15,8 @@ import pdc.analysis as an_
 from pdc.globals import *
 from pdc.ar_data import ar_data 
 
+import pdc.states as sta_
+
 def group_analysis():
     
     root = 'C:\\Documents and Settings\\Stein\\My Documents\\dados\\teste edu\\'
@@ -66,8 +68,8 @@ def group_analysis():
     estag1 = estag[:nwin/2]
     estag2 = estag[nwin/2:]
     
-    r1 = states_analysis(data1, estag1, plot_states = plot_states, plot_freq = plot_freq)
-    r2 = states_analysis(data2, estag2, plot_states = plot_states, plot_freq = plot_freq)
+    r1 = sta_.states_analysis(data1, estag1, plot_states = plot_states, plot_freq = plot_freq)
+    r2 = sta_.states_analysis(data2, estag2, plot_states = plot_states, plot_freq = plot_freq)
 
     return r1, r2
 
@@ -114,11 +116,11 @@ def testa_std_asymp():
                maxp = ordem_max, fixp = ordem_fixa, detrend = detrend, 
                power = espectro_em_potencia, metric = metrica_pdc, do_plot = plota)
     
-    res, mer, str = states_analysis(data, estag, plot_states = plot_states, plot_freq = plot_freq)
+    res, mer, str = sta_.states_analysis(data, estag, plot_states = plot_states, plot_freq = plot_freq)
 
     win = int(window_size*sampling_rate)
 
-    res, merA, strA, merE, strE = states_analysis_A(data, estag, plot_states = plot_states, plot_freq = plot_freq)
+    res, merA, strA, merE, strE = sta_.states_analysis(data, estag, plot_states = plot_states, plot_freq = plot_freq)
 
     #Aest, er = fit_.ar_fit(data[:,:win], ordem_max, fixp = True) 
 
