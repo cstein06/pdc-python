@@ -22,6 +22,8 @@ from scipy.linalg import eigh
 from scipy.linalg import inv as inv
 from scipy.stats import chi2
 
+
+
 def compare_matlab_pdc_one(nd = 100, nf = 5, metric = 'euc'):
     ''' Compara resultado do pdc e asymp pdc com o matlab '''
     
@@ -511,6 +513,11 @@ def test_AMVAR2(m = 10, nd = 2000, n = 2, p = 3, step = 50, se = 100):
     
     return A, er
     
+    
+def profile_arfit():
+    da = ar_data_.ar_data(model = 0, m = 10000)
+    
+    A,e = ar_fit.yule_walker(da, 2)
 
 if __name__ == "__main__":
     #test_AIC()

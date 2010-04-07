@@ -29,6 +29,7 @@ class Param():
         self.fixp = False   
         self.ss = True   
         self.power = True   
+        self.ar_fit = 'ns'
         
         #Statistics specs
         
@@ -61,7 +62,7 @@ class Param():
         
         self.do_log = False
         self.log_matlab = False
-        self.root_dir = 'C:/pdcpython/'
+        self.root_dir = 'G:\\stein\\dados\\edu_comp\\'
         self.log_string = 'current_log'
         self.mat_file = '%s%s'
         self.log_file = '%s%s.log'
@@ -71,10 +72,12 @@ class Param():
         #States logging specs
         
         self.do_states_log = True
+        self.output_dir = 'G:\\stein\\dados\\edu_comp\\results\\'
         self.stinput = 'current_state'
         self.stlog_pr = '%s%s_param.pic'
         self.stlog_res = '%s%s_res'
         self.stlog_mean = '%s%s_mean'
+        self.stpic_file = '%s%s_res.pic'
         
         #MISC
         
@@ -207,7 +210,7 @@ def log_params(file = None, **args):
         aux_log = file
 
     if pr_.v:
-        print 'Logging the parameters to file:', aux_log  
+        print '\nLogging the parameters to file:', aux_log  
     
     pr_.time = time.ctime()
 
@@ -217,10 +220,10 @@ def log_params(file = None, **args):
     
     f.close()
     
-def load_params():
+def load_params(file):
     global pr_ 
     
-    f = open(pr_.pic_file, 'r')
+    f = open(pr_.output_dir + file, 'r')
     
     pr_ = pickle.load(f)
     
@@ -228,25 +231,47 @@ def load_params():
 
     #return prn_, resn_
 
+def load_win_pic(file):
+    f = open(pr_.output_dir + file, 'r')
+    
+    stres = pickle.load(f)    
+    stmean = pickle.load(f)  
+    ststds = pickle.load(f)  
+    nstates = pickle.load(f)
+        
+    f.close()
+    
+    return stres, stmean, ststds, nstates
+
 def log_windows_results(stres, stmean, ststds, nstates, bind = False):
     
-    pr_.stinput = pr_.stinput.replace('.txt', '') + '_' + pr_.alg
+    if pr_.output_dir is None:
+        aux_dir = pr_.root_dir
+    else:
+        aux_dir = pr_.output_dir
+    
+    stiaux = pr_.stinput.replace('.txt', '') + '_' + pr_.alg
     
     if bind is True:
         pr_.stinput += '_bind'
     
-    aux_res = pr_.stlog_res % (pr_.root_dir, pr_.stinput)
-    aux_mean = pr_.stlog_mean % (pr_.root_dir, pr_.stinput)
-    aux_pr = pr_.stlog_pr % (pr_.root_dir, pr_.stinput)
+    aux_res = pr_.stlog_res % (aux_dir, stiaux)
+    aux_mean = pr_.stlog_mean % (aux_dir, stiaux)
+    aux_pr = pr_.stlog_pr % (aux_dir, stiaux) 
+    aux_pic = pr_.stpic_file % (aux_dir, stiaux)
     
     print '\nLogging the raw results in file:', aux_res  
     print 'Logging the mean results in file:', aux_mean
+    print 'Logging the pickled results in file:', aux_pic
     
     if os.path.isfile(aux_res + '.mat'):
         print '\nOverwriting results .mat file!'
             
     if os.path.isfile(aux_mean + '.mat'):
         print '\nOverwriting mean .mat file!'
+            
+    if os.path.isfile(aux_pic):
+        print '\nOverwriting pic file!'
     
     for i in range(len(stmean)):
         suf = ""
@@ -259,6 +284,16 @@ def log_windows_results(stres, stmean, ststds, nstates, bind = False):
                 {pr_.alg + '_mean':stmean[i], pr_.alg + '_stds':ststds[i], 
                 'nstates':nstates,
                 'time':time.ctime()}, oned_as = 'row')
+        
+    f = open(aux_pic, 'w')
+    
+    pickle.dump(stres[0], f)    
+    pickle.dump(stmean[0], f)  
+    pickle.dump(ststds[0], f)  
+    pickle.dump(nstates, f)
+        
+    f.close()
+    
         
     log_params(file = aux_pr)
     

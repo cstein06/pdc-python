@@ -9,8 +9,9 @@ from numpy import *
 import scipy.signal as sig
 import time
 
+import pdc.plotting as pl
 from pdc.analysis import pdc_alg, pdc_and_plot
-from pdc.plotting import pdc_plot
+#from pdc.plotting import pdc_plot
 from matplotlib.pyplot import gcf
 
 def aPDC(data, p, step = 50, se = 100, preproc = False):
@@ -27,7 +28,7 @@ def aPDC(data, p, step = 50, se = 100, preproc = False):
     
     for i in arange(p, nd, step):
         pd = pdc_alg(A[i], er[i], metric = 'diag')
-        pdc_plot(pd)
+        pl.plot_all(pd)
         canvas = gcf().canvas
         canvas.start_event_loop(timeout=0.2)
 
