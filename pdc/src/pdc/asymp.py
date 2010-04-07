@@ -13,6 +13,7 @@ from matplotlib.pyplot import xcorr
 from pdc import ar_fit
 from numpy.dual import eig
 from numpy.linalg.linalg import LinAlgError
+import pdc.globals as gl
 import time
 import sys
 
@@ -231,6 +232,8 @@ def asymp_pdc(x, A, nf, e_var, p, metric = 'gen', alpha = 0.05):
     pdc = empty([n, n, nf])
     varass1 = empty([n, n, nf])
     varass2 = empty([n, n, nf])
+    patdfr = empty([n, n, nf])
+    patdenr = empty([n, n, nf])
     
     gamma = mat(bigautocorr(x, p))
     gammai = inv(gamma)
@@ -345,7 +348,6 @@ def asymp_pdc(x, A, nf, e_var, p, metric = 'gen', alpha = 0.05):
                 varevar = dpdc_dev*omega_evar*dpdc_dev.T
                 varass1[i, j, ff] = (varalpha + varevar)/nd
                 
-                
                 ic1[i, j, ff] = pdc[i, j, ff] - sqrt(varass1[i, j, ff])*st.norm.ppf(1-alpha/2.0)
                 ic2[i, j, ff] = pdc[i, j, ff] + sqrt(varass1[i, j, ff])*st.norm.ppf(1-alpha/2.0)
                 
@@ -359,11 +361,17 @@ def asymp_pdc(x, A, nf, e_var, p, metric = 'gen', alpha = 0.05):
                 patden = sum(d)/sum(d**2)
                 th[i, j, ff] = st.chi2.ppf(1-alpha, patdf)/(patden*2*nd)
                 varass2[i, j, ff] = 2*patdf/(patden*2*nd)**2
+                patdfr[i, j, ff] = patdf
+                patdenr[i, j, ff] = patden
+                
                 
                 
                 #if (i == 1 and j == 0 and ff == 3):
                 #    patdfr = patdf
                 #    patdenr = patden TODO retirar
+
+    gl.pr_.patden = patdenr
+    gl.pr_.patdf = patdfr
 
     return pdc, th, ic1, ic2
 

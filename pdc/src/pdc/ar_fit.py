@@ -2,10 +2,7 @@
 
 '''Feito pelo Gilson, precisa revisar. parece bater c matlab.'''
 
-from numpy import array,zeros,eye,kron,dot,exp,pi,cos,sin,diag,ones,tril,resize,finfo
-from numpy.core.fromnumeric import reshape
-from numpy.core.umath import isnan
-from numpy.lib.scimath import log, sqrt
+from numpy import *
 from numpy.linalg import pinv, inv, eig
 from scipy.linalg.basic import det
 from scipy.linalg.decomp import schur
@@ -175,7 +172,42 @@ def nstrand(u, maxp = 30, simplep = True):
     else:
         return pf,A,pb,B,ef,eb,ISTAT 
 
-def ar_fit(u, MaxIP = 0, alg=0, criterion=0, return_ef = False):
+
+#def bigautocorr(x, p):
+#    '''Autocorrelation. Data in rows. From order 0 to p-1.
+#    Output: nxn blocks of autocorr of lags i. (Nuttall Strand matrix)'''
+#    n, nd = x.shape
+#    gamma = zeros([n*p, n*p])
+#    for i in arange(p):
+#        for j in arange(p):
+#            gamma[i*n:i*n+n, j*n:j*n+n] = dot(xlag(x, i), xlag(x, j).T)/nd
+#
+#    return gamma
+
+
+def xlag(x, lag):
+    if(lag == 0):
+        return x.copy();
+    xl = matrix(zeros(x.shape))
+    xl[:, lag:] = x[:, :-lag]
+    return xl
+
+def yule_walker(x, p):
+    n, nd = x.shape
+    gamma = zeros([n*(p+1), n*(p+1)])
+    for i in arange(p+1):
+        for j in arange(p+1):
+            gamma[i*n:i*n+n, j*n:j*n+n] = dot(xlag(x, i), xlag(x, j).T)/nd
+            
+    yz = gamma[:n*1,n*1:n*(p+1)]
+    igamma = inv(gamma[:n*p,:n*p])
+    A = dot(yz, igamma)
+    er = gamma[:n*1,:n*1] - dot(dot(yz, igamma), yz.T)
+
+    return A, er
+    
+
+def ar_fit(u, MaxIP = 0, alg='ns', criterion=0, return_ef = False):
     '''
     %
     %[IP,pf,A,pb,B,ef,eb,vaic,Vaicv] = mvar(u,MaxIP,alg,criterion)
@@ -202,6 +234,10 @@ def ar_fit(u, MaxIP = 0, alg=0, criterion=0, return_ef = False):
         else:
             return na.transpose(1,2,0), nef
         
+    if alg == 'yw':
+        fitalg = yule_walker
+    else:
+        fitalg = nstrand
     
     vaicv=0
     if MaxIP == 0:
@@ -222,7 +258,7 @@ def ar_fit(u, MaxIP = 0, alg=0, criterion=0, return_ef = False):
         if (IP > 10):
             print 'Testando ar_fit com P =', IP
             
-        [npf, na, npb, nb, nef, neb, ISTAT]=nstrand(u,IP,False)
+        [npf, na, npb, nb, nef, neb, ISTAT]=fitalg(u,IP,False)
         
         vaic=max(u.shape)*log(det(npf))+2*nChannels*nChannels*IP;
         
@@ -237,10 +273,10 @@ def ar_fit(u, MaxIP = 0, alg=0, criterion=0, return_ef = False):
         pf = array(npf)
         A  = array(na)
         ef = array(nef)
-        if alg==0:
-            B  = array(nb)
-            eb = array(neb)
-            pb = array(npb)
+#        if alg==0:
+#            B  = array(nb)
+#            eb = array(neb)
+#            pb = array(npb)
         IP=IP+1
 
     IP=IP-1

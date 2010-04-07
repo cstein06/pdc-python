@@ -104,14 +104,15 @@ def teste_simples():
     
     
 
-def gen_data_Guo(m, dummy = 100):
+def gen_data_Guo(m, dummy = 100, a = None):
     '''Guo et. al, 2008. Uncovering interactions in the freq. domain'''
     p = 3
     x = zeros([5,m+dummy])
     e = mnorm(zeros(7), identity(7), m+dummy).T
     b = 2*ones(5)
     c = 5*ones(5)
-    a = rand(5)
+    if a is None:
+        a = rand(5)
     for i in arange(p, m+dummy):
         x[0,i] = 0.95*sqrt(2)*x[0,i-1] - 0.9025*x[0,i-2] + e[0,i] + a[0]*e[5,i] + b[0]*e[6,i-1] + c[0]*e[6,i-2]
         x[1,i] = 0.5*x[0,i-2] + e[1,i] + a[1]*e[5,i] + b[1]*e[6,i-1] + c[1]*e[6,i-2]
