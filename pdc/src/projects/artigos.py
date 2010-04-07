@@ -11,6 +11,7 @@ import pdc.examples as exa_
 from pdc.globals import *
 import pdc.ar_fit as fit_
 import pdc.asymp as asy_
+import pdc.plotting as pl_
 
 from numpy import *
 from numpy.random import rand
@@ -18,6 +19,65 @@ from numpy.random import rand
 import scipy.stats as st
 
 import matplotlib.pyplot as pp
+
+def sunspot():
+
+    nd = 10000
+    alpha = 0.01
+    maxp = 5
+    metric = 'diag'
+    nboot = 5000
+    nf = 64
+    sample_f = 1
+    
+    A, er = ard_.ar_models(5)
+    
+    #data = ar_data(A, er, nd)
+    data = ard_.ar_models(2)
+    
+    set_params(maxp = maxp, nf = nf, plot_labels = ['Sunspot', 'Melanoma'],
+               logss = False, plot_ic = False, sample_f = sample_f,
+               metric = metric, alpha = alpha, stat = 'asymp')
+    
+    res1 = pdc_.pdc_full(data)
+    res2 = pdc_.pdc_full(data, stat = 'boot', n_boot = nboot)
+    
+    ratio = res1[1]/res2[1]
+    
+    res_.mes = ratio
+    pl_.plot_all()
+    
+    pp.show()
+    return
+    
+    res1 = pdc_.pdc_full(data)
+    
+    return
+    pp.figure()
+    
+    
+    res2 = pdc_.pdc_full(data, maxp = maxp, metric = metric, nf = nf,
+                         alpha = alpha, stat = 'boot', n_boot = nboot)
+    
+    n=data.shape[0]
+    
+    pp.figure()
+    x = arange(nf)/(2.0*nf)
+    for i in arange(n):
+        for j in arange(n):
+            pp.subplot(n,n,i*n+j+1)
+            if i == j: continue
+            
+            if i == 1 and j == 0: 
+                pp.plot(x,res1[1][i,j])
+                pp.plot(x,res2[1][i,j])
+                continue
+            pp.plot(x,res1[3][i,j]-res1[2][i,j])
+            pp.plot(x,res2[3][i,j]-res2[2][i,j])
+    
+    pp.show()
+    
+    return res1, res2
 
 def histogram_Guo(m = 5000):
     '''Make histogram of a frequency for the gPDC in Guos model
