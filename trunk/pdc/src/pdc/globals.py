@@ -19,71 +19,76 @@ class Param():
         
         #Analysis specs
         
-        self.alg = 'pdc' 
-        self.metric = 'diag'
-        self.normalize = False  
-        self.detrend = True   
-        self.nf = 64   
-        self.sample_f = 1   
-        self.maxp = 30   
-        self.fixp = False   
-        self.ss = True   
-        self.power = True   
-        self.ar_fit = 'ns'
+        self.alg = 'pdc' # Analysis method
+        self.metric = 'diag' # PDC normalization
+        self.normalize = False # Normalize data to var = 1
+        self.detrend = True # Remove linear trend from data
+        self.nf = 64 # Number of frequency points
+        self.sample_f = 1 # Data sampling frequency
+        self.maxp = 30 # Max order of estimated VAR
+        self.fixp = False # Fix VAR order at maxp or not
+        self.test_allp = False # Find AIC global minimum VAR order, not first minimum
+        self.ss = True # Calculate power spectrum also
+        self.power = True # Calculate power of the measure (instead of complex value)
+        self.ar_fit = 'ns' # VAR estimator: ns (Nutall-Strand) or yw (Yule-Walker)
         
         #Statistics specs
         
-        self.alpha = 0.05   
-        self.stat = 'asymp' 
-        self.n_boot = 1000
+        self.alpha = 0.05 # Alpha error for statistics 
+        self.stat = 'asymp' # Bootstrap (boot) or Asymptotic (asymp) statistics
+        self.n_boot = 1000 # Number of bootstrap repetitions
         
         #Plotting specs
         
-        self.do_plot = True
-        self.plotf = None
-        self.plot_diag = False
-        self.plot_color = None
-        self.plot_labels = None
-        self.plot_title = None
-        self.logss = True
-        self.sqrtmes = False
-        self.plot_th = True
-        self.plot_ic = False
-        self.plot_states = None
-        self.state_colors = ['k', 'lightblue', 'darkblue', 'pink', 'red', 'green']
-        
-        #States specs
-     
-        self.window_size = None
-        self.valid_states = None
-        self.st_dict = None
+        self.do_plot = True # Plot result
+        self.plotf = None # Plot until this frequency
+        self.plot_diag = False # Plot diagonal results (lots of times not needed)
+        self.plot_color = None # Plot color to use
+        self.plot_labels = None # Labels for each signal
+        self.plot_title = None # Plot title
+        self.logss = True # Plot log of power spectrum
+        self.sqrtmes = False # Take sqrt of results
+        self.plot_th = True # Plot threshold
+        self.plot_ic = False # Plot confidence intervals
         
         #Logging specs
         
-        self.do_log = False
-        self.log_matlab = False
-        self.root_dir = 'G:\\stein\\dados\\edu_comp\\'
-        self.log_string = 'current_log'
-        self.mat_file = '%s%s'
-        self.log_file = '%s%s.log'
-        self.pic_file = '%s%s.pic'
-        self.data_descr = 'Current log. Please give description.'  
+        self.do_log = False # Log results
+        self.log_matlab = False # Log matlab format
+        self.root_dir = 'G:\\stein\\dados\\edu_comp\\' # root data directory
+        self.log_string = 'current_log' # file string
+        self.mat_file = '%s%s' # matlab file name
+        self.log_file = '%s%s.log' # log file name
+        self.pic_file = '%s%s.pic' # pickle file name
+        self.data_descr = 'Current log. Please give description.' # data description
+        
+        # States plotting specs
+        
+        self.plot_states = None # Which states to plot
+        self.state_colors = ['k', 'lightblue', 'darkblue', 
+                             'pink', 'red', 'green'] # Plot color of each state
+        
+        #States specs
+     
+        self.window_size = None # Size of data windows
+        self.valid_states = None # States to be analysed
+        self.st_dict = None # Do not change
         
         #States logging specs
         
-        self.do_states_log = True
-        self.output_dir = 'G:\\stein\\dados\\edu_comp\\results\\'
-        self.stinput = 'current_state'
-        self.stlog_pr = '%s%s_param.pic'
-        self.stlog_res = '%s%s_res'
-        self.stlog_mean = '%s%s_mean'
-        self.stpic_file = '%s%s_res.pic'
+        self.do_states_log = True # Log results 
+        self.output_dir = 'G:\\stein\\dados\\edu_comp\\results\\' # Output dir
+        self.stinput = 'current_state' # file string
+        self.stlog_pr = '%s%s_param.pic' # params pickle string
+        self.stlog_res = '%s%s_res' # matlab result string
+        self.stlog_mean = '%s%s_mean' # matlab mean result string
+        self.stpic_file = '%s%s_res.pic' # pickle result string
         
         #MISC
         
+        self.v = True # verbose. False for no text output.
         self.time = None
         self.version = __pdc_version__
-        self.v = True #verbose
 
 pr_ = Param()
 
