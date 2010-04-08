@@ -606,6 +606,9 @@ def gci(data, **args):
     
     read_args(args)
     
+    if(type(data) == type([])):
+        data = list_to_array(data)
+        
     n = data.shape[0]
     
     data = pre_data(data, pr_.normalize, pr_.detrend)
@@ -630,6 +633,9 @@ def gct(data,**args):
     
     read_args(args)
     
+    if(type(data) == type([])):
+        data = list_to_array(data)
+    
     data = pre_data(data, pr_.normalize, pr_.detrend)
     
     A, e_var = ar_fit.ar_fit(data)
@@ -640,6 +646,9 @@ def igct(data, **args):
     '''Asymptotic statistics for Wald statistic of instantaneous GC '''
 
     read_args(args)
+    
+    if(type(data) == type([])):
+        data = list_to_array(data)
     
     data = pre_data(data, pr_.normalize, pr_.detrend)
     
