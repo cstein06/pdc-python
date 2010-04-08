@@ -102,6 +102,16 @@ def xlag(x, lag):
     xl[:, lag:] = x[:, :-lag]
     return xl
 
+def xlags(x, lags):
+    
+    xl = zeros([lags] + list(x.shape))
+    
+    xl[0] = x
+    for i in arange(1,lags):
+        xl[i, :, i:] = x[:, :-i]
+        
+    return xl
+
 def bigautocorr_old(x, p):
     '''Autocorrelation. Data in rows. From order 0 to p-1.
     Output: nxn blocks of autocorr of lags i. (Nuttall Strand matrix)'''
@@ -117,9 +127,10 @@ def bigautocorr(x, p):
     Output: nxn blocks of autocorr of lags i. (Nuttall Strand matrix)'''
     n, nd = x.shape
     gamma = zeros([n*p, n*p])
+    xl = xlags(x, p)
     for i in arange(p):
         for j in arange(p):
-            gamma[i*n:i*n+n, j*n:j*n+n] = dot(xlag(x, i), xlag(x, j).T)/nd
+            gamma[i*n:i*n+n, j*n:j*n+n] = dot(xl[i], xl[j].T)/nd
 
     return gamma
 

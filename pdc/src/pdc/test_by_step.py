@@ -6,6 +6,7 @@ from numpy import *
 import matplotlib.pyplot as pp
 from scipy.stats import chi2
 from pdc.analysis import pdc, gci
+import cProfile
 import time
 from scipy import randn
 from pdc.globals import *
@@ -514,11 +515,19 @@ def test_AMVAR2(m = 10, nd = 2000, n = 2, p = 3, step = 50, se = 100):
     
     return A, er
     
+def test_profile_ar():
+    
+    data = ar_data_.ar_data(model = 0, m = 100000)
+    
+    for i in arange(10):
+        print i
+        ar_fit.ar_fit(data, fixp = True, maxp = 2, ar_fit = 'ns', v = False)
+    
 def test_ar_fit():
     da = ar_data_.ar_data(model = 0)
     
-    print ar_fit.ar_fit(da, test_allp = True, maxp = 20, ar_fit = 'yw')
-    print ar_fit.ar_fit(da, test_allp = True, maxp = 20, ar_fit = 'ns')
+    cProfile.run('test_profile_ar()')
+    #cProfile.run("ar_fit.ar_fit(da, test_allp = True, maxp = 20, ar_fit = 'ns'")
     
 
 if __name__ == "__main__":
