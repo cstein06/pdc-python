@@ -179,11 +179,21 @@ def nstrand(u, p = None, return_ef = False):
         #return pf,A,pb,B,ef,eb,ISTAT 
         return A.transpose(1,2,0), pf/N
 
-def xlag(x, lag):
-    if(lag == 0):
-        return x.copy();
-    xl = matrix(zeros(x.shape))
-    xl[:, lag:] = x[:, :-lag]
+#def xlag(x, lags):
+#    
+#    if(lag == 0):
+#        return x.copy();
+#    xl = matrix(zeros(x.shape))
+#    xl[:, lag:] = 
+    
+def xlags(x, lags):
+    
+    xl = zeros([lags] + list(x.shape))
+    
+    xl[0] = x
+    for i in arange(1,lags):
+        xl[i, :, i:] = x[:, :-i]
+        
     return xl
 
 def yule_walker(x, p = None, return_ef = False):
@@ -191,11 +201,13 @@ def yule_walker(x, p = None, return_ef = False):
     if p is None:
         p = pr_.maxp
     
+    xlag = xlags(x, p+1)
+    
     n, nd = x.shape
     gamma = zeros([n*(p+1), n*(p+1)])
     for i in arange(p+1):
         for j in arange(p+1):
-            gamma[i*n:i*n+n, j*n:j*n+n] = dot(xlag(x, i), xlag(x, j).T)/nd
+            gamma[i*n:i*n+n, j*n:j*n+n] = dot(xlag[i], xlag[j].T)/nd
             
     yz = gamma[:n*1,n*1:n*(p+1)]
     igamma = inv(gamma[:n*p,:n*p])
@@ -205,7 +217,7 @@ def yule_walker(x, p = None, return_ef = False):
     if return_ef:
         print '\nreturn_ef for YW not implemented yet.'
 
-    return A, er
+    return A.reshape(n,p,n).transpose(0,2,1), er
     
 
 #def ar_fit_old(u, MaxIP = 0, alg='ns', criterion=0, return_ef = False):
@@ -295,13 +307,6 @@ def ar_fit(data, return_ef = False, **args):
     '''
     %
     %[IP,pf,A,pb,B,ef,eb,vaic,Vaicv] = mvar(u,MaxIP,alg,criterion)
-    %
-    % input: u     - data rows
-    %        MaxIP - externaly defined maximum IP (default = 30)
-    %        alg   - for algorithm (0: Nutall-Strand)
-    %        criterion for order choice - 0: AIC; 1: fixed order in MaxIP
-    %                                     2(not yet): estimate up to max order
-    %                                     Negative(not yet) - keep criterion changes
     %
     '''
     
