@@ -36,10 +36,21 @@ def sunspot():
     data = ard_.ar_models(2)
     
     set_params(maxp = maxp, nf = nf, plot_labels = ['Sunspot', 'Melanoma'],
-               logss = False, plot_ic = False, sample_f = sample_f,
+               logss = False, plot_ic = True, sample_f = sample_f,
                metric = metric, alpha = alpha, stat = 'asymp')
     
     res1 = pdc_.pdc_full(data)
+    
+    root = 'G:\\stein\\producao\\pdc congresso baccala\\'
+    
+    savetxt(root + 'ic1_1_2.txt', res1[2][0,1])
+    savetxt(root + 'ic1_2_1.txt', res1[2][1,0])
+    savetxt(root + 'ic2_1_2.txt', res1[3][0,1])
+    savetxt(root + 'ic2_2_1.txt', res1[3][1,0])
+    
+    pp.show()
+    return
+    
     res2 = pdc_.pdc_full(data, stat = 'boot', n_boot = nboot)
     
     ratio = res1[1]/res2[1]
@@ -103,6 +114,7 @@ def histogram_Guo(m = 5000):
     pr_.nf = 5
     
     a = rand(5)
+    #a = zeros(5)
     print a
     
     #data = ard_.ar_data(A, er, nd)
@@ -117,7 +129,7 @@ def histogram_Guo(m = 5000):
     
     for i in arange(m):
     
-        data = exa_.gen_data_Guo(nd, a=a)
+        data = exa_.gen_data_Guo(nd, a=a, bv = 0, cv = 0)
     
         res[i] = pdc_.measure(data)
         
@@ -129,23 +141,66 @@ def histogram_Guo(m = 5000):
     
     pr_.v = True
     
-    big = 400
+    big = 1
     bins = 40
     
     
-    data = exa_.gen_data_Guo(nd*big, a=a)
+    data = exa_.gen_data_Guo(nd*big, a=a, bv = 0, cv = 0)
     #data2 = exa_.gen_data_Guo(nd, a=a)
     #A, er = fit_.nstrand(data, maxp = 3)
     #pdc, th, ic1, ic2 = asy_.asymp_pdc()
     pdc, th, ic1, ic2 = pdc_.measure_full(data)
     std = sqrt(big)*(pdc-ic1)/st.norm.ppf(1-pr_.alpha/2.0)    
         
+    
+    #pa = pdc[3,0,2]
+    pa = mean(res[:,3,0,2])
+    sa = std[3,0,2]
+    
+    fig = pp.figure()
+    
+    x = linspace(1.0/m, 1-1.0/m, m)
+    y = st.norm.ppf(x, loc = pa, scale = sa)
+    xmi = min(y.min(), res[:,3,0,2].min())
+    xma = max(y.max(), res[:,3,0,2].max())
+    
+    ax = fig.add_subplot(121)
+    
+    pp.plot(sorted(res[:,3,0,2]), y, 'k+')
+    pp.plot([xmi,xma],[xmi,xma], 'b')
+    
+    pp.xlabel('Estimated gPDC')
+    pp.ylabel('Quantile for Normal')
+    #pp.yticks()
+    ax.yaxis.set_ticklabels(['0.001', '0.050', '0.250', '0.750', '0.950', '0.999'])
+    ax.yaxis.set_ticks([y[0.001*m], y[0.050*m], y[0.250*m], y[0.750*m], y[0.950*m], y[0.999*m]])
+    
+    #fig = pp.figure()
+    
+    ax = fig.add_subplot(122)
+    
+    x = linspace(1.0/m, 1-1.0/m, m)
+    y = st.chi2.ppf(x, pr_.patdf[4,0,2], scale = 1/(pr_.patden[4,0,2]*2*nd))
+    xmi = min(y.min(), res[:,4,0,2].min())
+    xma = max(y.max(), res[:,4,0,2].max())
+    pp.plot(sorted(res[:,4,0,2]), y, 'k+')
+    pp.plot([xmi,xma],[xmi,xma], 'b')
+    
+    
+    pp.xlabel('Estimated gPDC')
+    pp.ylabel('Quantile for weighted Chi-squares')
+    #pp.yticks()
+    tic = array(['0.001', '0.500', '0.750', '0.950', '0.999'])
+    ax.yaxis.set_ticklabels(tic)
+    ax.yaxis.set_ticks([y[0.001*m], y[0.500*m], y[0.750*m], y[0.950*m], y[0.999*m]])
+    
+    pp.figure()
+    
     pp.hist(res[:,3,0,2], bins = bins, normed = True)
     
-    pa = pdc[3,0,2]
-    sa = std[3,0,2]
+    
     #$x = linspace(pa-3*sa, pa+3*sa, 100)
-    x = linspace(0, 0.6, 100)
+    x = linspace(0.15, 0.35, 100)
     pp.plot(x, st.norm.pdf(x, loc = pa, scale = sa))
     
     pp.figure()
@@ -156,7 +211,9 @@ def histogram_Guo(m = 5000):
     std = big*th
     
     pa = pdc[4,0,2]
-    #sa = std[4,0,2]
+    sa = std[4,0,2]
+    
+    print 'naosig', pa, sa
     
     
 #                patdf = sum(d)**2/sum(d**2)
@@ -165,19 +222,22 @@ def histogram_Guo(m = 5000):
 #                varass2[i, j, ff] = 2*patdf/(patden*2*nd)**2
                 
     
-    x = linspace(0, 0.1, 100)
+    x = linspace(0, 0.01, 100)
+    print 'pat', pr_.patdf[4,0,2]
     pp.plot(x, st.chi2.pdf(x, pr_.patdf[4,0,2], scale = 1/(pr_.patden[4,0,2]*2*nd)))
     
-    f = open('G:\\stein\\producao\\pdc congresso baccala\\py\\hist.pic', 'w')
+    #pp.plot(x, st.norm.pdf(x, loc = pa, scale = sa))
     
-    pickle.dump(res[:,3:5,0,2], f)
-    pickle.dump(pdc[3:5,0,2], f)
-    pickle.dump(std[3,0,2], f)
-    pickle.dump(pr_.patdf[4,0,2], f)
-    pickle.dump(1/(pr_.patden[4,0,2]*2*nd), f)
-        
-    f.close()
-    
+#    f = open('G:\\stein\\producao\\pdc congresso baccala\\py\\hist.pic', 'w')
+#    
+#    cPickle.dump(res[:,3:5,0,2], f)
+#    cPickle.dump(pdc[3:5,0,2], f)
+#    cPickle.dump(std[3,0,2], f)
+#    cPickle.dump(pr_.patdf[4,0,2], f)
+#    cPickle.dump(1/(pr_.patden[4,0,2]*2*nd), f)
+#        
+#    f.close()
+#    
     pp.show()
     
     return res
@@ -202,6 +262,7 @@ def winterhalter():
     
 if __name__ == "__main__":
     
-    histogram_Guo()
+    #sunspot()
+    histogram_Guo(2000)
     #winterhalter()
     

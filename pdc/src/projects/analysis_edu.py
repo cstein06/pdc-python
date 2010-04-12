@@ -64,7 +64,7 @@ def check_specgram():
     for i in arange(5):
     
         pp.subplot(2,3,i+1)
-        pp.specgram(get_data(t = i)[:si,0], NFFT = nf)
+        pp.specgram(get_data(t = i)[:si,0], NFFT = nf, origin='lower')
     
     pp.show()
     
@@ -127,7 +127,8 @@ def all_psd():
 if __name__ == '__main__':
     
     pass
-    all_cohero()
+    #all_cohero()
+    check_specgram()
 
 
 

@@ -218,15 +218,45 @@ def get_data(t = 0, r = 0, d = 0, cs = None):
         
     return d1
 
-def get_res(r = 0, d = 0, alg = 'coh'):
+def get_res(r = 0, d = 0, alg = 'coh', what = 'resu'):
     #root = "G:\\stein\\dados\\edu_comp\\results\\"
     
-    fi = 'R%s_D%s_%s_res.pic' % (rs[r], ds[r][d], alg) 
+    fi = pr_.output_dir + 'R%s_D%s_%s_%s.pic' % (rs[r], ds[r][d], alg, what) 
     
     print fi
+    f = open(fi, 'rb')
+    res = cPickle.load(f)
     
-    return load_win_pic(fi)
+    return res
 
+def plot_mean(r = 0, d = 0, es = [2,4,5], alg = 'coh'):
+    #root = "G:\\stein\\dados\\edu_comp\\results\\"
+    
+    fm = pr_.output_dir + 'R%s_D%s_%s_%s.pic' % (rs[r], ds[r][d], alg, 'mean') 
+    fs = pr_.output_dir + 'R%s_D%s_%s_%s.pic' % (rs[r], ds[r][d], alg, 'stds') 
+    s = cPickle.load(open(fs, 'rb'))
+    m = cPickle.load(open(fm, 'rb'))
+    pr_.plot_ic = True
+    pr_.plotf = 120
+    pr_.sample_f = 500
+    pr_.plot_title('R%s_D%s_%s_%s.pic' % (rs[r], ds[r][d], alg, 'mean'))
+    
+    for e in es:
+        res_.mes = m[e]
+        res_.ic1 = res_.mes - 2*s[e]
+        res_.ic2 = res_.mes + 2*s[e]
+        res_.ss = res_.mes
+    
+        pl_.plot_all()
+    
+    pp.show()
+
+
+def plotall():
+    
+    for r,d in for_all():
+        pp.figure()
+        plot_mean(r = r, d = d)
 
 def get_state(r = 0, d = 0):
     root = "G:\\stein\\dados\\edu_comp\\"
@@ -323,6 +353,44 @@ def final_processing():
     
     return res, meds, stds, nstates
     
+def get_nstates(states):
+    
+    if pr_.valid_states is None:
+        #pr_.valid_states = sorted(list(set(states[states > 0])))
+        pr_.valid_states = arange(1,7)
+        print 'valid states', pr_.valid_states
+    
+    nstates = zeros(len(pr_.valid_states))
+    
+    for i in arange(len(pr_.valid_states)):
+        nstates[i] = sum(states == pr_.valid_states[i])
+        
+    return nstates
+
+def for_all():
+    return ([r,d] for r in arange(len(rs)) for d in arange(len(ds[r])))
+            
+    
+def rewrite_pics():
+    
+    for r in arange(len(rs)):
+        for d in arange(len(ds[r])):
+            for al in ['pdc', 'coh']:
+                resu = get_res(r, d, al)
+                sta = get_state(r, d)
+                
+                f = pr_.output_dir + 'R%s_D%s_%s_resu.pic' % (rs[r], ds[r][d], al)
+                resu.dump(f)
+                
+                m, s = sta_.mean_states(resu, sta)
+                
+                f = pr_.output_dir + 'R%s_D%s_%s_mean.pic' % (rs[r], ds[r][d], al)
+                m.dump(f)
+                
+                f = pr_.output_dir + 'R%s_D%s_%s_stds.pic' % (rs[r], ds[r][d], al)
+                s.dump(f)
+                
+
     
 if __name__ == '__main__':
     
@@ -339,6 +407,8 @@ if __name__ == '__main__':
     #all_psd()
     
     #final_analysis()
+    
+    rewrite_pics()
     
     pass
     
