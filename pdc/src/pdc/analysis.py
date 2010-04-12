@@ -488,7 +488,7 @@ def measure_full(data, **args):
         if pr_.alg == 'pdc':
             print 'Used metric:', pr_.metric
         print '\nNumber of frequencies:', pr_.nf
-        print 'From 0 to ', pr_.sample_f/2.0, 'Hz\n'
+        print 'From 0 to ', (pr_.sample_f/2.0)*(pr_.nf-1.0)/pr_.nf, 'Hz\n'
         
         
     if (pr_.ss == True):

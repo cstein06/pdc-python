@@ -257,7 +257,7 @@ def load_params(file):
 #    
 #    return stres, stmean, ststds, nstates
 
-def log_windows_results(stres, stmean, ststds, nstates, bind = False):
+def log_windows_results(stres, stmean, ststds, nstates, states, bind = False):
     
     if pr_.output_dir is None:
         aux_dir = pr_.root_dir
@@ -296,7 +296,7 @@ def log_windows_results(stres, stmean, ststds, nstates, bind = False):
     
         savemat(aux_mean + suf,
                 {pr_.alg + '_mean':stmean[i], pr_.alg + '_stds':ststds[i], 
-                'nstates':nstates,
+                'nstates':nstates, 'states':states,
                 'time':time.ctime()}, oned_as = 'row')
         
     f = open(aux_pic, 'wb')
@@ -305,6 +305,7 @@ def log_windows_results(stres, stmean, ststds, nstates, bind = False):
     cPickle.dump(stmean[0], f)  
     cPickle.dump(ststds[0], f)  
     cPickle.dump(nstates, f)
+    cPickle.dump(states, f)
         
     f.close()
     

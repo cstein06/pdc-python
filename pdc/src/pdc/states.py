@@ -159,7 +159,7 @@ def states_analysis(data, states, **args):
     print '\nTotal time in secs:', time.clock() - tim
     
     if pr_.do_states_log:
-        log_windows_results(result, mpdc, spdc, nstates)
+        log_windows_results(result, mpdc, spdc, nstates, states)
     
     return result, mpdc, spdc, nstates
 

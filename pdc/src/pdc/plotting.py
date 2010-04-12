@@ -173,10 +173,18 @@ def plot_coherogram(res, states = None):
     
     nwin,n,n,nf = res.shape
     
+    if pr_.plot_title is not None:
+        pp.suptitle(pr_.plot_title)
+    else:
+        pp.suptitle(mnames_[pr_.alg])
+
     #pp.ion()
     #print res.shape
     #states = states[:400]
     #res = res[:400,:,:,:120]
+    
+    if size(states) != res.shape[0]:
+        print 'states doesn\'t match  res size.'
     
     for i in range(n):
         pp.subplot(n+1,n,i+1)
@@ -236,10 +244,17 @@ def plot_coherogram(res, states = None):
 #                    pp.xticks([])
 #                    pp.yticks([])
 #                continue
-            if i == j and pr_.ss and pr_.logss:
-                imshow(log(res[:,i,j,:]).T, origin='lower', extent=(0,5,0,3))
+            
+            
+            if pr_.plotf is not None:
+                auxres = res[:,:,:,:pr_.plotf]
             else:
-                imshow(res[:,i,j,:].T, origin='lower', extent=(0,5,0,3))
+                auxres = res
+                
+            if i == j and pr_.ss and pr_.logss:
+                imshow(log(auxres[:,i,j,:]).T, origin='lower', extent=(0,5,0,3))
+            else:
+                imshow(auxres[:,i,j,:].T, origin='lower', extent=(0,5,0,3))
             
     
     pp.draw()

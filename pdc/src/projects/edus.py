@@ -27,7 +27,7 @@ def main_analysis():
     n_frequencies = 250
     sampling_rate = 500
     
-    plot_labels = ['Ca1e', 'Ca2e', 'Ca1d', 'Ca2d', 'Ca3d']
+    plot_labels = ['Ca1e', 'Ca3e', 'Ca1d', 'Ca2d', 'Ca3d']
     #plot_labels = ['Ca1e', 'Ca2e', 'Ca1d']
     plot_states = array([1,2,3,4,5,6])
     #plot_states = array([2])
@@ -250,7 +250,104 @@ def plot_mean(r = 0, d = 0, es = [2,4,5], alg = 'coh'):
         pl_.plot_all()
     
     pp.show()
+    
 
+def get_rejected(r = 0, d = 0):
+    root = "G:\\stein\\dados\\edu_comp\\"
+    fst = 'ES%s_%s_rejected_s_filt.mat' % (rs[r], ds[r][d])
+    
+    return loadmat(root+fst)['TMPREJ'][:,:2].T   
+
+
+def get_block_limits(r = 0, d = 0):
+    '''Calcula onde os dados limpos estao dividos em meia hora,
+    vendo o arquivo de trechos rejeitados.'''
+    
+    block = 3600*1000/4
+    rej = get_rejected(r, d)
+    lim = zeros(5)
+    sumrej = zeros(4)
+    en = zeros(5)
+    for i in arange(1,5):
+        lim[i] = where(rej[1] < block*i)[0][-1]
+        
+        rej2 = ceil(rej[1]) - int32(rej[0])
+        
+        sumrej[i-1] = sum(rej2[lim[i-1]:lim[i]])
+        
+        #print 'rej', sumrej[i-1]
+        
+        en[i] = en[i-1]+block-sumrej[i-1]
+        
+    print 'r:', r, 'd:', d
+    print en
+    return en
+
+def nstates_per_block():
+    '''Calcula onde os dados limpos estao dividos em meia hora,
+    vendo o arquivo de trechos rejeitados. Entao calcula nstates
+    para cada trecho de meia hora'''
+    
+    block = 3600*1000/4
+    
+    for r,d in [[0,4], [1,4], [2,3]]:
+        rej = get_rejected(r, d)
+        sta = get_state(r, d)
+        
+        nstates = zeros([4] + [len(pr_.valid_states)])
+        lim = zeros(5)
+        sumrej = zeros(4)
+        en = zeros(5)
+        for i in arange(1,5):
+            lim[i] = where(rej[1] < block*i)[0][-1]
+            
+            rej2 = ceil(rej[1]) - int32(rej[0])
+            
+            sumrej[i-1] = sum(rej2[lim[i-1]:lim[i]])
+            
+            #print 'rej', sumrej[i-1]
+            
+            en[i] = en[i-1]+block-sumrej[i-1]
+            
+            auxsta = sta[en[i-1]/5000.0:en[i]/5000.0]
+            #print en[i-1], en[i]
+    
+            for j in arange(len(pr_.valid_states)):
+                nstates[i-1,j] = sum(auxsta == pr_.valid_states[j])
+            
+        print 'r:', r, 'd:', d
+        print en
+        print nstates
+
+
+
+def mean_block3_lastdays():
+    
+    set_def()
+    
+    for r,d in [[0,4], [1,4], [2,3]]:
+        lim = get_block_limits(r, d)
+        
+        sta = get_state(r = r, d = d)
+        
+        data = get_data(r = r, d = d)
+        
+        slim1 = ceil(lim[2]/5000.0)
+        slim2 = int32((lim[3]+1)/5000.0)
+
+        sta = sta[slim1:slim2]
+        
+        data = data[:,slim1*5000:slim2*5000]
+        
+        print 'slims', slim1, slim2
+        
+        pr_.stinput = 'R%s_D%s_block3' % (r,d)
+        
+        pr_.plot_labels = ls[r]
+        
+        pr_.plot_title = 'Coherence R%s D%s' % (r,d)
+                
+        sta_.states_analysis(data, sta)
 
 def plotall():
     
@@ -273,14 +370,14 @@ def set_def():
     pr_.nf = 250
     pr_.sample_f = 500
     
-    pr_.plot_labels = ['Ca1e', 'Ca2e', 'Ca1d', 'Ca2d', 'Ca3d']
+    pr_.plot_labels = ['Ca1e', 'Ca3e', 'Ca1d', 'Ca2d', 'Ca3d']
     #plot_labels = ['Ca1e', 'Ca2e', 'Ca1d']
     #plot_states = array([1,2,3,4,5,6])
     #plot_states = array([2])
     pr_.plotf = 120
     pr_.plota = True
     pr_.plot_ic = True
-    pr_.do_window_log = False
+    pr_.do_window_log = True
     
     pr_.ss = True
     pr_.logss = True
@@ -353,6 +450,7 @@ def final_processing():
     
     return res, meds, stds, nstates
     
+
 def get_nstates(states):
     
     if pr_.valid_states is None:
@@ -408,7 +506,11 @@ if __name__ == '__main__':
     
     #final_analysis()
     
-    rewrite_pics()
+    #rewrite_pics()
+    
+    #nstates_per_block()
+    
+    mean_block3_lastdays()
     
     pass
     
