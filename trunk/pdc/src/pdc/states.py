@@ -86,11 +86,12 @@ def mean_states(mes, states):
     if (nwins > size(states)):
         print 'More windows than states in the states file!'
     
-    for i in pr_.valid_states:
+    for i in arange(len(pr_.valid_states)):
         if sum(states == i) > 0:
-            auxi = pr_.st_dict[i]
-            mpdc[auxi] = mean(mes[states == i], 0)
-            spdc[auxi] = std(mes[states == i], 0)
+            #auxi = pr_.st_dict[pr_.valid_states[i]]
+            auxi = i
+            mpdc[auxi] = mean(mes[states == pr_.valid_states[i]], 0)
+            spdc[auxi] = std(mes[states == pr_.valid_states[i]], 0)
             
     return mpdc, spdc
 

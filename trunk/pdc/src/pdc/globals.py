@@ -2,7 +2,7 @@
 from scipy.io.matlab.mio import savemat
 import os.path
 import time
-import pickle
+import cPickle
 
 __pdc_version__ = 0.1
 
@@ -59,7 +59,7 @@ class Param():
         self.log_string = 'current_log' # file string
         self.mat_file = '%s%s' # matlab file name
         self.log_file = '%s%s.log' # log file name
-        self.pic_file = '%s%s.pic' # pickle file name
+        self.pic_file = '%s%s.pic' # cPickle file name
         self.data_descr = 'Current log. Please give description.' # data description
         
         # States plotting specs
@@ -71,7 +71,7 @@ class Param():
         #States specs
      
         self.window_size = None # Size of data windows
-        self.valid_states = None # States to be analysed
+        self.valid_states = [1,2,3,4,5,6] # States to be analysed
         self.st_dict = None # Do not change
         
         #States logging specs
@@ -79,10 +79,10 @@ class Param():
         self.do_states_log = True # Log results 
         self.output_dir = 'G:\\stein\\dados\\edu_comp\\results\\' # Output dir
         self.stinput = 'current_state' # file string
-        self.stlog_pr = '%s%s_param.pic' # params pickle string
+        self.stlog_pr = '%s%s_param.pic' # params cPickle string
         self.stlog_res = '%s%s_res' # matlab result string
         self.stlog_mean = '%s%s_mean' # matlab mean result string
-        self.stpic_file = '%s%s_res.pic' # pickle result string
+        self.stpic_file = '%s%s_res.pic' # cPickle result string
         
         #MISC
         
@@ -181,10 +181,10 @@ def log_results(**args):
     
     f.close()
     
-    f = open(aux_pic, 'w')
+    f = open(aux_pic, 'wb')
     
-    pickle.dump(pr_, f)    
-    pickle.dump(res_, f)
+    cPickle.dump(pr_, f)    
+    cPickle.dump(res_, f)
     f.close()
     
     if pr_.log_matlab:
@@ -195,10 +195,10 @@ def load_results():
     global res_
     global pr_ 
     
-    f = open(pr_.pic_file, 'r')
+    f = open(pr_.pic_file, 'rb')
     
-    pr_ = pickle.load(f)
-    res_ = pickle.load(f)
+    pr_ = cPickle.load(f)
+    res_ = cPickle.load(f)
     
     f.close()
 
@@ -219,43 +219,43 @@ def log_params(file = None, **args):
     
     pr_.time = time.ctime()
 
-    f = open(aux_log, 'w')
+    f = open(aux_log, 'wb')
     
-    pickle.dump(pr_, f)  
+    cPickle.dump(pr_, f)  
     
     f.close()
     
 def load_params(file):
     global pr_ 
     
-    f = open(pr_.output_dir + file, 'r')
+    f = open(pr_.output_dir + file, 'rb')
     
-    pr_ = pickle.load(f)
+    pr_ = cPickle.load(f)
     
     f.close()
 
     #return prn_, resn_
 
-def load_win_pic(file):
-    
-    print pr_.output_dir + file
-    f = open(pr_.output_dir + file, 'r')
-    
-    stres = pickle.load(f)    
-    #stmean = pickle.load(f)  
-    #ststds = pickle.load(f)  
-    #nstates = pickle.load(f)
-    ststds = None  
-    stmean = None
-    nstates= None
-    
-    #print stres.shape
-    #print stmean.shape
-    #print ststds.shape
-        
-    f.close()
-    
-    return stres, stmean, ststds, nstates
+#def load_win_pic(file):
+#    
+#    print pr_.output_dir + file
+#    f = open(pr_.output_dir + file, 'r')
+#    
+#    stres = cPickle.load(f)    
+#    #stmean = cPickle.load(f)  
+#    #ststds = cPickle.load(f)  
+#    #nstates = cPickle.load(f)
+#    ststds = None  
+#    stmean = None
+#    nstates= None
+#    
+#    #print stres.shape
+#    #print stmean.shape
+#    #print ststds.shape
+#        
+#    f.close()
+#    
+#    return stres, stmean, ststds, nstates
 
 def log_windows_results(stres, stmean, ststds, nstates, bind = False):
     
@@ -276,7 +276,7 @@ def log_windows_results(stres, stmean, ststds, nstates, bind = False):
     
     print '\nLogging the raw results in file:', aux_res  
     print 'Logging the mean results in file:', aux_mean
-    print 'Logging the pickled results in file:', aux_pic
+    print 'Logging the cPickled results in file:', aux_pic
     
     if os.path.isfile(aux_res + '.mat'):
         print '\nOverwriting results .mat file!'
@@ -299,12 +299,12 @@ def log_windows_results(stres, stmean, ststds, nstates, bind = False):
                 'nstates':nstates,
                 'time':time.ctime()}, oned_as = 'row')
         
-    f = open(aux_pic, 'w')
+    f = open(aux_pic, 'wb')
     
-    pickle.dump(stres[0], f)    
-    pickle.dump(stmean[0], f)  
-    pickle.dump(ststds[0], f)  
-    pickle.dump(nstates, f)
+    cPickle.dump(stres[0], f)    
+    cPickle.dump(stmean[0], f)  
+    cPickle.dump(ststds[0], f)  
+    cPickle.dump(nstates, f)
         
     f.close()
     

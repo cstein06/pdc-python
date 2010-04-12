@@ -8,6 +8,7 @@ from scipy.linalg.basic import det
 from scipy.linalg.decomp import schur
 
 from globals import *
+from matplotlib import pyplot
 
 eps = finfo(float).eps.item()
 
@@ -75,6 +76,22 @@ def lyap(A, B, C=[]):
         X = X.real
     return X
 
+def calc_ef(data, A):
+    
+    n, nd = data.shape
+    
+    n,n,p = A.shape
+    
+    x = zeros(data.shape)
+    s = zeros(data.shape)
+    for i in arange(p,nd):
+        #x = zeros(n)
+        for j in arange(p):
+            x[:,i] += dot(A[:,:,j], data[:,i-j-1])
+        s[:,i] = data[:,i]-x[:,i]
+        
+    return sum(s, axis = 1)
+
 def nstrand(u, p = None, return_ef = False):
     '''
     %   Calculate the coeficients of multi-channel auto-regressive matrix using
@@ -114,8 +131,8 @@ def nstrand(u, p = None, return_ef = False):
         print('IP > 200')
         return
     
-    ef=array(u)                    #% Eq. (15.91)
-    eb=array(u)                    #% Eq. (15.91)
+    ef=u.copy()                    #% Eq. (15.91)
+    eb=u.copy()                    #% Eq. (15.91)
     pf=dot(u, u.transpose())       #% Eq. (15.90)
     pb=array(pf)                   #% Eq. (15.90)
     M=0
