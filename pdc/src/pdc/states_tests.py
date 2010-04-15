@@ -9,13 +9,79 @@ import scipy.stats as st
 from scipy.linalg.basic import det
 from scipy.io import savemat
 
-import pdc.plotting as pl
-import pdc.ar_fit as fit_
-import pdc.analysis as an_
-from pdc.globals import *
-from pdc.ar_data import ar_data 
+from pdc import *
 
-import pdc.states as sta_
+
+def main_analysis():
+    
+    #root = 'G:\\stein\\dados\\teste edu\\'
+    #root = 'G:\\stein\\dados\\teste edu\\gotas psd\\'
+    root = '/home/stein/dados/teste edu/gotas psd/'
+        
+    #input = root + 'ES60_21_07_09_melhores4.txt'
+    input = 'ES57_13_02_09_melhores3_test.txt'
+    #input = 'ES59_13_07_09_melhores3.txt'
+    #input = root + 'test.txt'
+    
+    instates = 'ES59_13_07_09_estagiamentojanela10s_limpo.txt'
+    
+    #algoritmo = 'pdc'
+    algoritmo = 'coh'
+    
+    window_size = 10
+    n_frequencies = 250
+    sampling_rate = 500
+    
+    plot_labels = ['Ca1e', 'Ca3e', 'Ca1d', 'Ca2d', 'Ca3d']
+    #plot_labels = ['Ca1e', 'Ca2e', 'Ca1d']
+    plot_states = array([1,2,3,4,5,6])
+    #plot_states = array([2])
+    plot_freq = 150
+    plota = False
+    do_window_log = False
+    
+    pr_.ss = True
+    #pr_.logss = False
+    #pr_.plot_diag = True
+    valid_states = [1,2,3,4,5,6]
+    ordem_max = 25
+    ordem_fixa = True
+    detrend = True
+    espectro_em_potencia = True
+    metrica_pdc = 'diag'
+    
+    ####################################################
+    
+    #nao mexer daqui pra frente
+    
+    set_params(alg = algoritmo, window_size = window_size, 
+               nf = n_frequencies, sample_f = sampling_rate,
+               maxp = ordem_max, fixp = ordem_fixa, detrend = detrend, 
+               do_states_log = do_window_log,
+               power = espectro_em_potencia, metric = metrica_pdc, 
+               do_plot = plota,  plot_labels = plot_labels, plotf = plot_freq,
+               root_dir = root, stinput = input, plot_states = plot_states,
+               valid_states = valid_states)
+    
+    data = loadtxt(root+input).T
+    states = loadtxt(root+instates)
+    
+    print 'Data loaded:', input
+    
+    res, mea, stds, nstates = states_analysis(data, states)
+    
+    plot_coherogram(res, states)
+
+    
+    
+    pp.show()
+
+    
+
+        #read with: medias2 = permute(reshape(medias', shape(4), shape(3), 
+        # shape(2), shape(1)), [4,3,2,1]);
+
+    return res, mea, stds, nstates
 
 def group_analysis():
     
@@ -68,8 +134,8 @@ def group_analysis():
     estag1 = estag[:nwin/2]
     estag2 = estag[nwin/2:]
     
-    r1 = sta_.states_analysis(data1, estag1, plot_states = plot_states, plot_freq = plot_freq)
-    r2 = sta_.states_analysis(data2, estag2, plot_states = plot_states, plot_freq = plot_freq)
+    r1 = states_analysis(data1, estag1, plot_states = plot_states, plot_freq = plot_freq)
+    r2 = states_analysis(data2, estag2, plot_states = plot_states, plot_freq = plot_freq)
 
     return r1, r2
 
@@ -116,20 +182,21 @@ def testa_std_asymp():
                maxp = ordem_max, fixp = ordem_fixa, detrend = detrend, 
                power = espectro_em_potencia, metric = metrica_pdc, do_plot = plota)
     
-    res, mer, str = sta_.states_analysis(data, estag, plot_states = plot_states, plot_freq = plot_freq)
+    res, mer, str = states_analysis(data, estag, plot_states = plot_states, plot_freq = plot_freq)
 
     win = int(window_size*sampling_rate)
 
-    res, merA, strA, merE, strE = sta_.states_analysis(data, estag, plot_states = plot_states, plot_freq = plot_freq)
+    res, merA, strA, merE, strE = states_analysis(data, estag, plot_states = plot_states, plot_freq = plot_freq)
 
     #Aest, er = fit_.ar_fit(data[:,:win], ordem_max, fixp = True) 
 
     #simd = ar_data(Aest, er, win)
     simd = ar_data(merA[est], merE[est], win)
     
-    asy = vars(an_)[algoritmo + '_full'](simd)
+    
+    asy = vars()[algoritmo + '_full'](simd)
      
-    pl.plot_all()
+    plot_all()
     
     set_results(mes = mer[est])
     for i in arange(size(mer[est])):
@@ -137,7 +204,7 @@ def testa_std_asymp():
         res_.ic2.flat[i] = st.norm.ppf(1-alpha, mer[est].flat[i], str[est].flat[i])
     set_results(th = zeros(mer[est].shape))
     
-    pl.plot_all()
+    plot_all()
     
     #pp.show()
     
@@ -172,7 +239,7 @@ def testa_aic():
         
         for i in arange(1,aicn+1):
     
-            [npf, na, npb, nb, nef, neb, ISTAT]=fit_.nstrand(daux,i,False)
+            [npf, na, npb, nb, nef, neb, ISTAT]=nstrand(daux,i,False)
         
             vaic[i-1]=win*log(det(npf))+2*n*n*i
             
@@ -226,7 +293,7 @@ def testa_ordens():
         
             #pdcr = an_.pdc_full(daux, maxp = ord, metric = 'gen',
             #                         fixp = True, ss = True, sample_f = sf)
-            pdcr = an_.pdc_full(daux, maxp = ord, metric = 'diag',
+            pdcr = pdc_full(daux, maxp = ord, metric = 'diag',
                                      fixp = True, ss = True, sample_f = sf)
             #pdcr = an_.coh_and_plot(daux2, maxp = ord, 
             #                         fixp = True, ss = False, sample_f = sf)
@@ -244,3 +311,4 @@ if __name__ == '__main__':
     #testa_std_asymp()
     #testa_aic()
     #testa_ordens()
+    main_analysis()

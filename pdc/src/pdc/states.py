@@ -71,6 +71,9 @@ def window_analysis(data, **args):
     
     pr_.v = aux_v
     
+    if len(resp) == 1:
+        resp = resp[0]
+    
     return resp
 
 def mean_states(mes, states):
@@ -117,6 +120,9 @@ def states_analysis(data, states, **args):
     
     result = window_analysis(data)
     
+    if type(result) is not type([]):
+        result = [result] # assumes result is a list of results...
+    
     nwins = result[0].shape[0]
     
     states = states[:nwins]
@@ -162,6 +168,11 @@ def states_analysis(data, states, **args):
     
     if pr_.do_states_log:
         log_windows_results(result, mpdc, spdc, nstates, states)
+    
+    if len(result) == 1:
+        result = result[0]
+        mpdc = mpdc[0]
+        spdc = spdc[0]
     
     return result, mpdc, spdc, nstates
 

@@ -190,10 +190,14 @@ def plot_coherogram(res, states = None):
     if states is not None:
         if size(states) != res.shape[0]:
             print 'states doesn\'t match  res size.'
+            
+    states = states[:res.shape[0]]
     
-    for i in range(n):
-        pp.subplot(n+1,n,i+1)
-        if states is not None:
+    auxsub = 0
+    if states is not None:
+        auxsub = 1
+        for i in range(n):
+            pp.subplot(n+1,n,i+1)
             #saux = zeros([5, size(states)])
             #saux[0] = states
             
@@ -208,15 +212,16 @@ def plot_coherogram(res, states = None):
                     col = mc_.colorConverter.to_rgb('k')
                 srgb[0,i] = mc_.colorConverter.to_rgb(col)
             
-            imshow(srgb, origin='lower', extent=(0,5,0,3))
+            imshow(srgb, origin='lower', extent=(0,pr_.window_size*res.shape[0],0,1), aspect = 10)
             pp.xticks([])
             pp.yticks([])
+            
         
         
     for i in range(n):
         for j in range(n):
             
-            pp.subplot(n+1,n,n+i*n+j+1)
+            pp.subplot(n+auxsub,n,n*auxsub+i*n+j+1)
             
             if (i == n-1):
                 try:
@@ -251,17 +256,22 @@ def plot_coherogram(res, states = None):
 #                continue
             
             
-            if pr_.plotf is not None:
-                auxres = res[:,:,:,:pr_.plotf]
-            else:
-                auxres = res
+#            if pr_.plotf is not None:
+#                auxres = res[:,:,:,:]
+#            else:
+#                auxres = res
                 
             if i == j and pr_.ss and pr_.logss:
-                imshow(log(auxres[:,i,j,:]).T, origin='lower', extent=(0,5,0,3))
+                ax = imshow(log(res[:,i,j,:]).T, origin='lower', 
+                       extent=(0,pr_.window_size*res.shape[0],0,pr_.sample_f/2),
+                       interpolation = 'nearest', aspect = 'auto')
             else:
-                imshow(auxres[:,i,j,:].T, origin='lower', extent=(0,5,0,3))
+                ax = imshow(res[:,i,j,:].T, origin='lower', 
+                       extent=(0,pr_.window_size*res.shape[0],0,pr_.sample_f/2),
+                       interpolation = 'nearest', aspect = 'auto')
+                
+            pp.ylim([0, pr_.plotf])
             
-    
     pp.draw()
     
     
