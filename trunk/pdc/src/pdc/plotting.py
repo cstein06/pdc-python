@@ -2,7 +2,7 @@
 from numpy import *
 import matplotlib.pyplot as pp
 
-from globals import *
+from pdc.globals import *
 from matplotlib.pyplot import imshow
 import matplotlib.colors as mc_
 
@@ -183,8 +183,9 @@ def plot_coherogram(res, states = None):
     #states = states[:400]
     #res = res[:400,:,:,:120]
     
-    if size(states) != res.shape[0]:
-        print 'states doesn\'t match  res size.'
+    if states is not None:
+        if size(states) != res.shape[0]:
+            print 'states doesn\'t match  res size.'
     
     for i in range(n):
         pp.subplot(n+1,n,i+1)
