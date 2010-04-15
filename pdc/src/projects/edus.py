@@ -7,6 +7,7 @@ import matplotlib.pyplot as pp
 from scipy.io.matlab.mio import loadmat
 import pdc.plotting as pl_
 import pdc.analysis as an
+import cPickle
 
 def main_analysis():
     
@@ -63,7 +64,7 @@ def main_analysis():
     
     print 'Data loaded:', input
     
-    res, mea, stds, nstates = sta_.states_analysis_bind(data, states)
+    res, mea, stds, nstates = sta_.states_analysis(data, states)
 
         #read with: medias2 = permute(reshape(medias', shape(4), shape(3), 
         # shape(2), shape(1)), [4,3,2,1]);
