@@ -23,6 +23,9 @@ from scipy.linalg import cholesky
 from scipy.linalg import eigh
 from scipy.linalg import inv as inv
 from scipy.stats import chi2
+import scipy.stats as st
+
+from pdc.asymp import I, cat
 
 
 

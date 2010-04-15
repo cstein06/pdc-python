@@ -5,6 +5,8 @@ Created on Apr 5, 2010
 @author: Stein
 """
 
+__all__ = ['window_analysis', 'mean_states', 'states_analysis', 'states_analysis_bind']
+
 from numpy import *
 
 import time

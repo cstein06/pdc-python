@@ -5,6 +5,8 @@ Created on 06/11/2009
 @author: Carlos Stein
 """
 
+__all__ = ['ar_models', 'ar_data']
+
 from numpy import *
 from numpy.random import randn
 from numpy.random import multivariate_normal as mnorm
