@@ -4,19 +4,12 @@ This is a file you user could use for your code.
 
 Mini instructions:
 
-Use an_.set_params() to set parameters. 
-See available parameters in globals.py->Params.
-Call an_.measure_full(data)
-
+Use pr_ structure to set parameters. 
+See available parameters in globals.py->Params and their defaults.
+Call measure_full(data)
 """
 
-import pdc.analysis as an_
-import pdc.ar_data as ar_
-import pdc.ar_fit as fit_
-import pdc.plotting as pl_
-import pdc.asymp as ass
-from pdc.globals import *
-import pdc.states as sta_
+from pdc import *
 
 from numpy import *
 
@@ -40,140 +33,134 @@ def simple_simulation_analysis():
     nd = 2000
     
     #number of frequency points analyzed
-    nf = 64
+    pr_.nf = 64
     
     #error of the confidence interval and threshold
-    alpha = 0.05
+    pr_.alpha = 0.05
     
     #model order parameters
     n = A.shape[0]
-    maxp = A.shape[2]
+    pr_.maxp = A.shape[2]
     
     #type of PDC used (refer to manual to see what it means)
-    metric = 'diag'
+    pr_.metric = 'diag'
     
-    #Generate data from AR
-    data = ar_.ar_data(A, er, nd)
-    
-    # Set parameters for analysis
-    an_.set_params(nf = nf, ss = True, metric = metric,
-                   detrend = True)
-    
-    #Call any connectivity routine routine. 
-    #Here are some calling examples, uncomment your preferred one for use:
+    # Other parameters...
+    pr_.ss = True
+    pr_.plot_ic = True
+    pr_.do_plot = True
+    pr_.stat = 'asymp'
     
     # Set which connectivity method to use
-    an_.set_params(alg = 'coh')
-    # Call the method
-    an_.measure_full(data)
+    pr_.alg = 'coh'
     
-    #Instead of setting the 'alg' parameter, you can call directly:
-    #an_.coh_full(data), an_.pdc_full(data), etc.
+    #Generate data from AR
+    data = ar_data(A, er, nd)
+    
+    #Call any connectivity routine.
+    measure_full(data)
+        
+    #If running file, to keep plot open.
+    pp.show()
+    
+def simple_with_file():
+    '''Simple test of connectivity routines
+    
+    Load file and calculate...
+    '''
+    
+    file = 'your_file_here'
+    
+    data = loadtxt(file).T # Please use channel in rows, time in colums.
+    
+    #if it is a .mat file:
+    #from scipy.io import loadmat
+    #data = loadmat(file)['name_of_the_variable'].T
+    
+    # Parameters...
+    pr_.maxp = 25
+    pr_.alg = 'pdc'
+    
+    #Call any connectivity routine.
+    measure_full(data)
         
     pp.show()
     
+    
+def window_simulation_analysis():
+    
+    root_dir = 'your_root_dir_for_data'
+    pr_.stinput = 'data_dile'
+    
+    pr_.alg = 'coh'
+    
+    pr_.window_size = 10 # in seconds
+    pr_.sample_f = 500 # in Hz
+    
+    pr_.nf = 256
+    
+    pr_.plot_labels = ['Ca1e', 'Ca3e', 'Ca1d', 'Ca2d', 'Ca3d']
+    pr_.plotf = 150
+    pr_.plota = True
+    pr_.do_window_log = True
+    
+    pr_.ordem_max = 25
+    pr_.fixp = True # Fix model order for a lot of speed performance.
+                    # To find which order is reasonable, run without it in some data and check order.
+
+    data = loadtxt(root_dir+pr_.stinput).T
+    
+    print 'Data loaded:', pr_.stinput
+    
+    res = window_analysis(data)
+    
+    plot_coherogram(res)
+    
+    pp.show()
+    
+    return res
+    
 def states_simulation_analysis():
     
-    root = 'G:\\stein\\dados\\teste edu\\gotas psd\\'
+    root_dir = 'your_root_dir_for_data'
         
-    input = 'ES59_13_07_09_melhores3.txt'
+    pr_.stinput = 'data_dile'
     
-    instates = 'ES59_13_07_09_estagiamentojanela10s_limpo.txt'
+    instates = 'states_file'
     
-    #algoritmo = 'pdc'
-    algoritmo = 'coh'
+    pr_.alg = 'coh'
     
-    window_size = 10
-    n_frequencies = 250
-    sampling_rate = 500
+    pr_.window_size = 10
+    pr_.nf = 250
+    pr_.sample_f = 500
     
-    plot_labels = ['Ca1e', 'Ca3e', 'Ca1d', 'Ca2d', 'Ca3d']
-    plot_states = array([1,2,3,4,5,6])
-    plot_freq = 150
-    plota = True
-    do_window_log = True
+    pr_.plot_labels = ['Ca1e', 'Ca3e', 'Ca1d', 'Ca2d', 'Ca3d']
+    pr_.plot_states = array([1,2,3,4,5,6])
+    pr_.plotf = 150
+    pr_.plota = True
+    pr_.do_window_log = True
     
-    #pr_.ss = True
-    #pr_.logss = False
-    #pr_.plot_diag = True
-    valid_states = [1,2,3,4,5,6]
-    ordem_max = 25
-    ordem_fixa = True
-    detrend = True
-    espectro_em_potencia = True
-    metrica_pdc = 'diag'
+    pr_.valid_states = [1,2,3,4,5,6]
+    pr_.ordem_max = 25
+    pr_.fixp = True
     
-    ####################################################
+    pr_.metric = 'diag'
     
-    #nao mexer daqui pra frente
+    data = loadtxt(root_dir+pr_.stinput).T
+    states = loadtxt(root_dir+instates)
     
-    set_params(alg = algoritmo, window_size = window_size, 
-               nf = n_frequencies, sample_f = sampling_rate,
-               maxp = ordem_max, fixp = ordem_fixa, detrend = detrend, 
-               do_states_log = do_window_log,
-               power = espectro_em_potencia, metric = metrica_pdc, 
-               do_plot = plota,  plot_labels = plot_labels, plotf = plot_freq,
-               root_dir = root, stinput = input, plot_states = plot_states,
-               valid_states = valid_states)
+    print 'Data loaded:', pr_.stinput
     
-    data = loadtxt(root+input).T
-    states = loadtxt(root+instates)
+    res, mea, stds, nstates = states_analysis(data, states)
     
-    print 'Data loaded:', input
+    pp.figure()
     
-    res, mea, stds, nstates = sta_.states_analysis(data, states)
+    plot_coherogram(res, states)
+    
+    pp.show()
     
     return res, mea, stds, nstates
 
-def window_simulation_analysis():
-    
-    root = 'G:\\stein\\dados\\teste edu\\gotas psd\\'
-        
-    input = 'ES59_13_07_09_melhores3.txt'
-    
-    #algoritmo = 'pdc'
-    algoritmo = 'coh'
-    
-    window_size = 10
-    n_frequencies = 250
-    sampling_rate = 500
-    
-    plot_labels = ['Ca1e', 'Ca3e', 'Ca1d', 'Ca2d', 'Ca3d']
-    plot_states = array([1,2,3,4,5,6])
-    plot_freq = 150
-    plota = True
-    do_window_log = True
-    
-    #pr_.ss = True
-    #pr_.logss = False
-    #pr_.plot_diag = True
-    valid_states = [1,2,3,4,5,6]
-    ordem_max = 25
-    ordem_fixa = True
-    detrend = True
-    espectro_em_potencia = True
-    metrica_pdc = 'diag'
-    
-    ####################################################
-    
-    #nao mexer daqui pra frente
-    
-    set_params(alg = algoritmo, window_size = window_size, 
-               nf = n_frequencies, sample_f = sampling_rate,
-               maxp = ordem_max, fixp = ordem_fixa, detrend = detrend, 
-               do_states_log = do_window_log,
-               power = espectro_em_potencia, metric = metrica_pdc, 
-               do_plot = plota,  plot_labels = plot_labels, plotf = plot_freq,
-               root_dir = root, stinput = input, plot_states = plot_states,
-               valid_states = valid_states)
-    
-    data = loadtxt(root+input).T
-    
-    print 'Data loaded:', input
-    
-    res = sta_.window_analysis(data)
-    
-    return res
 
 if __name__ == '__main__':
     
