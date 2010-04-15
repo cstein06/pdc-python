@@ -1,5 +1,11 @@
 # -*- coding:utf-8 -*-
 
+__all__ = ['pre_data', 'A_to_f', 'measure_full', 'measure_and_plot', 'measure',
+           'pdc', 'coh', 'dtf', 'pc', 'ss', 
+           'pdc_full', 'coh_full', 'dtf_full', 'pc_full', 'ss_full',
+           'pdc_and_plot', 'coh_and_plot', 'dtf_and_plot', 'pc_and_plot', 'ss_and_plot', 
+           'gci', 'gct', 'igct', 'white_test']
+
 from numpy import *
 import matplotlib.pyplot as pp
 from scipy.linalg import inv
@@ -14,7 +20,8 @@ import pdc.ar_fit as ar_fit
 import pdc.asymp as as_
 import pdc.plotting as pl_
 import pdc.bootstrap as bt_
-from globals import *
+from pdc.globals import *
+from pdc.globals import mnames_
 
 def list_to_array(data):
     '''Converts a list to an array'''

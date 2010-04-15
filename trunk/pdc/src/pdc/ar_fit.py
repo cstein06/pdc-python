@@ -2,12 +2,14 @@
 
 '''Feito pelo Gilson, precisa revisar. parece bater c matlab.'''
 
+__all__ = ['nstrand', 'yule_walker', 'ar_fit']
+
 from numpy import *
 from numpy.linalg import pinv, inv, eig
 from scipy.linalg.basic import det
 from scipy.linalg.decomp import schur
 
-from globals import *
+from pdc.globals import *
 from matplotlib import pyplot
 
 eps = finfo(float).eps.item()

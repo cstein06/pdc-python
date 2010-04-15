@@ -177,8 +177,8 @@ def window_simulation_analysis():
 
 if __name__ == '__main__':
     
-    #simple_simulation_analysis()
+    simple_simulation_analysis()
     #states_simulation_analysis()
-    window_simulation_analysis()
+    #window_simulation_analysis()
     
     

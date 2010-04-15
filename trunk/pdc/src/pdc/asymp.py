@@ -3,6 +3,8 @@
 # In this file we calculate the asymptotic statistics for all measures, including 
 # first and second order asymptotic aproximations.
 
+__all__ = ['asymp_pdc', 'asymp_dtf', 'asymp_coh', 'asymp_pc', 'asymp_ss']
+
 from numpy import *
 import scipy.stats as st
 from scipy.stats import cov as cov

@@ -1,8 +1,12 @@
 
+__all__ = ['plot_all', 'plot_coherogram']
+
 from numpy import *
 import matplotlib.pyplot as pp
 
 from pdc.globals import *
+from pdc.globals import mnames_
+
 from matplotlib.pyplot import imshow
 import matplotlib.colors as mc_
 
