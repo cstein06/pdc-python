@@ -31,7 +31,7 @@ def event_adaptative(data, events, se = 300, preproc = False,
     
     return adaptative_ar(datan, se = se, preproc = preproc)
     
-def adaptative_ar(data, step = 50, se = 100, preproc = False, **args):
+def adaptative_ar(data, se = 100, preproc = False, **args):
     '''data(m,n,nd) -> data, m = #trials, n = #channels, nd = #time samples
        se -> efective sample memory of adaptative model'''
     
