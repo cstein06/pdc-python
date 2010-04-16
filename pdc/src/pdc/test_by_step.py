@@ -475,7 +475,7 @@ def test_white():
     print a
     print b
     
-def test_event_adapt(m = 100, nd = 2000, n = 2, p = 2, step = 10, se = 400):
+def test_event_adapt(m = 100, nd = 2000, n = 2, p = 2, step = 10, se = 500):
     
     A, er = ar_data_.ar_models(1)
     
@@ -507,7 +507,7 @@ def test_AMVAR(m = 10, nd = 2000, n = 2, p = 3, step = 10, se = 100):
         data[i] = ar_data_.ar_data(A, er, nd)
         
     #A, er = adap.AMVAR(data, p, cf = 0.03)
-    A, er = adap.adaptative(data, se = se, step = step, maxp = p)
+    A, er = adap.adaptative_ar(data, se = se, step = step, maxp = p)
 
     #print A
     
