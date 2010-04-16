@@ -1,12 +1,14 @@
 # -*- coding:utf-8 -*-
 """
-This is a file you user could use for your code.
+This is a file of usage reference for the user
 
 Mini instructions:
 
 Use pr_ structure to set parameters. 
 See available parameters in params.py->Params and their defaults.
 Call measure_full(data)
+
+Please refer to the manual to further explanations on usage.
 """
 
 from pdc import *
