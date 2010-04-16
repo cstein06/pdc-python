@@ -14,7 +14,7 @@ import pdc.states as sta_
 import pdc.analysis as an_
 import projects.edus as ed_
 
-from pdc.globals import *
+from pdc.params import *
 
 from projects.edus import ds, rs, ls, chs
 

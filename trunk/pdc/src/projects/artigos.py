@@ -8,7 +8,7 @@ Created on 22/03/2010
 import pdc.ar_data as ard_
 import pdc.analysis as pdc_
 import pdc.examples as exa_
-from pdc.globals import *
+from pdc.params import *
 import pdc.ar_fit as fit_
 import pdc.asymp as asy_
 import pdc.plotting as pl_

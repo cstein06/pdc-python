@@ -1,7 +1,7 @@
 from numpy import *
 
 import pdc.states as sta_
-from pdc.globals import *
+from pdc.params import *
 
 import matplotlib.pyplot as pp
 from scipy.io.matlab.mio import loadmat
