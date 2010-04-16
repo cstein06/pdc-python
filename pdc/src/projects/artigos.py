@@ -5,11 +5,11 @@ Created on 22/03/2010
 @author: eu
 """
 
-import pdc.ar_data as ard_
+import pdc.sim_data as ard_
 import pdc.analysis as pdc_
 import pdc.examples as exa_
 from pdc.params import *
-import pdc.ar_fit as fit_
+import pdc.ar_fits as fit_
 import pdc.asymp as asy_
 import pdc.plotting as pl_
 
@@ -241,6 +241,69 @@ def histogram_Guo(m = 5000):
     pp.show()
     
     return res
+
+
+
+def Guo_error(m = 20):
+    '''Calculate error on Guo model
+    '''
+    
+    #Definition of the MVAR model
+    #A, er = ard_.ar_models(5)
+    #nd = 2000
+    
+    pr_.alpha = 0.01
+    
+    pr_.maxp = 3
+    pr_.fixp = True
+    pr_.sample_f = 1
+    pr_.ss = False
+    
+    pr_.plot_ic = True
+    
+    pr_.alg = 'pdc'
+    pr_.metric = 'diag'
+    
+    pr_.nf = 10
+    
+    #a = rand(5)
+    #a = zeros(5)
+    #print a
+    
+    #data = ard_.ar_data(A, er, nd)
+    #data = loadtxt('D:\\work\\producao\\pdc congresso baccala\\ES57_09_02_09_medias_test.txt').T
+    #data = data[:2, :5000]
+    #data = ard_.ar_models(2)
+    
+    n = 5
+    nd = 2000
+    
+    sumr = zeros([n, n, pr_.nf])
+    sumo = zeros([n, n, pr_.nf])
+    for i in arange(m):
+    
+        data = exa_.gen_data_Guo(nd)
+    
+        res = pdc_.measure_full(data, do_plot = False)
+        
+        sumr += res[0]>res[1]
+        sumo += logical_or(res[0]>res[3], res[0]<res[2])
+        
+        pr_.v = False
+        if (i+1) % 20 == 0:
+            print 'iter:', i+1
+           
+    sumr /= float(m)
+    sumo /= float(m)
+           
+    pr_.do_plot = False
+    
+    #print sumr, sumo
+    
+    pr_.v = True
+    
+    return sumr, sumo
+    
     
 def winterhalter():
     
@@ -261,8 +324,9 @@ def winterhalter():
     pdc_.pdc_full(data, nf = nf, ss = False, metric = metric)
     
 if __name__ == "__main__":
-    
+    pass
     #sunspot()
-    histogram_Guo(2000)
+    #histogram_Guo(2000)
+    Guo_error()
     #winterhalter()
     
