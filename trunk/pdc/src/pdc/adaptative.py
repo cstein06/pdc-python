@@ -37,6 +37,9 @@ def adaptative_ar(data, se = 100, preproc = False, **args):
     
     read_args(args)
     
+    if data.ndim == 2:
+        data = data.reshape(1,data.shape[0],data.shape[1])
+    
     m,n,nd = data.shape
     
     if preproc:
