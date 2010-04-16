@@ -5,6 +5,8 @@ Created on 06/11/2009
 @author: Carlos Stein
 """
 
+__all__ = ['event_adaptative', 'adaptative_ar']
+
 from numpy import *
 import scipy.signal as sig
 import time
@@ -13,7 +15,7 @@ import matplotlib.pyplot as pp
 
 from pdc import *
 
-def event_adaptative(data, events, se = 100, preproc = False, 
+def event_adaptative(data, events, se = 300, preproc = False, 
                      win = (-10,200), **args):
     read_args(args)
     
@@ -27,9 +29,9 @@ def event_adaptative(data, events, se = 100, preproc = False,
     for i in arange(ne):
         datan[i] = data[:,events[i]+win[0]:events[i]+win[1]+1]
     
-    adaptative(datan, se = se, preproc = preproc)
+    return adaptative_ar(datan, se = se, preproc = preproc)
     
-def adaptative(data, step = 50, se = 100, preproc = False, **args):
+def adaptative_ar(data, step = 50, se = 100, preproc = False, **args):
     '''data(m,n,nd) -> data, m = #trials, n = #channels, nd = #time samples
        se -> efective sample memory of adaptative model'''
     
@@ -61,8 +63,6 @@ def adaptative(data, step = 50, se = 100, preproc = False, **args):
         pr_.power = False
         resg[i] = globals()[pr_.alg + '_alg'](A[i], er[i], metric = pr_.metric)
     
-    pr_.window_size = 1
-    pr_.sample_f = 1
     pp.figure()
     plot_coherogram(resg)
     pp.show()
