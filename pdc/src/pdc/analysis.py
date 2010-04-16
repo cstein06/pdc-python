@@ -3,7 +3,8 @@
 __all__ = ['pre_data', 'A_to_f', 'measure_full', 'measure_and_plot', 'measure',
            'pdc', 'coh', 'dtf', 'pc', 'ss', 
            'pdc_full', 'coh_full', 'dtf_full', 'pc_full', 'ss_full',
-           'pdc_and_plot', 'coh_and_plot', 'dtf_and_plot', 'pc_and_plot', 'ss_and_plot', 
+           'pdc_and_plot', 'coh_and_plot', 'dtf_and_plot', 'pc_and_plot', 'ss_and_plot',
+           'pdc_alg', 'coh_alg', 'dtf_alg', 'pc_alg', 'ss_alg',
            'gci', 'gct', 'igct', 'white_test']
 
 from numpy import *
@@ -15,13 +16,13 @@ from scipy.stats import f
 import cProfile
 import time
 
-from pdc.ar_data import ar_data
-import pdc.ar_fit as ar_fit
+from pdc.sim_data import ar_data
+import pdc.ar_fits as ar_fit
 import pdc.asymp as as_
 import pdc.plotting as pl_
 import pdc.bootstrap as bt_
-from pdc.globals import *
-from pdc.globals import mnames_
+from pdc.params import *
+from pdc.params import mnames_
 
 def list_to_array(data):
     '''Converts a list to an array'''
@@ -136,7 +137,7 @@ def coh_alg(A, e_cov, nf = 64, metric = 'dummy'):
         coh[i] = ss/sqrt(m)
     return coh.transpose(1,2,0)
 
-def pdc_alg(A, e_cov, nf = 64, metric = 'gen'):
+def pdc_alg(A, e_cov, nf = 64, metric = 'diag'):
     '''Generates spectral general (estatis. norm) PDC matrix from AR matrix
     
       Input: 
@@ -425,11 +426,6 @@ def measure_full(data, **args):
     n,nd = data.shape
         
     data = pre_data(data, pr_.normalize, pr_.detrend)
-        
-    #Estimate AR parameters with Nuttall-Strand
-    crit = 0 #AIC
-    if pr_.fixp:
-        crit = 1
     
     if pr_.v:
         print 'Will calculate the', mnames_[pr_.alg], 'of the data'

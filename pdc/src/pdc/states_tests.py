@@ -12,6 +12,67 @@ from scipy.io import savemat
 from pdc import *
 
 
+def windows_test():
+    
+    data = ar_data(m = 20000, model = 0)
+    
+    #algoritmo = 'pdc'
+    algoritmo = 'coh'
+    
+    window_size = 100
+    n_frequencies = 64
+    sampling_rate = 1
+    
+    #plot_labels = ['Ca1e', 'Ca3e', 'Ca1d', 'Ca2d', 'Ca3d']
+    #plot_labels = ['Ca1e', 'Ca2e', 'Ca1d']
+    #plot_states = array([1,2,3,4,5,6])
+    #plot_states = array([2])
+    #plot_freq = 150
+    plota = False
+    do_window_log = False
+    
+    pr_.ss = True
+    #pr_.logss = False
+    #pr_.plot_diag = True
+    valid_states = [1,2,3,4,5,6]
+    ordem_max = 3
+    ordem_fixa = True
+    detrend = True
+    espectro_em_potencia = True
+    metrica_pdc = 'diag'
+    
+    ####################################################
+    
+    #nao mexer daqui pra frente
+    
+    set_params(alg = algoritmo, window_size = window_size, 
+               nf = n_frequencies, sample_f = sampling_rate,
+               maxp = ordem_max, fixp = ordem_fixa, detrend = detrend, 
+               do_states_log = do_window_log,
+               power = espectro_em_potencia, metric = metrica_pdc, 
+               do_plot = plota,
+               stinput = input,
+               valid_states = valid_states)
+    
+    #data = loadtxt(root+input).T
+    
+    print 'Data loaded:', input
+    
+    res = window_analysis(data)
+    
+    plot_coherogram(res)
+
+    
+    
+    pp.show()
+
+    
+
+        #read with: medias2 = permute(reshape(medias', shape(4), shape(3), 
+        # shape(2), shape(1)), [4,3,2,1]);
+
+    #return res, mea, stds, nstates
+
 def main_analysis():
     
     #root = 'G:\\stein\\dados\\teste edu\\'
@@ -311,4 +372,5 @@ if __name__ == '__main__':
     #testa_std_asymp()
     #testa_aic()
     #testa_ordens()
-    main_analysis()
+    #main_analysis()
+    windows_test()

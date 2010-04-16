@@ -7,9 +7,9 @@ Created on 22/10/2009
 
 from numpy import *
 import time
-from pdc.ar_fit import nstrand
+from pdc.ar_fits import nstrand
 
-from pdc.ar_data import ar_data
+from pdc.sim_data import ar_data
 
 def bootstrap(method_func, nd, nm, A, er, 
               nf, alpha = 0.05, metric = None, thres = True):

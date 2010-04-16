@@ -11,9 +11,9 @@ import time
 
 import pdc.asymp as ass_
 import pdc.analysis as pdc_
-from pdc.ar_data import ar_data
-from pdc.ar_data import ar_models
-from pdc.ar_fit import nstrand
+from pdc.sim_data import ar_data
+from pdc.sim_data import ar_models
+from pdc.ar_fits import nstrand
 
 def test_asymp(asymp_func, method_func, nm = 100, nd = 100, A = None, er = None, 
                nf = 20, alpha = 0.05, metric = None):
@@ -348,7 +348,7 @@ def test_gct(m = 1000, n = 1000):
 
         #a, b = pdc_.white_test(data, maxp)
         #a, b = pdc_.gct(data, maxp)
-        a, b = pdc_.igct(data, maxp)
+        a, b = pdc_.igct(data, maxp = maxp)
                 
         
         sum = (a>0.05)+sum

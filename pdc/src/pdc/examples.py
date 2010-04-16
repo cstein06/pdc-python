@@ -17,7 +17,6 @@ from numpy import *
 import matplotlib.pyplot as pp
 from scipy.stats import chi2
 import scipy.stats as st
-from pdc.globals import set_params
 import time
 from numpy.random import randn
 from numpy.random import rand
@@ -25,13 +24,7 @@ from numpy.random import multivariate_normal as mnorm
 from scipy.integrate import odeint
 
 from utils import *
-import pdc.asymp as ass_
-import pdc.analysis as pdc_
-from pdc.ar_data import ar_data
-from pdc.ar_data import ar_models
-from pdc.ar_fit import ar_fit
-import pdc.globals as gl_
-import pdc.plotting as pl_
+from pdc import *
 
 def teste_simples():
     '''Simple test of connectivity routines
@@ -72,7 +65,7 @@ def teste_simples():
     #pdc_.measure_and_plot(data, 'dtf', nf = nf, ss = True)
     #pdc_.pdc_and_plot(data, nf = nf, ss = True)
     #pdc_.pdc_full(data, nf = nf, ss = True, metric = metric)
-    pdc_.coh_full(data, nf = nf, ss = True, metric = metric,
+    coh_full(data, nf = nf, ss = True, metric = metric,
                   detrend = True)
     
     pp.show()
@@ -132,7 +125,7 @@ def teste_Guo():
     sample_f = 200
     n_boot = 100
     
-    gl_.set_params(maxp = maxp, fixp = True, nf = nf, ss = False, sample_f = sample_f,
+    set_params(maxp = maxp, fixp = True, nf = nf, ss = False, sample_f = sample_f,
                    alpha = alpha, metric = metric, normalize = False)
     
 #    data = gen_data_Guo(nd)
@@ -145,10 +138,10 @@ def teste_Guo():
         #Generate data from Guo`s model
         data = gen_data_Guo(nd)
     
-        mes, th, ic1, ic2 = pdc_.pdc_full(data, do_plot = False)
+        mes, th, ic1, ic2 = pdc_full(data, do_plot = False)
         er += (mes > th)
         
-        gl_.pr_.v = False
+        pr_.v = False
         
         if i%10 == 0:
             print i
@@ -163,10 +156,10 @@ def teste_Guo():
     
     print mean(er, axis = -1)
     
-    gl_.res_.mes = er
+    res_.mes = er
     #gl_.res_.th = th
     
-    pl_.plot_all()
+    plot_all()
         
     #print pdc_.gct(data, maxp=3)
     
@@ -218,9 +211,9 @@ def teste_sunspot_melanoma():
    metric = 'diag'
    maxp = 10
    
-   gl_.set_params(plot_labels = ['sun spots', 'melanome'])
+   set_params(plot_labels = ['sun spots', 'melanome'])
    
-   pdc_.pdc_full(data, maxp = maxp, nf = nf, ss = True, 
+   pdc_full(data, maxp = maxp, nf = nf, ss = True, 
                  alpha = alpha, metric = metric, normalize = False, 
                  stat = 'asymp')
 
@@ -301,7 +294,7 @@ def teste_data():
        
     data = data[:,:4000]
     
-    pdc_.pdc_full(data, maxp = maxp, nf = nf, ss = True, 
+    pdc_full(data, maxp = maxp, nf = nf, ss = True, 
                   metric = metric, alpha = alpha,
                   normalize = False, detrend = True, fixp = True, stat = 'asymp', n_boot = 100)
     

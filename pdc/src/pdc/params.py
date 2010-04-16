@@ -74,9 +74,9 @@ class Param():
         
         #States specs
      
-        self.window_size = None # Size of data windows
+        self.window_size = 1 # Size of data windows
         self.valid_states = [1,2,3,4,5,6] # States to be analysed
-        self.st_dict = None # Do not change
+        self.st_dict = None # Do not edit this
         
         #States logging specs
         

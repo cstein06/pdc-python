@@ -12,10 +12,9 @@ from scipy.linalg import cholesky
 from scipy.linalg import eigh
 from scipy.linalg import inv as inv
 from matplotlib.pyplot import xcorr
-from pdc import ar_fit
 from numpy.dual import eig
 from numpy.linalg.linalg import LinAlgError
-import pdc.globals as gl
+import pdc.params as gl
 import time
 import sys
 
