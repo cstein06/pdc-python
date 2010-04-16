@@ -9,13 +9,13 @@ from pdc.analysis import pdc, gci
 import cProfile
 import time
 from scipy import randn
-from pdc.globals import *
+from pdc.params import *
 
 import pdc.analysis as pdc_
 import pdc.asymp as ass_
 from pdc.asymp import *
-import pdc.ar_data as ar_data_
-import pdc.ar_fit as ar_fit
+import pdc.sim_data as ar_data_
+import pdc.ar_fits as ar_fit
 import pdc.adaptative as adap 
 
 from scipy.stats import cov as cov
@@ -475,8 +475,27 @@ def test_white():
     print a
     print b
     
+def test_event_adapt(m = 100, nd = 2000, n = 2, p = 2, step = 10, se = 400):
+    
+    A, er = ar_data_.ar_models(1)
+    
+    #data = empty([m,n,nd])
+    
+    data = ar_data_.ar_data(A, er, nd*m)
+        
+    event = arange(100, nd*m, nd)
+    
+    pr_.alg = 'coh'
+        
+    #A, er = adap.AMVAR(data, p, cf = 0.03)
+    A, er = adap.event_adaptative(data, event, se = se,
+                                  maxp = p)
 
-def test_AMVAR(m = 10, nd = 2000, n = 2, p = 3, step = 50, se = 100):
+    #print A
+    
+    return A, er
+
+def test_AMVAR(m = 10, nd = 2000, n = 2, p = 3, step = 10, se = 100):
     
     
     
@@ -485,10 +504,10 @@ def test_AMVAR(m = 10, nd = 2000, n = 2, p = 3, step = 50, se = 100):
     data = empty([m,n,nd])
     
     for i in arange(m):
-        data[i] = ar_data_.ar_data(A, er, nd, dummy = 10)
+        data[i] = ar_data_.ar_data(A, er, nd)
         
     #A, er = adap.AMVAR(data, p, cf = 0.03)
-    A, er = adap.aPDC(data, p, se = se, step = step)
+    A, er = adap.adaptative(data, se = se, step = step, maxp = p)
 
     #print A
     
@@ -512,7 +531,7 @@ def test_AMVAR2(m = 10, nd = 2000, n = 2, p = 3, step = 50, se = 100):
                 data[i,:,j*nd2:(j+1)*nd2] = ar_data_.ar_data(A2, er2, nd2, dummy = 10)
         
     #A, er = adap.AMVAR(data, p, cf = 0.03)
-    A, er = adap.aPDC(data, p = p, se = se, step = step)
+    A, er = adap.adaptative(data, se = se, step = step, maxp = p)
 
     #print A
     
@@ -545,4 +564,5 @@ if __name__ == "__main__":
     #test_igct_matlab()
     
     #test_AMVAR(nd = 200)
-    test_ar_fit()
+    test_event_adapt()
+    #test_ar_fit()

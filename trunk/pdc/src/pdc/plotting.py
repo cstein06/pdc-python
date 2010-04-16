@@ -4,8 +4,8 @@ __all__ = ['plot_all', 'plot_coherogram']
 from numpy import *
 import matplotlib.pyplot as pp
 
-from pdc.globals import *
-from pdc.globals import mnames_
+from pdc.params import *
+from pdc.params import mnames_
 
 from matplotlib.pyplot import imshow
 import matplotlib.colors as mc_
@@ -173,7 +173,11 @@ def plot_all(**args):
         pp.draw()
     #pp.show()
     
-def plot_coherogram(res, states = None):
+def plot_coherogram(res, states = None, **args):
+    
+    read_args(args)
+    
+    print '\nPlotting coherogram...'
     
     nwin,n,n,nf = res.shape
     
@@ -181,6 +185,15 @@ def plot_coherogram(res, states = None):
         pp.suptitle(pr_.plot_title)
     else:
         pp.suptitle(mnames_[pr_.alg])
+
+    if not pr_.power:
+        print 'Taking squared power for plotting!'
+        if res.dtype != 'complex':
+            print 'But it was already non-complex data...'
+        res = (res*res.conj()).real
+        
+    if res.dtype == 'complex':
+        print 'Plotting complex data, something seems to be wrong.'
 
     #pp.ion()
     #print res.shape
@@ -191,7 +204,7 @@ def plot_coherogram(res, states = None):
         if size(states) != res.shape[0]:
             print 'states doesn\'t match  res size.'
             
-    states = states[:res.shape[0]]
+            states = states[:res.shape[0]]
     
     auxsub = 0
     if states is not None:
@@ -260,20 +273,21 @@ def plot_coherogram(res, states = None):
 #                auxres = res[:,:,:,:]
 #            else:
 #                auxres = res
-                
+            
             if i == j and pr_.ss and pr_.logss:
                 ax = imshow(log(res[:,i,j,:]).T, origin='lower', 
-                       extent=(0,pr_.window_size*res.shape[0],0,pr_.sample_f/2),
+                       extent=(0,pr_.window_size*res.shape[0],0,pr_.sample_f/2.0),
                        interpolation = 'nearest', aspect = 'auto')
             else:
                 ax = imshow(res[:,i,j,:].T, origin='lower', 
-                       extent=(0,pr_.window_size*res.shape[0],0,pr_.sample_f/2),
-                       interpolation = 'nearest', aspect = 'auto')
-                
-            pp.ylim([0, pr_.plotf])
+                       extent=(0,pr_.window_size*res.shape[0],0,pr_.sample_f/2.0),
+                       interpolation = 'nearest', aspect = 'auto',
+                       vmin = 0, vmax = 1)
+
+            if pr_.plotf is not None:
+                pp.ylim([0, pr_.plotf])
             
     pp.draw()
-    
     
 #    
 ##pdc, ss = None, sample_f = 1.0, power = True, logss = False

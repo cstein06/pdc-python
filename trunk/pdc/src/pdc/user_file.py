@@ -5,7 +5,7 @@ This is a file you user could use for your code.
 Mini instructions:
 
 Use pr_ structure to set parameters. 
-See available parameters in globals.py->Params and their defaults.
+See available parameters in params.py->Params and their defaults.
 Call measure_full(data)
 """
 

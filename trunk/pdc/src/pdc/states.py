@@ -18,9 +18,9 @@ from scipy.linalg.basic import det
 from scipy.io import savemat
 
 import pdc.plotting as pl
-import pdc.ar_fit as fit_
-from pdc.globals import *
-from pdc.ar_data import ar_data 
+import pdc.ar_fits as fit_
+from pdc.params import *
+from pdc.sim_data import ar_data 
 import pdc.analysis as an_
 
 
