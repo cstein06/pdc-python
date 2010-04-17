@@ -1,0 +1,63 @@
+%% ------------------------------------------------------------------------- %%
+\chapter{Fundamentos}
+\label{cap:fundamentos}
+
+Os resultados teóricos e aplicados deste trabalho estão fundamentados na teoria de séries temporais, análise mulitivariada e conceitos e medidas de conectividade. Neste capítulo são introduzidos os principais conceitos e resultados necessários.
+
+A motivação desta pesquisa é o estudo de sinais neurais eletrofisiológicos, tendo como características recorrentes:
+\begin{itemize}
+ \item um número grande de canais,
+\item séries de duração temporal elevada,
+\item estacionariedade apenas local, 
+\item ausência de um modelo realista do processo gerador dos dados,
+\item propriedades relevantes no domínio da frequência,
+\item interação entre canais desconhecida.
+\end{itemize}
+
+As ferramentas de análise neste contexto são escolhidas com base nessas características. Definiremos estacionariedade para saber como lidar com sinais longos, mas com propriedades apenas localmente estacionarias. Usaremos modelo autoregressivo multivariado, pois é geral o suficiente para extrair caracteristicas relevantes de um processo implícito desconhecido, revelando as interações lineares entre os sinais. Estudaremos medidas de conectividade no domínio da frequencia, explicitando assim caracteristicas relevantes dos sinais e de suas interações em diferentes faixas do espectro de frequencia.
+
+series estacionarias - ver do livro e meu tg.
+- series temporais, estacionariedade, modelos var, estimacao
+
+back 2 - frequencia, pdc, dtf, etc
+
+%------------------------------------------------------
+\section{Séries temporais estacionárias} 
+
+Uma série temporal é um conjunto de dados com ordenação sequencial relativa ao tempo de seu acontecimento ou medição: ($\dots, x_{t-1}, x_{t}, x_{t+1}, \dots$). Desejamos inferir propriedades desta série, incluindo como um dado se relaciona com dados antecedentes. No caso de dados multivariados, desejamos também saber como uma série interage com as outras.
+
+Uma série temporal é definida como estacionária em sentido amplo se sua função de autocovariância não depende do tempo, assim, em particular, sua média e variância não variam ao longo do tempo. A função de autocovariância de uma série temporal $X_t$ é definida por:
+\begin{equation}
+ \Gamma_x(t,\tau) = Cov(x(t), x(t-\tau)), \forall t, \tau \in \mathbb{Z}
+\end{equation}
+
+Para uma série estacionária temos $\Gamma_x(\tau) = \Gamma_x(0,\tau) = \Gamma_x(t,\tau), \forall t, \tau \in \mathbb{Z}$, assim a autocovariância depende apenas do atraso $\tau$. Em todos resultados teóricos deste trabalho assumimos séries estacionárias.
+
+No caso de múltiplas séries temporais, podemos representar os dados de forma vetorial e teremos definições e notacões semelhantes ao caso unidimensional. Por exemplo, uma série $n$-dimensional $X_t$ é estacionária se a matriz de autocovariância $Cov(X(t), X(t-\tau))$ não depende de $t$. Daqui em diante consideraremos apenas o caso multivariado, com $X_t$ $n$-dimensional.
+
+
+\section{Modelo autoregressivo}
+
+Satisfeitas certas condições gerais, podemos representar uma série estacionária $X_t$ por uma sequencia autoregressiva (AR):
+\begin{equation}
+X_{t} = \sum_{k=1}^{\infty}{A_{k}\cdot X_{t-k}} + \varepsilon_{t}
+\end{equation}
+onde $\varepsilon_t$ é um ruído branco, caracterizado por não ser autocorrelacionado: $\Gamma_\varepsilon(\tau) = 0, \forall \tau \ne 0$. Denominamos $\varepsilon_t$ de inovação, por ser a parcela da série não explicada pelo passado neste modelo linear. $A_k$ são matrizes reais quadradas de ordem $n$, onde cada elemento $(A_k)_ij$ representa uma relação linear entre presente do canal $i$ e o canal $j$ com $k$ de atraso.
+
+Por ser um modelo geral para séries estacionárias, é conveniente para análise de sinais neurais, onde não se tem maiores informações sobre o processo gerador dos dados amostrados. Uma primeira limitação é modelar apenas interações lineares.
+
+Um caso particular é o AR de ordem finita $p$ (AR-p), dado por:
+\begin{equation}
+X_{t} = \sum_{k=1}^{p}{A_{k}\cdot X_{t-k}} + \varepsilon_{t}
+\end{equation},
+sendo que de forma geral processos estacionarios não tem ordem finita, não sendo possível sua representação como AR-p. Como, por motivos de estimação, desejamos um número finito de parâmetros no modelo, estudaremos daqui em diante apenas AR de ordem finita. Com isso temos em conta que para dados reais, mesmo que de fato estacionários, este modelo poderá ser inadequado.
+
+
+
+
+
+
+
+
+
+
