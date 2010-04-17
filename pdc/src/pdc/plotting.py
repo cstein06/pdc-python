@@ -13,6 +13,8 @@ import matplotlib.colors as mc_
 #def plot_all(mes, th, ic1, ic2, ss = None, sample_f = 1.0, 
 #             logss = False, sqrtmes = False, plotf = None):
 
+#pp.rcParams['ps.usedistiller'] = 'xpdf' para ter texto no .ps salvo da figura
+
 def plot_all(**args):
     '''Plots nxn graphics, with confidence intervals and threshold. 
        If ss == True, plots ss in the diagonal.
