@@ -252,7 +252,7 @@ def quant_Guo(m = 2000):
     #A, er = ard_.ar_models(5)
     #nd = 2000
     
-    pr_.alpha = 0.05
+    pr_.alpha = 0.01
     
     pr_.maxp = 3
     pr_.fixp = True
@@ -271,8 +271,10 @@ def quant_Guo(m = 2000):
     a = array([ 0.59,  0.52,  0.72,  0.98,  0.66])
     print a
     
-    b = 2
-    c = 5
+    #b = 2
+    #c = 5
+    b = 0
+    c = 0
     
     #data = ard_.ar_data(A, er, nd)
     #data = loadtxt('D:\\work\\producao\\pdc congresso baccala\\ES57_09_02_09_medias_test.txt').T
@@ -298,7 +300,7 @@ def quant_Guo(m = 2000):
     
     pr_.v = True
     
-    big = 1
+    big = 100
     bins = 40
     
     
@@ -318,11 +320,13 @@ def quant_Guo(m = 2000):
     
     x = linspace(1.0/m, 1-1.0/m, m)
     y = st.norm.ppf(x, loc = pa, scale = sa)
-    xmi = min(y.min(), res[:,3,0,2].min())
-    xma = max(y.max(), res[:,3,0,2].max())
+#    xmi = min(y.min(), res[:,3,0,2].min())
+#    xma = max(y.max(), res[:,3,0,2].max())
+    xmi = res[:,3,0,2].min()
+    xma = res[:,3,0,2].max()
     
     ax = fig.add_subplot(121)
-    
+
     pp.plot(sorted(res[:,3,0,2]), y, 'k+')
     pp.plot([xmi,xma],[xmi,xma], 'b')
     
@@ -338,8 +342,10 @@ def quant_Guo(m = 2000):
     
     x = linspace(1.0/m, 1-1.0/m, m)
     y = st.chi2.ppf(x, pr_.patdf[4,0,2], scale = 1/(pr_.patden[4,0,2]*2*nd))
-    xmi = min(y.min(), res[:,4,0,2].min())
-    xma = max(y.max(), res[:,4,0,2].max())
+    #xmi = min(y.min(), res[:,4,0,2].min())
+    #xma = max(y.max(), res[:,4,0,2].max())
+    xmi = res[:,4,0,2].min()
+    xma = res[:,4,0,2].max()
     pp.plot(sorted(res[:,4,0,2]), y, 'k+')
     pp.plot([xmi,xma],[xmi,xma], 'b')
     
