@@ -106,6 +106,11 @@ def gen_data_Guo(m, dummy = 100, a = None, bv = 2, cv = 5):
     c = cv*ones(5)
     if a is None:
         a = rand(5)
+        
+#    print 'a', a
+#    print 'b', b
+#    print 'c', c
+        
     for i in arange(p, m+dummy):
         x[0,i] = 0.95*sqrt(2)*x[0,i-1] - 0.9025*x[0,i-2] + e[0,i] + a[0]*e[5,i] + b[0]*e[6,i-1] + c[0]*e[6,i-2]
         x[1,i] = 0.5*x[0,i-2] + e[1,i] + a[1]*e[5,i] + b[1]*e[6,i-1] + c[1]*e[6,i-2]
