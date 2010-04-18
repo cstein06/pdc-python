@@ -1,0 +1,90 @@
+Modules:
+
+	examples:
+		Examples of uses of the library. One should start here.
+		One can find additional uses in the test_by_step module.
+
+	analysis: Main interface for analysis methods (PDC, DTF, ...)
+		
+		pdc_full:
+			Most complete calling interface.
+			Estimates model, calculates PDC, asymptotic confidence
+			intervals and H0 thresholds, and plots the result.
+			Have options for bootstrap statistics, detrend and normalization.
+			Simplest example: pdc_full([sig1, sig2, sig3])
+			
+		pdc_alg: Calculate PDC from already estimated model.
+		pdc: Estimates model and calculates PDC.
+		pdc_and_plot: Estimates model, calculates PDC and plots the result.
+	
+		The 'pdc' prefix is for the PDC method. Change the prefix for other methods:
+			Coherence: 'coh'
+			DTF: 'dtf'
+			Spectral Density: 'ss'
+			Partial Coherence: 'pc'
+			
+			Example: coh_full(data)
+			
+			For the 'pdc' prefix, there is usually the extra argument 'metric',
+			which designates the normalization type in the formula: 
+				euclidean ('euc'), diagonal ('diag') or generalized ('gen'). 
+			
+		Additional methods:
+			igct: Wald statistics for Instantaneous Granger causality test
+			gct: Asymptotic Wald test for time Granger test
+			white_test: Asymptotic test for whiteness of residues
+			gci: Granger Causality Index (based on log of variances ratio)
+			
+	ar_data: Generate data from VAR
+	
+		ar_data: Generate data from model.
+		ar_models: Return pre-specified models or data.
+	
+	adaptative: 
+		Calculates adaptative PDC, based on Ding's coherence paper. 
+		It serves for event related analysis, as it is designed to use
+		multiples realizations of same event.
+		
+		aPDC: Calculates adaptive VAR model, the PDC and plots the results.
+		AMVAR: Calculates the adaptative VAR model.
+		
+	ar_fit: Estimates VAR model from data.
+		ar_fit: 
+			Uses Nuttall-Strand algorithm and Akaike for model order.
+			Has fixed model order option.
+				
+		nstrand: Nuttall-Strand algorithm.
+		
+	asymp: 
+		Estimates asymptotic statistics for confidence intervals 
+		and thresholds.
+		Generaly not called directly.
+		
+	bootstrap:
+		Estimates bootstrap statistics for confidence intervals 
+		and thresholds.
+		Generaly not called directly.
+		
+	plotting: Plotting routines.
+		plot_all:
+			Plots nxn graphics, with confidence intervals and threshold. 
+       		If ss == True, plots ss in the diagonal.
+       		Already expects data in power form: abs(x)^2
+		pdc_plot:
+			Plots nxn graphics.
+					
+	test_by_step:
+		Ad-hoc routines used by developer to test 
+		correctness of implemented methods.
+		
+	
+	
+	
+	
+	
+		
+		
+		
+		
+		
+		
