@@ -1,7 +1,7 @@
 from numpy import *
 import matplotlib.pyplot as pp
 
-from data_simulation.ar_data import ar_data
+from pdc.ar_data import ar_data
 import pdc.analysis as pdc_
 
 def test_subsample():
@@ -17,6 +17,12 @@ def test_subsample():
     pdc_.pdc_and_plot(data, 2, 30, metric='gen')
     pdc_.pdc_and_plot(sdata, 2, 30, metric='gen')
     
+def test_plot_rc():
+    pp.rcParams['ps.usedistiller'] = 'xpdf'
+    pp.plot(arange(10), 'k+')
+    
 if __name__ == "__main__":
     
     test_subsample()
+    
+    test_plot_rc()

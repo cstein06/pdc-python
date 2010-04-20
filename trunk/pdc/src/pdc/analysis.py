@@ -549,9 +549,11 @@ def measure_and_plot(data, **args):
     aux = pr_.stat
     pr_.stat = 'no'
     
-    measure_full(data)
+    r = measure_full(data)
     
     pr_.stat = aux
+    
+    return r[0]
     
 #    if(type(data) == type([])):
 #        data = list_to_array(data)

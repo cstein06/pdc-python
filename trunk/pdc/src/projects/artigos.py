@@ -267,8 +267,8 @@ def quant_Guo(m = 2000):
     pr_.nf = 5
     
     #a = rand(5)
-    #a = zeros(5)
-    a = array([ 0.59,  0.52,  0.72,  0.98,  0.66])
+    a = zeros(5)
+    #a = array([ 0.59,  0.52,  0.72,  0.98,  0.66])
     print a
     
     #b = 2
@@ -303,6 +303,7 @@ def quant_Guo(m = 2000):
     big = 100
     bins = 40
     
+    print '\nnow big simulation for asymp pdc'
     
     data = exa_.gen_data_Guo(nd*big, a=a, bv = b, cv = c)
     #data2 = exa_.gen_data_Guo(nd, a=a)
@@ -437,6 +438,56 @@ def Guo_error(m = 20):
     return sumr, sumo
     
     
+
+def compare_Guo():
+    '''compare result for different a,b,c.'''
+    
+    pr_.alpha = 0.01
+    
+    pr_.maxp = 3
+    pr_.fixp = True
+    pr_.sample_f = 1
+    pr_.ss = False
+    
+    pr_.plot_ic = True
+    
+    pr_.alg = 'pdc'
+    pr_.metric = 'diag'
+    
+    pr_.nf = 5
+    
+    #a = rand(5)
+    a = zeros(5)
+    #a = array([ 0.59,  0.52,  0.72,  0.98,  0.66])
+    print a
+    
+    
+    #b = 2
+    #c = 5
+    b = 0
+    c = 0
+    
+    #data = ard_.ar_data(A, er, nd)
+    #data = loadtxt('D:\\work\\producao\\pdc congresso baccala\\ES57_09_02_09_medias_test.txt').T
+    #data = data[:2, :5000]
+    #data = ard_.ar_models(2)
+    
+    n = 5
+    nd = 2000
+    
+    m = 5
+    
+    res = zeros([m, n, n, pr_.nf])
+    
+    for i in arange(m):
+    
+        data = exa_.gen_data_Guo(nd, a=a, bv = b, cv = c)
+        res[i] = pdc_.measure_full(data, do_plot = True)[0]
+    
+    pp.show()
+    
+    print res[:,3,0,2], mean(res[:,3,0,2])
+    
 def winterhalter():
     
     subs = 50
@@ -461,5 +512,8 @@ if __name__ == "__main__":
     #histogram_Guo(2000)
     #Guo_error()
     quant_Guo()
+    #compare_Guo()
     #winterhalter()
     
+
+

@@ -13,7 +13,7 @@ import matplotlib.colors as mc_
 #def plot_all(mes, th, ic1, ic2, ss = None, sample_f = 1.0, 
 #             logss = False, sqrtmes = False, plotf = None):
 
-#pp.rcParams['ps.usedistiller'] = 'xpdf' para ter texto no .ps salvo da figura
+#pp.rcParams['ps.usedistiller'] = 'xpdf' #para ter texto no .ps salvo da figura
 
 def plot_all(**args):
     '''Plots nxn graphics, with confidence intervals and threshold. 
@@ -155,6 +155,8 @@ def plot_all(**args):
             
             if pr_.plotf is not None:
                 pp.xlim([0, pr_.plotf])
+            else:
+                pp.xlim([0, pr_.sample_f/2.0])
                 
         if (pr_.ss and ss is not None):
             ax = pp.subplot(n,n,i*n+i+1).twinx()
