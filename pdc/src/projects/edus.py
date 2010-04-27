@@ -493,7 +493,7 @@ def rewrite_pics():
     
 if __name__ == '__main__':
     
-    #main_analysis()
+    main_analysis()
     
     #check_hist()
     
@@ -511,7 +511,7 @@ if __name__ == '__main__':
     
     #nstates_per_block()
     
-    mean_block3_lastdays()
+    #mean_block3_lastdays()
     
     pass
     
