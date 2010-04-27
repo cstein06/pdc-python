@@ -362,7 +362,7 @@ def ar_fit(data, return_ef = False, **args):
         #[na, npf, npb, nb, nef, neb, ISTAT]=fitalg(data,ip,return_ef)
         na, npf = fitalg(data,ip,return_ef)
         
-        aic[ip] = max(data.shape)*log(det(npf))+2*n*n*ip;
+        aic[ip] = nd*log(det(npf))+2*n*n*ip;
         
         if aic[ip] > aic[ip-1] and ip > 1:
             if not pr_.test_allp:
