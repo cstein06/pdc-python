@@ -17,12 +17,12 @@ import cProfile
 import time
 
 from pdc.sim_data import ar_data
-import pdc.ar_fits as ar_fit
 import pdc.asymp as as_
 import pdc.plotting as pl_
 import pdc.bootstrap as bt_
 from pdc.params import *
 from pdc.params import mnames_
+from pdc.ar_fits import ar_estim
 
 def list_to_array(data):
     '''Converts a list to an array'''
@@ -207,7 +207,7 @@ def dtf_alg(A, er, nf = 64, metric = 'dummy'):
 #        
 #    data = pre_data(data, pr_.normalize, pr_.detrend)
 #    
-#    A, er = ar_fit.ar_fit(data, maxp)
+#    A, er = ar_estim.ar_estim(data, maxp)
 #    return abs(pdc_alg(A, er, nf))**2, abs(ss_alg(A, er, nf))**2, abs(coh_alg(A, er, nf))**2
 
 
@@ -327,7 +327,7 @@ def measure(data, **args):
 #        print '\nEstimating VAR'
 #    
 #    
-#    res_.A, res_.er = ar_fit.ar_fit(data, pr_.maxp, criterion=crit)
+#    res_.A, res_.er = ar_estim.ar_estim(data, pr_.maxp, criterion=crit)
 #    
 #    
 #    if pr_.v:
@@ -439,7 +439,10 @@ def measure_full(data, **args):
         print '\nEstimating VAR'
     
     #Estimate AR parameters with Nuttall-Strand
-    res_.A, res_.er = ar_fit.ar_fit(data)
+    if not pr_.reuse_A:
+        res_.A, res_.er = ar_estim(data)
+    elif pr_.v:
+        print '\nReusing given A instead...'
     
     res_.p = res_.A.shape[2]
     
@@ -618,13 +621,13 @@ def gci(data, **args):
     
     data = pre_data(data, pr_.normalize, pr_.detrend)
         
-    A0, er0 = ar_fit.ar_fit(data)
+    A0, er0 = ar_estim.ar_estim(data)
     va0 = diag(er0)
     
     gci = zeros([n,n])
     for i in arange(n): 
         aux_data = delete(data, i, 0)
-        A1, er1 = ar_fit.ar_fit(aux_data)
+        A1, er1 = ar_estim.ar_estim(aux_data)
         va1 = diag(er1) 
         va1 = insert(va1, i, 0)
         gci[:,i] = log(float64(va1)/va0)
@@ -643,7 +646,7 @@ def gct(data,**args):
     
     data = pre_data(data, pr_.normalize, pr_.detrend)
     
-    A, e_var = ar_fit.ar_fit(data)
+    A, e_var = ar_estim.ar_estim(data)
         
     return as_.asymp_gct(data, A, e_var)
 
@@ -657,7 +660,7 @@ def igct(data, **args):
     
     data = pre_data(data, pr_.normalize, pr_.detrend)
     
-    A, e_var = ar_fit.ar_fit(data)
+    A, e_var = ar_estim.ar_estim(data)
     
     n, nd = data.shape
         
@@ -667,7 +670,7 @@ def white_test(data, h = 20, **args):
     
     read_args(args)
     
-    A, res = ar_fit.ar_fit(data, return_ef=True)
+    A, res = ar_estim.ar_estim(data, return_ef=True)
     
     p = A.shape[2]
     
@@ -682,7 +685,7 @@ def white_test(data, h = 20, **args):
 #    if (detrend):
 #        data = sig.detrend(data)
 #        
-#    A0, er0 = ar_fit.ar_fit(data, maxp)
+#    A0, er0 = ar_estim.ar_estim(data, maxp)
 #    va0 = diag(er0)
 #    
 #    p = A0.shape[2] #TODO: p pode variar depois. fixar para A1?
@@ -691,7 +694,7 @@ def white_test(data, h = 20, **args):
 #    gci = zeros([n,n])
 #    for i in arange(n): 
 #        aux_data = delete(data, i, 0)
-#        A1, er1 = ar_fit.ar_fit(aux_data, maxp)
+#        A1, er1 = ar_estim.ar_estim(aux_data, maxp)
 #        va1 = float64(diag(er1)) 
 #        va1 = insert(va1, i, 0)
 #        gci[:,i] = ((va1-va0)/(n*p))/(va0/(T-n*p-1))

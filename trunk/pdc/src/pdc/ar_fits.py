@@ -2,7 +2,7 @@
 
 '''Feito pelo Gilson, precisa revisar. parece bater c matlab.'''
 
-__all__ = ['nstrand', 'yule_walker', 'ar_fit', 'adapt_ar']
+__all__ = ['nstrand', 'yule_walker', 'ar_estim', 'adapt_ar']
 
 from numpy import *
 from numpy.linalg import pinv, inv, eig
@@ -288,7 +288,7 @@ def yule_walker(x, p = None, return_ef = False):
 #    Vaicv=zeros((MaxOrder+1,1), float)
 #    while IP <= UpperboundOrder:
 #        if (IP > 10):
-#            print 'Testando ar_fit com P =', IP
+#            print 'Testando ar_estim com P =', IP
 #            
 #        [npf, na, npb, nb, nef, neb, ISTAT]=fitalg(u,IP,False)
 #        
@@ -322,7 +322,7 @@ def yule_walker(x, p = None, return_ef = False):
 #    else:
 #        return A.transpose(1,2,0), ef
     
-def ar_fit(data, return_ef = False, **args):
+def ar_estim(data, return_ef = False, **args):
     '''
     %
     %[IP,pf,A,pb,B,ef,eb,vaic,Vaicv] = mvar(u,MaxIP,alg,criterion)
@@ -333,11 +333,11 @@ def ar_fit(data, return_ef = False, **args):
     
     [n,nd] = data.shape
 
-    if pr_.ar_fit == 'yw':
+    if pr_.ar_estim == 'yw':
         if pr_.v:
             print '\nUsing Yule-Walker VAR estimator.'
         fitalg = yule_walker
-    elif pr_.ar_fit == 'ns':
+    elif pr_.ar_estim == 'ns':
         if pr_.v:
             print '\nUsing Nutall-Strand VAR estimator.'
         fitalg = nstrand
@@ -357,7 +357,7 @@ def ar_fit(data, return_ef = False, **args):
     for ip in arange(1,pr_.maxp+1):
         if (ip > 10):
             if pr_.v:
-                print 'Testando ar_fit com P =', ip
+                print 'Testando ar_estim com P =', ip
             
         #[na, npf, npb, nb, nef, neb, ISTAT]=fitalg(data,ip,return_ef)
         na, npf = fitalg(data,ip,return_ef)

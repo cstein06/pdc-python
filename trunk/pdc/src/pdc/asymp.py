@@ -382,8 +382,9 @@ def asymp_pdc(x, A, nf, e_var, p, metric = 'gen', alpha = 0.05):
                 #    patdfr = patdf
                 #    patdenr = patden TODO retirar
 
-    gl.pr_.patden = patdenr
-    gl.pr_.patdf = patdfr
+    gl.res_.varass1 = varass1
+    gl.res_.patden = patdenr
+    gl.res_.patdf = patdfr
 
     return pdc, th, ic1, ic2
 
@@ -410,6 +411,8 @@ def asymp_dtf(x, A, nf, e_var, p, alpha = 0.05, metric = 'dummy'):
     dtf = empty([n, n, nf])
     varass1 = empty([n, n, nf])
     varass2 = empty([n, n, nf])
+    patdfr = empty([n, n, nf])
+    patdenr = empty([n, n, nf])
     
     gammai = inv(bigautocorr(x, p))
     omega = kron(gammai, e_var)
@@ -458,7 +461,13 @@ def asymp_dtf(x, A, nf, e_var, p, alpha = 0.05, metric = 'dummy'):
                 
                 th[i, j, ff] = st.chi2.ppf(1-alpha, patdf)/(patden*2*nd)
                 varass2[i, j, ff] = 2*patdf/(patden*2*nd)**2
+                patdfr[i, j, ff] = patdf
+                patdenr[i, j, ff] = patden
                 
+    gl.res_.varass1 = varass1
+    gl.res_.patden = patdenr
+    gl.res_.patdf = patdfr
+    
     return dtf, th, ic1, ic2
 
 def fc(i, n):
@@ -496,14 +505,14 @@ def asymp_pc(x, A, nf, e_var, p, alpha = 0.05, metric = 'dummy'):
     
     n, nd = x.shape
     
-    print n, nd
-    
     th = empty([n, n, nf])
     ic1 = empty([n, n, nf])
     ic2 = empty([n, n, nf])
     pc = empty([n, n, nf])
     varass1 = empty([n, n, nf]) #TODO: retirar varass's
     varass2 = empty([n, n, nf])
+    patdfr = empty([n, n, nf])
+    patdenr = empty([n, n, nf])
     
     gammai = inv(bigautocorr(x, p))
     omega = kron(gammai, e_var)
@@ -632,6 +641,12 @@ def asymp_pc(x, A, nf, e_var, p, alpha = 0.05, metric = 'dummy'):
                 patden = sum(d)/sum(d**2)
                 th[i, j, ff] = st.chi2.ppf(1-alpha, patdf)/(patden*2*nd)
                 varass2[i, j, ff] = 2*patdf/(patden*2*nd)**2
+                patdfr[i, j, ff] = patdf
+                patdenr[i, j, ff] = patden
+                
+    gl.res_.varass1 = varass1
+    gl.res_.patden = patdenr
+    gl.res_.patdf = patdfr
                 
     return pc, th, ic1, ic2
 
@@ -675,6 +690,8 @@ def asymp_coh(x, A, nf, e_var, p, alpha = 0.05, metric = 'dummy'):
     coh = empty([n, n, nf])
     varass1 = empty([n, n, nf])
     varass2 = empty([n, n, nf])
+    patdfr = empty([n, n, nf])
+    patdenr = empty([n, n, nf])
     
     gammai = inv(bigautocorr(x, p))
     omega = kron(gammai, e_var)
@@ -808,6 +825,12 @@ def asymp_coh(x, A, nf, e_var, p, alpha = 0.05, metric = 'dummy'):
                 patden = sum(d)/sum(d**2)
                 th[i, j, ff] = st.chi2.ppf(1-alpha, patdf)/(patden*2*nd)
                 varass2[i, j, ff] = 2*patdf/(patden*2*nd)**2
+                patdfr[i, j, ff] = patdf
+                patdenr[i, j, ff] = patden
+                
+    gl.res_.varass1 = varass1
+    gl.res_.patden = patdenr
+    gl.res_.patdf = patdfr
                 
     return coh, th, ic1, ic2
 
@@ -950,6 +973,12 @@ def asymp_ss(x, A, nf, e_var, p, alpha = 0.05, metric = 'dummy'):
                 patden = sum(d)/sum(d**2)
                 th[i, j, ff] = st.chi2.ppf(1-alpha, patdf)/(patden*2*nd)
                 varass2[i, j, ff] = 2*patdf/(patden*2*nd)**2
+                patdfr[i, j, ff] = patdf
+                patdenr[i, j, ff] = patden
+                
+    gl.res_.varass1 = varass1
+    gl.res_.patden = patdenr
+    gl.res_.patdf = patdfr
                 
     return ss, th, ic1, ic2
 
