@@ -9,6 +9,8 @@ import pdc.plotting as pl_
 import pdc.analysis as an
 import cPickle
 
+
+
 def main_analysis():
     
     #root = 'G:\\stein\\dados\\teste edu\\'
@@ -155,7 +157,6 @@ files = [['ES%(r)s_%(d)s_AD%(c)d_limpo_sem_filt.mat',
 
 rs = ['57', '59', '60']
 
-chs = [12, 21, 46, 38, 53]
          
 cdata = 'ES%(r)s_%(d)s_AD%(c)d_limpo_sem_filt.mat'
          
@@ -179,6 +180,7 @@ fields = [['ADlimpo',
           'ad_downsampled',
           'ad_combed']]
 
+#chs = [12, 21, 46, 38, 53]
 chs = [[12,21,46,38,53],
        [14,27,22,47,38,54],
        [14,12,22,47,38,54]]
@@ -187,8 +189,11 @@ ls = [['Ca1e', 'Ca3e', 'Ca1d', 'Ca2d', 'Ca3d'],
       ['Ca1e', 'Ca2e', 'Ca3e','Ca1d', 'Ca2d', 'Ca3d'],
       ['Ca1e', 'Ca2e', 'Ca3e','Ca1d', 'Ca2d', 'Ca3d']]
 
+#
+root = "/home/stein/dados/edu_comp/"
+#root = "G:\\stein\\dados\\edu_comp\\"
+
 def get_data(t = 0, r = 0, d = 0, cs = None):
-    root = "G:\\stein\\dados\\edu_comp\\"
 
     if cs is None:
         cs = arange(len(chs[r]))
@@ -222,7 +227,7 @@ def get_data(t = 0, r = 0, d = 0, cs = None):
 def get_res(r = 0, d = 0, alg = 'coh', what = 'resu'):
     #root = "G:\\stein\\dados\\edu_comp\\results\\"
     
-    fi = pr_.output_dir + 'R%s_D%s_%s_%s.pic' % (rs[r], ds[r][d], alg, what) 
+    fi = root + 'results/' + 'R%s_D%s_%s_%s.pic' % (rs[r], ds[r][d], alg, what) 
     
     print fi
     f = open(fi, 'rb')
@@ -254,7 +259,6 @@ def plot_mean(r = 0, d = 0, es = [2,4,5], alg = 'coh'):
     
 
 def get_rejected(r = 0, d = 0):
-    root = "G:\\stein\\dados\\edu_comp\\"
     fst = 'ES%s_%s_rejected_s_filt.mat' % (rs[r], ds[r][d])
     
     return loadmat(root+fst)['TMPREJ'][:,:2].T   
@@ -349,6 +353,45 @@ def mean_block3_lastdays():
         pr_.plot_title = 'Coherence R%s D%s' % (r,d)
                 
         sta_.states_analysis(data, sta)
+        
+        
+
+def mean_block4_lastdays():
+    
+    set_def()
+    pr_.output_dir = root + "results/"
+    
+    for r,d in [[0,4], [1,4], [2,3]]:
+        lim = get_block_limits(r, d)
+        
+        sta = get_state(r = r, d = d)
+        
+        data = get_data(r = r, d = d)
+        
+        slim1 = ceil(lim[3]/5000.0)
+        slim2 = int32((lim[4]+1)/5000.0)
+
+        sta = sta[slim1:slim2]
+        
+        data = data[:,slim1*5000:slim2*5000]
+        
+        print 'slims', lim, slim1, slim2
+        
+        pr_.root_dir
+        
+        pr_.stinput = 'block4/R%s_D%s_block4' % (r,d)
+        
+        pr_.plot_labels = ls[r]
+        
+        pr_.plot_title = 'Coherence R%s D%s' % (r,d)
+                
+        sta_.states_analysis(data, sta)
+
+
+def print_blocks():
+    
+    for r,d in [[0,4], [1,4], [2,3]]:
+        print 'r:', rs[r], 'd:', ds[r][d], get_block_limits(r, d)
 
 def plotall():
     
@@ -357,7 +400,6 @@ def plotall():
         plot_mean(r = r, d = d)
 
 def get_state(r = 0, d = 0):
-    root = "G:\\stein\\dados\\edu_comp\\"
     
     fst = 'ES%s_%s_estagiamentojanela10s_limpo.txt' % (rs[r], ds[r][d])
     
@@ -396,8 +438,7 @@ def set_def():
     
 def final_processing():
     
-    root = "G:\\stein\\dados\\edu_comp\\"
-    pr_.output_dir = "G:\\stein\\dados\\edu_comp\\results\\"
+    pr_.output_dir = root + "results/"
     
     algoritmo = 'pdc'
     #algoritmo = 'coh'
@@ -418,7 +459,7 @@ def final_processing():
     espectro_em_potencia = True
     metrica_pdc = 'diag'
     
-    pr_.ar_fit = 'yw'
+    pr_.ar_estim = 'yw'
     
     set_params(alg = algoritmo, window_size = window_size, 
                nf = n_frequencies, sample_f = sampling_rate,
@@ -493,7 +534,7 @@ def rewrite_pics():
     
 if __name__ == '__main__':
     
-    main_analysis()
+    #main_analysis()
     
     #check_hist()
     
@@ -513,5 +554,8 @@ if __name__ == '__main__':
     
     #mean_block3_lastdays()
     
+    #mean_block4_lastdays()
+    
+    print_blocks()
     pass
     

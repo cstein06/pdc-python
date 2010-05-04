@@ -3,6 +3,9 @@ import matplotlib.pyplot as pp
 
 from pdc.sim_data import ar_data
 import pdc.analysis as pdc_
+import cPickle
+
+from pdc import *
 
 def test_subsample():
     
@@ -24,8 +27,38 @@ def test_plot_rc():
     pp.show()
     
     
+
+root = '/home/stein/producao/quali/simulados/'
+def test_pickle():
+    a = ones(10)
+    b = 5
+    d = ones([3,3])
+    e = [3, arange(2)]
+    
+    a.dump(root +'test.pic')
+    d.dump(root +'test.pic')
+    f = open(root +'test.pic', 'ab')
+    cPickle.dump(b, f)
+    cPickle.dump(d, f)
+    #f.close()
+    d.dump(f)
+    f.close()
+    f = open(root +'test.pic', 'ab')
+    cPickle.dump(e, f)
+    f.close()
+    
+    f = open(root +'test.pic', 'rb')
+    print cPickle.load(f)
+    print cPickle.load(f)
+    print cPickle.load(f)
+    print cPickle.load(f)
+    print cPickle.load(f)
+    print cPickle.load(f)
+    
 if __name__ == "__main__":
     
     #test_subsample()
     
-    test_plot_rc()
+    #test_plot_rc()
+    
+    test_pickle()

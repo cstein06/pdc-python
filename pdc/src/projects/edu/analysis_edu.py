@@ -8,15 +8,15 @@ Created on Apr 7, 2010
 from numpy import *
 import matplotlib.pyplot as pp
 
-from projects.edus import get_data, get_res, get_state
+from projects.edu.edus import get_data, get_res, get_state
 import pdc.plotting as pl_
 import pdc.states as sta_
 import pdc.analysis as an_
-import projects.edus as ed_
+import projects.edu.edus as ed_
 
 from pdc.params import *
 
-from projects.edus import ds, rs, ls, chs
+from projects.edu.edus import ds, rs, ls, chs
 
 def set_def():
     #algoritmo = 'pdc'
