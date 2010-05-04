@@ -44,7 +44,7 @@ def plot_all(**args):
         ss = res_.ss.copy()
     
     if pr_.logss and ss is not None:
-        ss = log(ss)
+        ss = 10*log10(ss)
        
     if pr_.sqrtmes: 
         mes = sqrt(mes)
@@ -279,7 +279,7 @@ def plot_coherogram(res, states = None, **args):
 #                auxres = res
             
             if i == j and pr_.ss and pr_.logss:
-                ax = imshow(log(res[:,i,j,:]).T, origin='lower', 
+                ax = imshow(10*log10(res[:,i,j,:]).T, origin='lower', 
                        extent=(0,pr_.window_size*res.shape[0],0,pr_.sample_f/2.0),
                        interpolation = 'nearest', aspect = 'auto')
             else:
@@ -324,7 +324,7 @@ def plot_coherogram(res, states = None, **args):
 #        print 'Plotting complex data, something seems to be wrong.'
 #    
 #    if pr_.logss and pr_.ss:
-#        ss = log(ss)
+#        ss = 10*log10(ss)
 #        
 #    
 #        #print ss.shape

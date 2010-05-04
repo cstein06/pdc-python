@@ -120,6 +120,10 @@ def gen_data_Guo(m, dummy = 100, a = None, bv = 2, cv = 5):
 
     return x[:,dummy:]
 
+def gen_data_Baccala(m, dummy = 100, a = None, bv = 2, cv = 5):
+    '''Baccala and Sameshima, 2001. Biol. Cyber.'''
+    gen_data_Guo(m, dummy, a = zeros(5), bv = 0, cv = 0)
+
 def teste_Guo():
     nd = 2000
     nf = 8

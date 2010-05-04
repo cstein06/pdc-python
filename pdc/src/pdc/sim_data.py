@@ -161,44 +161,44 @@ def ar_data_old(A, er = None, m = 1000, dummy = 100, model = None):
     
     return data[:,dummy:]
 
-def patch_weave():
-    
-    import scipy.weave as we_
-    import os
-    path = os.path.dirname(we_.__file__)
-    path += '/blitz/blitz/'
-    
-    print 'herhe2'
-    print path + 'funcs.h'
-    #os.system("chmod 777 " + path + 'funcs.h')
-    f = open(path + 'funcs.h', 'r')
-    lines = f.readlines()
-    f.close()
-    print 'herhe3'
-    for i in range(len(lines)):
-        if lines[i] == 'BZ_NAMESPACE(blitz)':
-            lines.insert[i] = '#include <cstdlib>\n'
-    f = open(path + 'funcs.h', 'w')
-    f.write(lines)
-    f.close()
+#def patch_weave():
+#    
+#    import scipy.weave as we_
+#    import os
+#    path = os.path.dirname(we_.__file__)
+#    path += '/blitz/blitz/'
+#    
+#    print 'herhe2'
+#    print path + 'funcs.h'
+#    #os.system("chmod 777 " + path + 'funcs.h')
+#    f = open(path + 'funcs.h', 'r')
+#    lines = f.readlines()
+#    f.close()
+#    print 'herhe3'
+#    for i in range(len(lines)):
+#        if lines[i] == 'BZ_NAMESPACE(blitz)':
+#            lines.insert[i] = '#include <cstdlib>\n'
+#    f = open(path + 'funcs.h', 'w')
+#    f.write(lines)
+#    f.close()
+#
+#    #os.system("chmod 777 " + path + 'mathfunc.h')
+#    f = open(path + 'mathfunc.h', 'r')
+#    lines = f.readlines()
+#    f.close()
+#    for i in range(len(lines)):
+#        if lines[i] == 'BZ_NAMESPACE(blitz)':
+#            lines.insert[i] = '#include <cstdlib>\n'
+#    f = open(path + 'mathfunc.h', 'w')
+#    f.write(lines)
+#    f.close()
+#    
+#    print 'herhe4'
+#    
+#    return
 
-    #os.system("chmod 777 " + path + 'mathfunc.h')
-    f = open(path + 'mathfunc.h', 'r')
-    lines = f.readlines()
-    f.close()
-    for i in range(len(lines)):
-        if lines[i] == 'BZ_NAMESPACE(blitz)':
-            lines.insert[i] = '#include <cstdlib>\n'
-    f = open(path + 'mathfunc.h', 'w')
-    f.write(lines)
-    f.close()
-    
-    print 'herhe4'
-    
-    return
 
-
-def ar_data(A = None, er = None, m = 1000, dummy = 100, model = None):
+def ar_data(A = None, er = None, nd = 1000, dummy = 100, model = None):
     '''Simulate ar-model from A matrix
     
       Input: 
@@ -227,10 +227,10 @@ def ar_data(A = None, er = None, m = 1000, dummy = 100, model = None):
     if er.ndim == 1:
         er = diag(er)
     
-    w = mnorm(zeros(n), er, m+dummy-p)
-    data = zeros([n, m+dummy])
+    w = mnorm(zeros(n), er, nd+dummy-p)
+    data = zeros([n, nd+dummy])
     code = '''
-        for (int i = p; i < m+dummy; i++) {
+        for (int i = p; i < nd+dummy; i++) {
             for (int j = 0; j < p; j++) {
                 for (int k = 0; k < n; k++) {
                     double s = 0;
@@ -248,14 +248,14 @@ def ar_data(A = None, er = None, m = 1000, dummy = 100, model = None):
     '''
     
     try:
-        weave.inline(code, ['data', 'p', 'm', 'dummy', 'n', 'A', 'w'], 
+        weave.inline(code, ['data', 'p', 'nd', 'dummy', 'n', 'A', 'w'], 
                        type_converters=converters.blitz, compiler = 'gcc',
                        verbose=False)
     except:
         print 'C code for ar_data failed, must patch blitz files or use g++ 4.4...'
         print 'This is a scipy problem, should be fixed soon.'
-        print 'Using pure python instead...\n'
-        return ar_data_old(A, er, m, dummy, model)
+        print 'Using pure python instead, its the same but slower.\n'
+        return ar_data_old(A, er, nd, dummy, model)
     
 #        try:
 #            patch_weave()
