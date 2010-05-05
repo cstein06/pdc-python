@@ -239,7 +239,7 @@ def yule_walker(x, p = None, return_ef = False):
     return A.reshape(n,p,n).transpose(0,2,1), er
     
 
-#def ar_fit_old(u, MaxIP = 0, alg='ns', criterion=0, return_ef = False):
+#def ar_estim_old(u, MaxIP = 0, alg='ns', criterion=0, return_ef = False):
 #    '''
 #    %
 #    %[IP,pf,A,pb,B,ef,eb,vaic,Vaicv] = mvar(u,MaxIP,alg,criterion)

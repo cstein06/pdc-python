@@ -10,7 +10,7 @@ Testa ditribuicao e tamanho da estat asymp
 """
 
 from pdc import *
-from tests.asymp_tests import test_asymp
+from pdc.tests.asymp_tests import test_asymp
 
 from numpy import *
 from numpy.random import multivariate_normal as mnorm
@@ -603,6 +603,8 @@ def gen_big_Ar(p = 100, n = 3):
 
 ps = [5, 10, 20, 50]
 ns = [3]
+
+a = b43.tr()
 
 def test_varios_p():
     n = 3

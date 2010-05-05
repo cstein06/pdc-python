@@ -249,7 +249,7 @@ def testa_std_asymp():
 
     res, merA, strA, merE, strE = states_analysis(data, estag, plot_states = plot_states, plot_freq = plot_freq)
 
-    #Aest, er = fit_.ar_fit(data[:,:win], ordem_max, fixp = True) 
+    #Aest, er = fit_.ar_estim(data[:,:win], ordem_max, fixp = True) 
 
     #simd = ar_data(Aest, er, win)
     simd = ar_data(merA[est], merE[est], win)

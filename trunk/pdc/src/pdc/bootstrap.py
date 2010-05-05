@@ -7,7 +7,7 @@ Created on 22/10/2009
 
 from numpy import *
 import time
-from pdc.ar_fits import nstrand
+from pdc.ar_est import nstrand
 
 from pdc.sim_data import ar_data
 

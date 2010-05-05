@@ -5,8 +5,6 @@ from pdc.sim_data import ar_data
 import pdc.analysis as pdc_
 import cPickle
 
-from pdc import *
-
 def test_subsample():
     
     A = array([[0.6, 0.2], [-0.2, 0.5]])
