@@ -22,7 +22,7 @@ import pdc.plotting as pl_
 import pdc.bootstrap as bt_
 from pdc.params import *
 from pdc.params import mnames_
-from pdc.ar_fits import ar_estim
+from pdc.ar_est import ar_estim
 
 def list_to_array(data):
     '''Converts a list to an array'''
@@ -211,7 +211,7 @@ def dtf_alg(A, er, nf = 64, metric = 'dummy'):
 #    return abs(pdc_alg(A, er, nf))**2, abs(ss_alg(A, er, nf))**2, abs(coh_alg(A, er, nf))**2
 
 
-def arfit(data, **args):
+def arest(data, **args):
     '''Interface that calculate the Coherence from data'''
     read_args(args)
     
@@ -621,13 +621,13 @@ def gci(data, **args):
     
     data = pre_data(data, pr_.normalize, pr_.detrend)
         
-    A0, er0 = ar_estim.ar_estim(data)
+    A0, er0 = ar_estim(data)
     va0 = diag(er0)
     
     gci = zeros([n,n])
     for i in arange(n): 
         aux_data = delete(data, i, 0)
-        A1, er1 = ar_estim.ar_estim(aux_data)
+        A1, er1 = ar_estim(aux_data)
         va1 = diag(er1) 
         va1 = insert(va1, i, 0)
         gci[:,i] = log(float64(va1)/va0)
@@ -646,7 +646,7 @@ def gct(data,**args):
     
     data = pre_data(data, pr_.normalize, pr_.detrend)
     
-    A, e_var = ar_estim.ar_estim(data)
+    A, e_var = ar_estim(data)
         
     return as_.asymp_gct(data, A, e_var)
 
@@ -660,7 +660,7 @@ def igct(data, **args):
     
     data = pre_data(data, pr_.normalize, pr_.detrend)
     
-    A, e_var = ar_estim.ar_estim(data)
+    A, e_var = ar_estim(data)
     
     n, nd = data.shape
         
@@ -670,7 +670,7 @@ def white_test(data, h = 20, **args):
     
     read_args(args)
     
-    A, res = ar_estim.ar_estim(data, return_ef=True)
+    A, res = ar_estim(data, return_ef=True)
     
     p = A.shape[2]
     

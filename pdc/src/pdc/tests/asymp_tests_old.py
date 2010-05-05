@@ -13,7 +13,7 @@ import pdc.asymp as ass_
 import pdc.analysis as pdc_
 from pdc.sim_data import ar_data
 from pdc.sim_data import ar_models
-from pdc.ar_fits import nstrand
+from pdc.ar_est import nstrand
 
 def test_asymp(asymp_func, method_func, nm = 100, nd = 100, A = None, er = None, 
                nf = 20, alpha = 0.05, metric = None):

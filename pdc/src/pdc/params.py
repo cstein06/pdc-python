@@ -35,7 +35,7 @@ class Param():
         self.ss = True # Calculate power spectrum also
         self.power = True # Calculate power of the measure (instead of complex value)
         self.ar_estim = 'ns' # VAR estimator: ns (Nutall-Strand) or yw (Yule-Walker)
-        self.reuse_A = False # Use the res_.A and res_.er, don't do new arfit
+        self.reuse_A = False # Use the res_.A and res_.er, don't do new ar_estim
         
         #Statistics specs
         

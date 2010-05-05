@@ -74,7 +74,7 @@ def teste_simples():
     #If you want step by step, you can do it this way:
     
     #Estimate AR parameters with Nuttall-Strand
-    #Aest, erest = ar_fit(data, maxp)
+    #Aest, erest = ar_estim(data, maxp)
     
     #Calculate the connectivity and statistics
     #mes, th, ic1, ic2 = ass_.asymp_pdc(data, Aest, nf, erest, 
@@ -87,7 +87,7 @@ def teste_simples():
     #Another step-by-step way, without statistics:
     
     #Estimate AR parameters with Nuttall-Strand
-    #Aest, erest = ar_fit(data, maxp)
+    #Aest, erest = ar_estim(data, maxp)
     
     #Calculate the connectivity
     #mes = pdc_.pdc_alg(Aest, erest, nf = nf, metric = metric)
@@ -175,8 +175,8 @@ def teste_Guo():
     pp.show()
 
 def teste_sunspot_melanoma():
-   #Generate data from AR
-   y=array([[1936,  1.0, 0.9,  40],
+    #Generate data from AR @IndentOk
+    y=array([[1936,  1.0, 0.9,  40],
         [ 1937, 0.8, 0.8, 115],
         [ 1938, 0.8, 0.8, 100],
         [ 1939, 1.4, 1.3,  80],
@@ -213,16 +213,16 @@ def teste_sunspot_melanoma():
         [ 1970, 5.2, 4.8, 105],
         [ 1971, 5.3, 4.8,  80],
         [ 1972, 5.3, 4.8,  65]])
-   data=y[:,[3,2]].transpose()
+    data=y[:,[3,2]].transpose()
    
-   nf = 64
-   alpha = 0.01
-   metric = 'diag'
-   maxp = 10
+    nf = 64
+    alpha = 0.01
+    metric = 'diag'
+    maxp = 10
    
-   set_params(plot_labels = ['sun spots', 'melanome'])
+    set_params(plot_labels = ['sun spots', 'melanome'])
    
-   pdc_full(data, maxp = maxp, nf = nf, ss = True, 
+    pdc_full(data, maxp = maxp, nf = nf, ss = True, 
                  alpha = alpha, metric = metric, normalize = False, 
                  stat = 'asymp')
 
@@ -308,7 +308,7 @@ def teste_data():
                   normalize = False, detrend = True, fixp = True, stat = 'asymp', n_boot = 100)
     
     #Estimate AR parameters with Nuttall-Strand
-    #Aest, erest = ar_fit(data, maxp)
+    #Aest, erest = ar_estim(data, maxp)
     #Calculate the connectivity and statistics
     #mes, th, ic1, ic2 = ass_.asymp_pdc(data, Aest, nf, erest, 
     #                               maxp, alpha = alpha, metric = metric)

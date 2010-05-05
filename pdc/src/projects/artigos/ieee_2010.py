@@ -9,7 +9,7 @@ import pdc.sim_data as ard_
 import pdc.analysis as pdc_
 import pdc.examples as exa_
 from pdc.params import *
-import pdc.ar_fits as fit_
+import pdc.ar_est as fit_
 import pdc.asymp as asy_
 import pdc.plotting as pl_
 

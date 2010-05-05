@@ -15,7 +15,7 @@ import pdc.analysis as pdc_
 import pdc.asymp as ass_
 from pdc.asymp import *
 import pdc.sim_data as ar_data_
-import pdc.ar_fits as ar_fit
+import pdc.ar_est as ar_est
 import pdc.adaptative as adap 
 
 from scipy.stats import cov as cov
@@ -66,7 +66,7 @@ def test_alpha_var(montei = 100, nd = 100, A = None, er = None, maxp = 2):
     alpha = empty(montei, n, n, p)
     for i in arange(montei):
         data = ar_data_.ar_data(A, er, nd)
-        alpha[i], erest = ar_fit.nstrand(data, maxp = maxp)
+        alpha[i], erest = ar_est.nstrand(data, maxp = maxp)
         
 def test_asymp_pdc_semr():
     Aest = array([[4,3],[0,3]], dtype=float).reshape(2,2,1)/10
@@ -124,7 +124,7 @@ def test_alpha(nm = 100, nd = 100, A = None, er = None, maxp = 2):
     time.clock()
     for i in range(nm):
         data = ar_data_.ar_data(A, er, nd)
-        Aest, erest = ar_fit.nstrand(data, maxp = maxp)  
+        Aest, erest = ar_est.nstrand(data, maxp = maxp)  
         varass[i] = ass_alpha(data, erest, maxp, nd)
         al[i] = Aest.transpose([2,1,0]).ravel()
       
@@ -169,7 +169,7 @@ def test_evar(nm = 100, nd = 100, A = None, er = None, maxp = 2):
     time.clock()
     for i in range(nm):
         data = ar_data_.ar_data(A, er, nd)
-        Aest, erest = ar_fit.nstrand(data, maxp = maxp)  
+        Aest, erest = ar_est.nstrand(data, maxp = maxp)  
         vares[i] = ass_evar(erest, nd)
         al[i] = ass_.vech(erest)
         erm[i] = erest
@@ -200,7 +200,7 @@ def test_eaind(nm = 100, nd = 100, A = None, er = None, maxp = 2):
     time.clock()
     for i in range(nm):
         data = ar_data_.ar_data(A, er, nd)
-        Aest, erest = ar_fit.nstrand(data, maxp = maxp)  
+        Aest, erest = ar_est.nstrand(data, maxp = maxp)  
         vares[i] = ass_evar(erest, nd)
         ala[i] = Aest.transpose([2,1,0]).ravel()
         #print ala[i]
@@ -216,7 +216,7 @@ def test_eaind(nm = 100, nd = 100, A = None, er = None, maxp = 2):
 
 def test_dinv(nm = 100):
     #e_var = diag(array([1, 0.1, 0.2, 0.1, 0.3, 2, 0.3, 0.2]))/100 + randn(8,8)/10000
-   # e_var = diag(randn(2*3**2))/100 + randn(2*3**2,2*3**2)/10000
+    # e_var = diag(randn(2*3**2))/100 + randn(2*3**2,2*3**2)/10000
     #e_var = array([[1, 0.1, 0.2, 0.1], [0, 2, 0.3, 0.2], 
     #         [0.1, 0.3, 1, 0.3], [0.2, 0, 0, 3]])
     #e_var = e_var+e_var.T
@@ -366,7 +366,7 @@ def test_daniel_JAS_fig2():
     emp = zeros(n)
     for i in arange(n):
         data = ar_data_.ar_data(A, er, 1000)
-        Ae, ere = ar_fit.ar_fit(data, 2, fixp = True)
+        Ae, ere = ar_est.ar_estim(data, 2, fixp = True)
         aux = pdc_.pdc_alg(Ae, ere, nf = 5, metric = 'euc')
          
         Af = pdc_.A_to_f(Ae, 5)
@@ -378,7 +378,7 @@ def test_daniel_JAS_fig2():
     emp = sort(emp)
     
     data = ar_data_.ar_data(A, er, 10000)
-    #Ae, ere = ar_fit.ar_fit(data, 2, fixp = True)
+    #Ae, ere = ar_estim.ar_estim(data, 2, fixp = True)
     
     Af = pdc_.A_to_f(A, 5)
     den = dot(Af[3,:,0],Af[3,:,0].conj()).real
@@ -415,7 +415,7 @@ def test_AIC():
     #If you want step by step:
     
     #Estimate AR parameters with Nuttall-Strand
-    Aest, erest = ar_fit.ar_fit(data, 2)
+    Aest, erest = ar_est.ar_estim(data, 2)
     print Aest
     #Calculate the connectivity and statistics
     #mes, th, ic1, ic2 = ass_.asymp_pdc(data, Aest, nf, erest, 
@@ -531,7 +531,7 @@ def test_AMVAR2(m = 10, nd = 2000, n = 2, p = 3, step = 50, se = 100):
                 data[i,:,j*nd2:(j+1)*nd2] = ar_data_.ar_data(A2, er2, nd2, dummy = 10)
         
     #A, er = adap.AMVAR(data, p, cf = 0.03)
-    A, er = adap.adaptative(data, se = se, step = step, maxp = p)
+    A, er = adap.adaptative_ar(data, se = se, step = step, maxp = p)
 
     #print A
     
@@ -543,13 +543,13 @@ def test_profile_ar():
     
     for i in arange(10):
         print i
-        ar_fit.ar_fit(data, fixp = True, maxp = 2, ar_fit = 'ns', v = False)
+        ar_est.ar_estim(data, fixp = True, maxp = 2, ar_fit = 'ns', v = False)
     
-def test_ar_fit():
+def test_ar_estim():
     da = ar_data_.ar_data(model = 0)
     
     cProfile.run('test_profile_ar()')
-    #cProfile.run("ar_fit.ar_fit(da, test_allp = True, maxp = 20, ar_fit = 'ns'")
+    #cProfile.run("ar_est.ar_estim(da, test_allp = True, maxp = 20, ar_est = 'ns'")
     
 
 if __name__ == "__main__":
@@ -565,4 +565,4 @@ if __name__ == "__main__":
     
     #test_AMVAR(nd = 200)
     test_event_adapt()
-    #test_ar_fit()
+    #test_ar_est()
