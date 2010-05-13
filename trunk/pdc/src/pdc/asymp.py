@@ -973,12 +973,12 @@ def asymp_ss(x, A, nf, e_var, p, alpha = 0.05, metric = 'dummy'):
                 patden = sum(d)/sum(d**2)
                 th[i, j, ff] = st.chi2.ppf(1-alpha, patdf)/(patden*2*nd)
                 varass2[i, j, ff] = 2*patdf/(patden*2*nd)**2
-                patdfr[i, j, ff] = patdf
-                patdenr[i, j, ff] = patden
+                #patdfr[i, j, ff] = patdf
+                #patdenr[i, j, ff] = patden
                 
     gl.res_.varass1 = varass1
-    gl.res_.patden = patdenr
-    gl.res_.patdf = patdfr
+    #gl.res_.patden = patdenr
+    #gl.res_.patdf = patdfr
                 
     return ss, th, ic1, ic2
 
