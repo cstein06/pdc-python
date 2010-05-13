@@ -152,13 +152,13 @@ def pdc_alg(A, e_cov, nf = 64, metric = 'diag'):
     #print metric
     
     n, n, r = A.shape
-    if metric == 'euc':
+    if metric == 'orig':
         nornum = ones(n)
         norden = identity(n)
-    elif metric == 'diag':
+    elif metric == 'gen':
         nornum = 1/diag(e_cov)
         norden = diag(1/diag(e_cov))
-    else: #metric == 'gen'
+    else: #metric == 'info'
         nornum = 1/diag(e_cov)
         norden = inv(e_cov)
     
@@ -225,7 +225,7 @@ def arest(data, **args):
 
 
 #maxp = 30, nf = 64, detrend = True, normalize = False, 
-#        fixp = False, ss = True, metric = 'diag', power = False
+#        fixp = False, ss = True, metric = 'gen', power = False
 def pdc(data, **args):
     '''Generates spectral PDC matrix from data array
     
@@ -235,7 +235,7 @@ def pdc(data, **args):
         nf - frequency resolution
         detrend - Shall the data be detrended
         SS - Shall calculate the SS also
-        metric - which PDC to use ('euc', 'diag' or 'gen')
+        metric - which PDC to use ('orig', 'gen' or 'info')
         power - returns abs(PDC)^2
         
       Output:
@@ -273,7 +273,7 @@ def pc(data, **args):
     return measure(data, alg = 'pc')
     
 #maxp = 30, nf = 64, detrend = True, normalize = False, 
-#        fixp = False, ss = True, metric = 'diag', power = False
+#        fixp = False, ss = True, metric = 'gen', power = False
 def measure(data, **args):
     '''Generates spectral measure from data array
     
@@ -283,7 +283,7 @@ def measure(data, **args):
         nf - frequency resolution
         detrend - Shall the data be detrended
         SS - Shall calculate the SS also
-        metric - which PDC to use ('euc', 'diag' or 'gen')
+        metric - which PDC to use ('orig', 'gen' or 'info')
         power - returns abs(PDC)^2
         
       Output:
@@ -410,7 +410,7 @@ def measure_full(data, **args):
        
     Possible parameters:
        maxp = 30, nf = 64, sample_f = 1, 
-       ss = True, alpha = 0.05, metric = 'diag', 
+       ss = True, alpha = 0.05, metric = 'gen', 
        detrend = True, normalize = False, 
        stat = 'asymp', n_boot = 1000, fixp = False,
        plotf = None, *
@@ -520,7 +520,7 @@ def measure_full(data, **args):
     
     return res_.mes, res_.th, res_.ic1, res_.ic2
 
-#data, maxp = 30, nf = 64, sample_f = 1, ss = True, metric = 'gen',
+#data, maxp = 30, nf = 64, sample_f = 1, ss = True, metric = 'info',
 #                 detrend = True, normalize = False, fixp = False, logss = False
 def pdc_and_plot(data, **args):
     read_args(args)

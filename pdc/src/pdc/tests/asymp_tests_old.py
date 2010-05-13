@@ -79,7 +79,7 @@ def test_coh():
        coh -> ass_.asymp_coh, pdc_.coh_alg
        ss -> ass_.asymp_ss, pdc_.ss_alg
        
-       Para o PDC deve informar a metrica: metric = 'euc', 'diag' ou 'gen'. 
+       Para o PDC deve informar a metrica: metric = 'orig', 'gen' ou 'info'. 
        Para os outros não deve ser esepecificado.
        
        nm eh numero de iterações do Monte Carlo
@@ -98,7 +98,7 @@ def test_coh():
     #                                                   nf = 10, alpha = 0.05)
 
     pdc, th, ic1, ic2, h0, h11, h12, pdcr = test_asymp(ass_.asymp_pdc, pdc_.pdc_alg, nm = 1000, nd = 1000, A = A, er = er, 
-                                                       nf = 10, alpha = 0.05, metric = 'euc')
+                                                       nf = 10, alpha = 0.05, metric = 'orig')
     print h0
     print h11+h12
     
@@ -114,7 +114,7 @@ def teste_simples():
     alpha = 0.05
     n = A.shape[0]
     maxp = A.shape[2]
-    metric = 'gen'
+    metric = 'info'
     
     #Generate data from AR
     data = ar_data(A, er, nd)
@@ -212,7 +212,7 @@ def compare_bootstrap_asymp():
     alpha = 0.01
     meth = pdc_.pdc_alg
     asymp_func = ass_.asymp_pdc
-    metric = 'euc'
+    metric = 'orig'
     
     
     mesb, bvar, ic1, ic2 = bootstrap(meth, nd = nd, nm = nm, A = A, er = er, 
@@ -323,7 +323,7 @@ def test_bootstrap_MxN():
     
     nf = 4
     
-    bvar, ic1, ic2 = test_bootstrap_MxN_loop(pdc_.pdc_alg, ns = ns, ms = ms, nf = nf, A = A, er = er, metric = 'gen')
+    bvar, ic1, ic2 = test_bootstrap_MxN_loop(pdc_.pdc_alg, ns = ns, ms = ms, nf = nf, A = A, er = er, metric = 'info')
 
     print 'bvar', bvar.transpose([0,2,3,4,1])
     #print 'ic1, ic1, ic2

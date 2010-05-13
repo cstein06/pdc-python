@@ -45,7 +45,7 @@ def simple_simulation_analysis():
     pr_.maxp = A.shape[2]
     
     #type of PDC used (refer to manual to see what it means)
-    pr_.metric = 'diag'
+    pr_.metric = 'gen'
     
     # Other parameters...
     pr_.ss = True
@@ -146,7 +146,7 @@ def states_simulation_analysis():
     pr_.ordem_max = 25
     pr_.fixp = True
     
-    pr_.metric = 'diag'
+    pr_.metric = 'gen'
     
     data = loadtxt(root_dir+pr_.stinput).T
     states = loadtxt(root_dir+instates)

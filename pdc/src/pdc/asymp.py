@@ -228,7 +228,7 @@ def asymp_pdc(x, A, nf, e_var, p, metric = 'gen', alpha = 0.05):
         nf -> number of frequencies
         e_var -> residues
         p -> model order
-        metric -> witch PDC (gPDC = 'gen', dPDC = 'diag', PDC = 'euc')
+        metric -> witch PDC (iPDC = 'info', dPDC = 'gen', PDC = 'orig')
         alpha -> confidence margin
     '''
     
@@ -279,18 +279,18 @@ def asymp_pdc(x, A, nf, e_var, p, metric = 'gen', alpha = 0.05):
                 Iij = fIij(i, j, n)
                 Ij = fIj(j, n)
                 
-                'No caso diag ou gen, deve-se acrescentar o evar na formula'
-                if metric == 'euc':
+                'No caso gen ou info, deve-se acrescentar o evar na formula'
+                if metric == 'orig':
                     Iije = Iij
                     Ije = Ij
                 
-                elif metric == 'diag':
+                elif metric == 'gen':
                     evar_d = mdiag(e_var)
                     evar_d_big = kron(I(2*n), evar_d)
                     Iije = Iij*evar_d_big.I
                     Ije = Ij*evar_d_big.I
                 
-                else: #metric == 'gen' 
+                else: #metric == 'info' 
                     evar_d = mdiag(e_var)
                     evar_d_big = kron(I(2*n), evar_d)
                     Iije = Iij*evar_d_big.I
@@ -303,7 +303,7 @@ def asymp_pdc(x, A, nf, e_var, p, metric = 'gen', alpha = 0.05):
                 pdc[i, j, ff] = num/den
                 
                 'Acrescenta derivada em relacao a evar'
-                if metric == 'euc':
+                if metric == 'orig':
                     dpdc_dev = mat(zeros((n*(n+1))/2))
                 
                 elif metric == 'diag':
@@ -327,7 +327,7 @@ def asymp_pdc(x, A, nf, e_var, p, metric = 'gen', alpha = 0.05):
                     dden_dev = kron((Ij*a).T, a.T)*dedinv_deh
                     dpdc_dev = (den*dnum_dev - num*dden_dev)/(den**2)
                 
-                else: # metric == 'gen'
+                else: # metric == 'info'
                     
                     if i == 0 and j == 0 and ff == 0:
                         evar_d = mdiag(e_var)

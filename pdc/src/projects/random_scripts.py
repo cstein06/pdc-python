@@ -15,8 +15,8 @@ def test_subsample():
     
     sdata = data[0::3]
     
-    pdc_.pdc_and_plot(data, 2, 30, metric='gen')
-    pdc_.pdc_and_plot(sdata, 2, 30, metric='gen')
+    pdc_.pdc_and_plot(data, 2, 30, metric='info')
+    pdc_.pdc_and_plot(sdata, 2, 30, metric='info')
     
 def test_plot_rc():
     pp.rcParams['ps.usedistiller'] = 'xpdf'

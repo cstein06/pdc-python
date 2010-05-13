@@ -43,7 +43,7 @@ def set_def():
     pr_.fixp = True
     pr_.detrend = True
     pr_.power = True
-    pr_.metric = 'diag'
+    pr_.metric = 'gen'
     
 
 def check_filt(data):
