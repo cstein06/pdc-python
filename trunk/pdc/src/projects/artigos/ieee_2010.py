@@ -25,7 +25,7 @@ def sunspot():
     nd = 10000
     alpha = 0.01
     maxp = 5
-    metric = 'diag'
+    metric = 'gen'
     nboot = 5000
     nf = 64
     sample_f = 1
@@ -109,7 +109,7 @@ def various_Guo(m = 5000):
     pr_.plot_ic = True
     
     pr_.alg = 'pdc'
-    pr_.metric = 'diag'
+    pr_.metric = 'gen'
     
     pr_.nf = 5
     
@@ -262,7 +262,7 @@ def quant_Guo(m = 2000):
     pr_.plot_ic = True
     
     pr_.alg = 'pdc'
-    pr_.metric = 'diag'
+    pr_.metric = 'gen'
     
     pr_.nf = 5
     
@@ -395,7 +395,7 @@ def Guo_error(m = 20):
     pr_.plot_ic = True
     
     pr_.alg = 'pdc'
-    pr_.metric = 'diag'
+    pr_.metric = 'gen'
     
     pr_.nf = 10
     
@@ -452,7 +452,7 @@ def compare_Guo():
     pr_.plot_ic = True
     
     pr_.alg = 'pdc'
-    pr_.metric = 'diag'
+    pr_.metric = 'gen'
     
     pr_.nf = 5
     
@@ -494,7 +494,7 @@ def winterhalter():
     
     nd = 10000*subs
     
-    metric = 'diag'
+    metric = 'gen'
     
     nf = 64
     

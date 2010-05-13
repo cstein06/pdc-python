@@ -54,7 +54,7 @@ def teste_simples():
     maxp = A.shape[2]
     
     #type of PDC used (refer to manual to see what it means)
-    metric = 'diag'
+    metric = 'gen'
     
     #Generate data from AR
     data = ar_data(A, er, nd)
@@ -130,7 +130,7 @@ def teste_Guo():
     alpha = 0.01
     n = 5
     maxp = 3
-    metric = 'diag'
+    metric = 'gen'
     sample_f = 200
     n_boot = 100
     
@@ -217,7 +217,7 @@ def teste_sunspot_melanoma():
    
     nf = 64
     alpha = 0.01
-    metric = 'diag'
+    metric = 'gen'
     maxp = 10
    
     set_params(plot_labels = ['sun spots', 'melanome'])
@@ -293,7 +293,7 @@ def teste_data():
     alpha = 0.05
     #n = 5
     maxp = 10
-    metric = 'euc'
+    metric = 'orig'
     
     #Generate data from AR
     #data = gen_winterhalter_2005_van_der_Pol_odeint(nd, dt = 0.5/subs)

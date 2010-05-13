@@ -60,7 +60,7 @@ def monte_carlo1(m = 10000, nd = 20000, bignd = 200000):
     
     mes = ['coh', 'pdc', 'dtf', 'pc']
     
-    pr_.metric = 'diag'
+    pr_.metric = 'gen'
     pr_.fixp = True
     pr_.maxp = 3
     pr_.ss = False

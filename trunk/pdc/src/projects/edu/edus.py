@@ -46,7 +46,7 @@ def main_analysis():
     ordem_fixa = True
     detrend = True
     espectro_em_potencia = True
-    metrica_pdc = 'diag'
+    metrica_pdc = 'gen'
     
     ####################################################
     
@@ -113,7 +113,7 @@ def batch_analysis():
     ordem_fixa = True
     detrend = True
     espectro_em_potencia = True
-    metrica_pdc = 'diag'
+    metrica_pdc = 'gen'
     
     #########################################
     
@@ -430,7 +430,7 @@ def set_def():
     pr_.fixp = True
     pr_.detrend = True
     pr_.power = True
-    pr_.metric = 'diag'
+    pr_.metric = 'gen'
     
     
   

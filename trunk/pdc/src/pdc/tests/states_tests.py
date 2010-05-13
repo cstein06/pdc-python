@@ -39,7 +39,7 @@ def windows_test():
     ordem_fixa = True
     detrend = True
     espectro_em_potencia = True
-    metrica_pdc = 'diag'
+    metrica_pdc = 'gen'
     
     ####################################################
     
@@ -109,7 +109,7 @@ def main_analysis():
     ordem_fixa = True
     detrend = True
     espectro_em_potencia = True
-    metrica_pdc = 'diag'
+    metrica_pdc = 'gen'
     
     ####################################################
     
@@ -169,7 +169,7 @@ def group_analysis():
     ordem_fixa = True
     detrend = True
     espectro_em_potencia = True
-    metrica_pdc = 'diag'
+    metrica_pdc = 'gen'
     plota = True
     
     
@@ -225,7 +225,7 @@ def testa_std_asymp():
     ordem_fixa = True
     detrend = True
     espectro_em_potencia = True
-    metrica_pdc = 'diag'
+    metrica_pdc = 'gen'
     plota = False
     alpha = 0.05
     
@@ -352,9 +352,9 @@ def testa_ordens():
             #print an_.igct(daux, maxp = 20, fixp = True)
             #print an_.white_test(daux, maxp = 20, h = 50, fixp = True)
         
-            #pdcr = an_.pdc_full(daux, maxp = ord, metric = 'gen',
+            #pdcr = an_.pdc_full(daux, maxp = ord, metric = 'info',
             #                         fixp = True, ss = True, sample_f = sf)
-            pdcr = pdc_full(daux, maxp = ord, metric = 'diag',
+            pdcr = pdc_full(daux, maxp = ord, metric = 'gen',
                                      fixp = True, ss = True, sample_f = sf)
             #pdcr = an_.coh_and_plot(daux2, maxp = ord, 
             #                         fixp = True, ss = False, sample_f = sf)

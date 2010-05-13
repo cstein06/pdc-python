@@ -24,7 +24,7 @@ class Param():
         #Analysis specs
         
         self.alg = 'pdc' # Analysis method
-        self.metric = 'diag' # PDC normalization
+        self.metric = 'gen' # PDC normalization
         self.normalize = False # Normalize data to var = 1
         self.detrend = True # Remove linear trend from data
         self.nf = 64 # Number of frequency points
@@ -125,7 +125,7 @@ def reset():
 
 #
 #pm_ = {}
-#pm_['metric'] = 'diag'
+#pm_['metric'] = 'gen'
 #pm_['normalize'] = False  
 #pm_['detrend'] = True   
 #pm_['nf'] = 64   
@@ -141,7 +141,7 @@ def reset():
 #pm_['n_boot'] = 1000
 #pm_['plotf'] = None
 #
-#metric_ = 'diag'
+#metric_ = 'gen'
 #normalize_ = False  
 #detrend_ = True   
 #nf_ = 64   

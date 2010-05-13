@@ -49,7 +49,7 @@ def adaptative_ar(data, se = 100, preproc = False, **args):
     
 #     Plot some samples
 #    for i in arange(pr_.maxp, nd, step):
-#        res_.mes = vars()[pr_.alg + '_alg'](A[i], er[i], metric = 'diag')
+#        res_.mes = vars()[pr_.alg + '_alg'](A[i], er[i], metric = 'gen')
 #        pr_.power = False
 #        plot_all()
 #        canvas = gcf().canvas

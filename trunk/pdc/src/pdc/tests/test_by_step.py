@@ -29,7 +29,7 @@ from pdc.asymp import I, cat
 
 
 
-def compare_matlab_pdc_one(nd = 100, nf = 5, metric = 'euc'):
+def compare_matlab_pdc_one(nd = 100, nf = 5, metric = 'orig'):
     ''' Compara resultado do pdc e asymp pdc com o matlab '''
     
     A = array([[4,3],[0,3]], dtype=float).reshape(2,2,1)/10
@@ -50,7 +50,7 @@ def compare_matlab_pdc_one(nd = 100, nf = 5, metric = 'euc'):
 def test_pdc():
     A = array([[[4,-4],[3,3]],[[0,0],[0,3]]], dtype=float).reshape(2,2,2)/20
     er = array([[0.7,0],[0,2]], dtype = float)
-    pdc = pdc_.pdc_alg(A, er, nf = 5, metric = 'euc')
+    pdc = pdc_.pdc_alg(A, er, nf = 5, metric = 'orig')
     #pdc_plot(pdc)
     #print abs(pdc)**2
     return pdc
@@ -319,9 +319,9 @@ def test_pdc_normalizations():
     #print pdc_.pdc_one_alg(A, er, nf = nf)
     #print pdc_.pdc_gen_alg(A, er, nf = nf)
     #print pdc_.pdc_diag_alg(A, er, nf = nf)
-    print pdc_.pdc_alg(A, er, metric = 'euc', nf = nf)
-    print pdc_.pdc_alg(A, er, metric = 'diag', nf = nf)
+    print pdc_.pdc_alg(A, er, metric = 'orig', nf = nf)
     print pdc_.pdc_alg(A, er, metric = 'gen', nf = nf)
+    print pdc_.pdc_alg(A, er, metric = 'info', nf = nf)
 
 def test_patnaik(d, mci = 10000):
     ''' Gera varias amostras sob a distribuicao patnaik e sobre a 
@@ -367,7 +367,7 @@ def test_daniel_JAS_fig2():
     for i in arange(n):
         data = ar_data_.ar_data(A, er, 1000)
         Ae, ere = ar_est.ar_estim(data, 2, fixp = True)
-        aux = pdc_.pdc_alg(Ae, ere, nf = 5, metric = 'euc')
+        aux = pdc_.pdc_alg(Ae, ere, nf = 5, metric = 'orig')
          
         Af = pdc_.A_to_f(Ae, 5)
         den = dot(Af[3,:,0],Af[3,:,0].conj()).real
@@ -383,7 +383,7 @@ def test_daniel_JAS_fig2():
     Af = pdc_.A_to_f(A, 5)
     den = dot(Af[3,:,0],Af[3,:,0].conj()).real
     
-    aux = ass_.asymp_pdc(data, A, 5, er, p=2, metric='euc')
+    aux = ass_.asymp_pdc(data, A, 5, er, p=2, metric='orig')
     patdf = aux[4]
     patden = aux[5]
     xpat = st.chi2.cdf((patden*2)*linspace(0,5,1000)/den, patdf)
@@ -407,7 +407,7 @@ def test_AIC():
     alpha = 0.05
     n = A.shape[0]
     maxp = A.shape[2]
-    metric = 'gen'
+    metric = 'info'
     
     #Generate data from AR
     data = ar_data_.ar_data(A, er, nd)
