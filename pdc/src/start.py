@@ -1,8 +1,10 @@
-import scipy.stats as st
-import matplotlib.pyplot as pp
 
 from pylab import *
-from numpy import *
-from scipy import *
 from pdc import *
+
+import scipy.stats as st
+import scipy as sp
+import numpy as np
+import matplotlib.pyplot as pp
+import matplotlib as mp
 
