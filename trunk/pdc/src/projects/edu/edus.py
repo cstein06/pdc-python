@@ -189,8 +189,8 @@ ls = [['Ca1e', 'Ca3e', 'Ca1d', 'Ca2d', 'Ca3d'],
       ['Ca1e', 'Ca2e', 'Ca3e','Ca1d', 'Ca2d', 'Ca3d'],
       ['Ca1e', 'Ca2e', 'Ca3e','Ca1d', 'Ca2d', 'Ca3d']]
 
-#
-root = "/home/stein/dados/edu_comp/"
+root = "/media/STEIN MOBIL/work/dados_edu_p_carlos/"
+#root = "/home/stein/dados/edu_comp/"
 #root = "G:\\stein\\dados\\edu_comp\\"
 
 def get_data(t = 0, r = 0, d = 0, cs = None):

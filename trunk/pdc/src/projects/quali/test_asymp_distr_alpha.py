@@ -18,8 +18,8 @@ import matplotlib.pyplot as pp
 import scipy.stats as st
 import cPickle
 
-pp.rcParams['ps.usedistiller'] = 'xpdf' #para ter texto no .ps salvo da figura
-pp.rcParams['text.usetex'] = True
+#pp.rcParams['ps.usedistiller'] = 'xpdf' #para ter texto no .ps salvo da figura
+#pp.rcParams['text.usetex'] = True
 
 
 def gen_data1(nd, dummy = 100):
@@ -604,7 +604,7 @@ def gen_big_Ar(p = 100, n = 3):
 ps = [5, 10, 20, 50]
 ns = [3]
 
-a = b43.tr()
+#a = b43.tr()
 
 def test_varios_p():
     n = 3
