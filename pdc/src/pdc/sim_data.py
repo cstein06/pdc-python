@@ -226,6 +226,8 @@ def ar_data(A = None, er = None, nd = 1000, dummy = 100, model = None):
         er = identity(n)
     if er.ndim == 1:
         er = diag(er)
+        
+    return ar_data_old(A, er, nd, dummy, model)
     
     w = mnorm(zeros(n), er, nd+dummy-p)
     data = zeros([n, nd+dummy])
