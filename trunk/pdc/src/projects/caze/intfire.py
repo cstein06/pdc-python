@@ -90,19 +90,24 @@ if __name__ == '__main__':
     
 #    print spiketrain
 #    print Vmem
-    pp.figure(1)
-    pp.subplot(231)
-    pp.plot(Vmem[0,:].T)
-    pp.subplot(232)
-    pp.plot(Vmem[1,:].T)
-    pp.subplot(233)
-    pp.plot(Vmem[2,:].T)
-    pp.subplot(234)
-    pp.plot(spiketrain[0,:].T)
-    pp.subplot(235)
-    pp.plot(spiketrain[1,:].T)
-    pp.subplot(236)
-    pp.plot(spiketrain[2,:].T)
+#    res = an.pdc_full([Vmem[0,:],Vmem[1,:],Vmem[2,:]])
+    res = an.pdc_full([spiketrain[0,:],spiketrain[1,:],spiketrain[2,:]])
     pp.show()
     
-    res = an.pdc_full([Vmem[0,:],Vmem[1,:],Vmem[2,:]])
+    #===========================================================================
+    # pp.figure(1)
+    # pp.subplot(231)
+    # pp.plot(Vmem[0,:].T)
+    # pp.subplot(232)
+    # pp.plot(Vmem[1,:].T)
+    # pp.subplot(233)
+    # pp.plot(Vmem[2,:].T)
+    # pp.subplot(234)
+    # pp.plot(spiketrain[0,:].T)
+    # pp.subplot(235)
+    # pp.plot(spiketrain[1,:].T)
+    # pp.subplot(236)
+    # pp.plot(spiketrain[2,:].T)
+    # pp.show()
+    #===========================================================================
+    
