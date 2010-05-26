@@ -82,7 +82,7 @@ if __name__ == '__main__':
     n = 3
     W = zeros([n,n])
     W[0,1] = 1
-    W[1,0] = 1
+    W[2,1] = 1
 #    W = rand(3,3)
     W[arange(n),arange(n)] = 0
     print W
