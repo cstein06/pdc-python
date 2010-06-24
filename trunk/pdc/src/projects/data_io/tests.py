@@ -19,7 +19,8 @@ def test_plxio():
     channel = r_[33:65]
     maxspikes = 30000
     
-    return plx.readPLXspikes(filename, unit, channel, maxspikes = maxspikes)
+    return plx.readPLXspikes(filename, unit, channel, maxspikes = maxspikes,
+                             maxtime = 2000000)
 
 
 if __name__ == '__main__':
