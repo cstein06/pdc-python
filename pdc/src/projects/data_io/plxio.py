@@ -411,7 +411,9 @@ def readPLXforHSDextraction(filename):
             returnchannels.append(channel)
     return returnts, N.array(returnchannels)
     
-def readPLXspikes(filename, unit = 'all', channel = None, getbytes = False,  maxspikes = 200000):
+def readPLXspikes(filename, unit = None, channel = None, 
+                  getbytes = False,  maxspikes = 200000, maxtime = 2000000,
+                  nevc = 60, maxevs = 2000, dolfp = True):
     # TODO: expand functionality of readPLXspikes
     # so that we don't have to make special-function
     # code to read out this or that alone from a PLX file
@@ -434,7 +436,7 @@ def readPLXspikes(filename, unit = 'all', channel = None, getbytes = False,  max
     
     NOTE:
     Make sure only one tetrode is present per PLX file
-    Offline Sorter provides a utility to split a PLX file
+    Offline Sorter provides a utility to split a PLX file(event, maxevs)
     into multiple tetrodes.
     If this is really inconvenient, email me at
     alexwilt@umich.edu, and we can work something out
@@ -442,24 +444,28 @@ def readPLXspikes(filename, unit = 'all', channel = None, getbytes = False,  max
     """
     from scipy.io import fread
     
-    if channel == None:
-        # If there's no channel, just make a huge array
-        channel = N.r_[0:160].astype('int16')
-    if (unit == None) | (unit == 'all'):
-        # Ditto
-        unit = N.r_[0:28].astype('int16')
-    elif (unit == 'sorted'):
-        unit = N.r_[1:28].astype('int16')
-    unit = N.asarray(unit)
+#    if channel == None:
+#        # If there's no channel, just make a huge array
+#        channel = N.r_[0:160].astype('int16')
+#    if (unit == None) | (unit == 'all'):
+#        # Ditto
+#        unit = N.r_[0:28].astype('int16')
+#    elif (unit == 'sorted'):
+#        unit = N.r_[1:28].astype('int16')
+#    unit = N.asarray(unit)
     
-    nchs = N.size(channel) 
-    nuns = N.size(unit) 
+    if channel == None:
+        channel = N.r_[33:65]
+    if unit == None:
+        unit = N.r_[0:5]
+    
     
     f = open(filename, 'rb')
     f.seek(0,2)
     dl = f.tell() # Get the length of the data file
     f.seek(0)
     header = fread(f, 64, 'l') 
+    tfreq = header[34]
     ndsp =  header[35] # Number of DSP channels
     nevents = header[36] # Number of event channels
     nslow = header[37] # Number of slow channels
@@ -474,13 +480,37 @@ def readPLXspikes(filename, unit = 'all', channel = None, getbytes = False,  max
     f.seek((1020*ndsp + 296*nevents + 296*nslow), 1)
     
     # Initialize the spike array
-    spikes = N.empty((maxspikes*nchs, npw), dtype='float64')
-    savechannel = N.zeros((maxspikes*nchs), dtype='int8') - 1
-    clusterchoices = N.zeros((maxspikes*nchs), dtype='int8')
-    ts = N.zeros((maxspikes*nchs), dtype='int32')
-    if getbytes: byteindex = N.zeros((maxspikes*nchs), dtype='int64')
-    spikecount = 0
+    #spikewa = N.empty((maxspikes*nchs, npw), dtype='float64')
+    #savechannel = N.zeros((maxspikes*nchs), dtype='int8') - 1
+    #clusterchoices = N.zeros((maxspikes*nchs), dtype='int8')
+    #ts = N.zeros((maxspikes*nchs), dtype='int32')
+    #if getbytes: byteindex = N.zeros((maxspikes*nchs), dtype='int64')
+
+    nchs = N.size(channel) 
+    nuns = N.size(unit)
     
+    #spikes = [] 
+    #for i in N.arange(nchs):
+    #    spikes.append([])
+    #    for j in N.arange(nuns):
+    #        spikes[i].append(N.zeros(maxspikes, dtype='int'))
+    spikes = N.zeros((nchs, nuns, maxspikes), dtype='int')
+    nspi = N.zeros((nchs, nuns))
+    
+    if dolfp:
+        lfp = N.zeros((nchs, maxtime))
+    else:
+        lfp = None
+    
+    dch = {}
+    for i in N.arange(nchs):
+        dch[channel[i]] = i
+    
+    evs = N.zeros((nevc, maxevs))
+    nevs = N.zeros(nevc)
+    
+    #spikecount = 0
+        
     # Read out the data records
     # The minimum length of a datablock is 16 bytes,
     # so we enforce this size
@@ -489,39 +519,80 @@ def readPLXspikes(filename, unit = 'all', channel = None, getbytes = False,  max
         type = fread(f, 1, 'h')
         junk = fread(f, 1, 'h')
         timestamp = fread(f, 1, 'i')
-        ichannel = fread(f, 1, 'h')
+        ichannel = fread(f, 1, 'h')[0]
         ibyte = f.tell()
         iunit, nwf, numpoints = fread(f, 3, 'h')
+        
         if numpoints > 0:
             wf = fread(f, numpoints, 'h')
+            
+            
             #print type, ichannel, iunit
-            if (type == 1) & (ichannel in channel) & (iunit in unit):
-                spikes[spikecount] = wf
-                savechannel[spikecount] = ichannel
-                clusterchoices[spikecount] = iunit
-                ts[spikecount] = timestamp
-                if getbytes: byteindex[spikecount] = ibyte
-                spikecount += 1
-                if spikecount == maxspikes*nchs: break # since spikes are read in one wire at a time, we have to multiply by 4 (4 wires per tetrode)
-            else:
-                #print type, ichannel, iunit
-                pass
-        if spikecount > 20000:
-            break
+            
+        if (type == 1) & (ichannel in channel) & (iunit in unit):
+            #spikewa[spikecount] = wf
+            #savechannel[spikecount] = ichannel
+            #clusterchoices[spikecount] = iunit
+            #print ichannel
+            ch = dch[ichannel]
+            spikes[ch][iunit][nspi[ch,iunit]] = timestamp
+            #ts[spikecount] = timestamp
+            #if getbytes: byteindex[spikecount] = ibyte
+            nspi[ch,iunit] += 1
+            
+            if nspi[ch,iunit] == maxspikes:
+                print 'reached maxspikes. timestamp:', timestamp
+                break 
+            
+            #if spikecount == maxspikes*nchs:
+            #    print 'reached maxspikes*nchs.'
+            #    break # since spikes are read in one wire at a time, we have to multiply by 4 (4 wires per tetrode)
+        elif (type == 5) & (ichannel+1 in channel) & (iunit in unit) & dolfp:
+            
+            #if timestamp < 3000:
+            #    print timestamp, ichannel, numpoints, wf
+            #else:
+            #    return
+            
+            if timestamp/20+numpoints > maxtime:
+                print 'reached maxtime. timestamp', timestamp/20
+                print 'maxspikes:', N.max(nspi)
+                dolfp = False
+                continue
+            
+            lfp[dch[ichannel+1],timestamp/20:timestamp/20+numpoints] = wf
+            #print wf.shape, numpoints, lfp[dch[ichannel[0]+1], timestamp:timestamp+numpoints].shape
+            
+                    
+            
+        elif (type == 4):
+            print 'event', type[0], ichannel, iunit, timestamp
+            if ichannel > 100:
+                continue
+            evs[ichannel, nevs[ichannel]] = timestamp
+            nevs[ichannel] += 1
+                
+        if timestamp % 30*40000 < 500 & ichannel == 40 & type == 5:
+            print 'time', timestamp 
+            #else:
+            #    print type, ichannel, iunit
+            #    pass
+        #if spikecount > 20000:
+        #    break
     
-    print 'spikecount', spikecount
+    #print 'spikecount', spikecount
     
-    if spikecount == 0: raise ZeroDivisionError, 'There are no spikes in this file'
+    #if spikecount == 0: raise ZeroDivisionError, 'There are no spikes in this file'
     
     
     
     # Trim up the arrays to contain just the extracted info
-    spikes = spikes[:spikecount,:]
-    savechannel = savechannel[:spikecount]
-    if getbytes: byteindex = byteindex[:spikecount]
-    clusterchoices = clusterchoices[:spikecount]
-    ts = ts[:spikecount]
-    channels = N.unique(savechannel)
+    #spikewa = spikes[:spikecount,:]
+    #savechannel = savechannel[:spikecount]
+    #if getbytes: byteindex = byteindex[:spikecount]
+    #clusterchoices = clusterchoices[:spikecount]
+    #ts = ts[:spikecount]
+    #channels = N.unique(savechannel)
     
     # Now make spikes into the 3D array we've gotten used to--
     #numevents, numpoints = spikes.shape
@@ -530,8 +601,9 @@ def readPLXspikes(filename, unit = 'all', channel = None, getbytes = False,  max
     
     f.close()
     
-    if getbytes: return spikes, savechannel, clusterchoices, ts, byteindex
-    return spikes, savechannel, clusterchoices, ts
+    #if getbytes: return spikewa, savechannel, clusterchoices, ts, byteindex
+    #return spikewa, savechannel, clusterchoices, ts
+    return spikes, lfp, evs
     
 def resortPLX(filename=None, maxclusters=25, maxspikes=500000, spikeworks=False):
     # TODO:
