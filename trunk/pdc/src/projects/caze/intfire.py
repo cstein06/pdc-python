@@ -37,7 +37,7 @@ def bleh(n, alpha, beta, simlength):
 
 
 
-def network(W, Vrest = -65, Vthr = -50, Vreset = -70, noisestd = 30, spiketocurrent = 300, Rin = 10, tau = 15, timestep = 0.1, simtime = 100):
+def network(W, Vrest = -65, Vthr = -50, Vreset = -70, noisestd = 30, spiketocurrent = 300, Rin = 10, tau = 15, refrper = 5, timestep = 0.1, simtime = 100):
     nsteps = simtime/timestep
     n = W.shape[1]
     Vmem = Vrest * ones([n,nsteps])
@@ -50,7 +50,7 @@ def network(W, Vrest = -65, Vthr = -50, Vreset = -70, noisestd = 30, spiketocurr
         Vmem[:,t] = prevVmem + ((Vrest - prevVmem) + Rin*Iin)*(timestep/tau)
         for i in arange(0,n):
             if Vmem[i,t] > Vthr:
-                if t < (5/timestep):
+                if t < (refrper/timestep):
                     if sum(spiketrain[i,0:(t-1)]) >= 1:
                         Vmem[:,t] = prevVmem + (Vrest - prevVmem)*(timestep/tau)   
                         prevVmem[i] = Vmem[i,t]
@@ -60,7 +60,7 @@ def network(W, Vrest = -65, Vthr = -50, Vreset = -70, noisestd = 30, spiketocurr
                         spiketrain[i,t] = 1
                         Vmem[i,t] = Vthr
                 else:
-                    if sum(spiketrain[i,(t-(5/timestep)):(t-1)]) >= 1:
+                    if sum(spiketrain[i,(t-(refrper/timestep)):(t-1)]) >= 1:
                         Vmem[:,t] = prevVmem + (Vrest - prevVmem)*(timestep/tau)   
                         prevVmem[i] = Vmem[i,t]
                         spiketrain[i,t] = 0
@@ -79,19 +79,23 @@ if __name__ == '__main__':
 #    simul = neuron(100, 0.9, 0.01, 1000)
 #    pp.plot(simul.T)
 #    pp.show()
-    n = 3
+    n = 5
     W = zeros([n,n])
-    W[0,1] = 1
-    W[2,1] = 1
+#    W[0,1] = -1
+#    W[1,0] = 0
+#    W[0,2] = 1
+#    W[2,0] = 0    
+    W = array([[0,1,0,1,0],[0,0,1,0,0],[0,0,0,0,0],[0,0,0,0,-1],[0,0,0,0,0]])
 #    W = rand(3,3)
     W[arange(n),arange(n)] = 0
-    print W
     Vmem,spiketrain = network(W)
     
+    
+    print W
 #    print spiketrain
 #    print Vmem
 #    res = an.pdc_full([Vmem[0,:],Vmem[1,:],Vmem[2,:]])
-    res = an.pdc_full([spiketrain[0,:],spiketrain[1,:],spiketrain[2,:]])
+    res = an.pdc_full([spiketrain[0,:],spiketrain[1,:],spiketrain[2,:],spiketrain[3,:],spiketrain[4,:]])
     pp.show()
     
     #===========================================================================
