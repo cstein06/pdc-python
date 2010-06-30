@@ -12,6 +12,7 @@ __pdc_version__ = 0.1
 
 mnames_ = {'coh':'Coherence',
           'pdc':'Partial Directed Coherence',
+          'pdt':'Partial Directed Transfer',
           'dtf':'Directed Transfer Function',
           'ss':'Spectral Density',
           'pc': 'Partial Coherence',

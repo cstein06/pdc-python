@@ -28,7 +28,7 @@ def bootstrap(method_func, nd, nm, A, er,
         #Generate data from AR
         data = ar_data(A, er, nd)
         #Estimate AR parameters with Nuttall-Strand
-        Aest, erest = nstrand(data, maxp = maxp)
+        Aest, erest = nstrand(data, maxp)
         #Calculate the connectivity and statistics
         if (metric == None):
             mes[i] = abs(method_func(Aest, erest, nf = nf))**2
@@ -53,7 +53,7 @@ def bootstrap(method_func, nd, nm, A, er,
                     #Generate data from AR
                     data = ar_data(Anew, er, nd)
                     #Estimate AR parameters with Nuttall-Strand
-                    Aest, erest = nstrand(data, maxp = maxp)
+                    Aest, erest = nstrand(data, maxp)
                     #Calculate the connectivity and statistics
                     if (metric == None):
                         aux = abs(method_func(Aest, erest, nf = nf))**2

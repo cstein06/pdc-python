@@ -119,6 +119,28 @@ def ss_coh_alg(A, e_cov, nf = 64, metric = 'dummy'):
         coh[i] = ss[i]/sqrt(m)
     return ss.transpose(1,2,0), coh.transpose(1,2,0)
 
+def pdt_alg(A, e_cov, nf = 64, metric = 'dummy'):
+    '''Calculates the Coherence (coh)
+        A -> autoregressive matrix
+        e_cov -> residues
+        nf -> number of frequencies
+        '''
+    n, n, r = A.shape
+    
+    AL = A_to_f(A, nf)
+    pdt = empty(AL.shape, dtype = 'complex').transpose(1,2,0)
+    for f in range(nf):
+        H = mat(AL[f]).I
+        ss = H*e_cov*H.T.conj()
+        for i in arange(n):
+            su = 0.0
+            for j in arange(n):
+                su += (abs(AL[f,i,j])**2)*ss[j,j]
+            su += e_cov[i,i]
+            for j in arange(n):
+                pdt[i,j,f] = (abs(AL[f,i,j])**2)*ss[j,j]/su
+    return sqrt(pdt)
+
 def coh_alg(A, e_cov, nf = 64, metric = 'dummy'):
     '''Calculates the Coherence (coh)
         A -> autoregressive matrix
@@ -245,6 +267,12 @@ def pdc(data, **args):
     read_args(args)
     
     return measure(data, alg = 'pdc')
+
+def pdt(data, **args):
+    '''Interface that calculate the PDT from data'''
+    read_args(args)
+    
+    return measure(data, alg = 'pdt')
 
 def coh(data, **args):
     '''Interface that calculate the Coherence from data'''
@@ -385,6 +413,10 @@ def measure(data, **args):
 def pdc_full(data, **args):
     read_args(args)
     return measure_full(data, alg = 'pdc')
+
+def pdt_full(data, **args):
+    read_args(args)
+    return measure_full(data, alg = 'pdt')
         
 def coh_full(data, **args):
     read_args(args)
@@ -406,7 +438,7 @@ def measure_full(data, **args):
     '''Interface that calculates some measure from data, calculates asymptotics statistics and plots everything.
        
        data 
-       alg: 'pdc', 'dtf', 'coh', 'ss', 'pc'
+       alg: 'pdc', 'pdt', 'dtf', 'coh', 'ss', 'pc'
        
     Possible parameters:
        maxp = 30, nf = 64, sample_f = 1, 
@@ -525,6 +557,10 @@ def measure_full(data, **args):
 def pdc_and_plot(data, **args):
     read_args(args)
     return measure_and_plot(data, alg = 'pdc')
+
+def pdt_and_plot(data, **args):
+    read_args(args)
+    return measure_and_plot(data, alg = 'pdt')
     
 #maxp = 30, nf = 64, sample_f = 1, ss = True,
 #detrend = True, normalize = False, fixp = False, power = True):
