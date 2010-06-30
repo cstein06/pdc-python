@@ -24,6 +24,7 @@ import time
 import sys
 
 from pdc.params import pr_, res_
+from pdc.analysis import ss_alg
 
 # These functions are used to make code more readable.
 vec = lambda x: mat(x.ravel('F')).T
@@ -207,11 +208,7 @@ def asymp_pdc(x):
     '''Asymptotic statistics for the three PDC formulations
         x -> data
         res_.A -> autoregressive matrix
-        nf -> number of frequencies
         res_.er -> residues
-        res_.p -> model order
-        metric -> witch PDC (iPDC = 'info', dPDC = 'gen', PDC = 'orig')
-        alpha -> confidence margin
     '''
     nf = pr_.nf
     n,n,p = res_.A.shape
@@ -250,6 +247,8 @@ def asymp_pdc(x):
         Ed = 0
     
     Teta = fTe(n)
+    EnT = En*Teta
+    EdT = Ed*Teta
     D = Dup(n)
     omega_e = 2*D*D.I*kron(er, er)*D.I.T*D.T
     
@@ -267,7 +266,6 @@ def asymp_pdc(x):
         
         for i in range(n):
             for j in range(n):
-                
                 Iij = fIij(i, j, n)
                 Ij = fIj(j, n)           
                 
@@ -275,13 +273,12 @@ def asymp_pdc(x):
                 den = a.T*Ij*Sd.I*Ij*a
                 
                 pdc = num/den
-                
-                Ge = pdc*(kron((Iij*a).T, a.T*Iij)*En/num - 
-                                kron((Ij*a).T, a.T*Ij)*Ed/den)*Teta
+                Ge = pdc*(kron((Iij*a).T, a.T*Iij)*EnT/num - 
+                          kron((Ij*a).T, a.T*Ij)*EdT/den)
                 vare = Ge*omega_e*Ge.T
                
                 Ga = 2*pdc*(a.T*Iij*Sn.I*Iij/num - 
-                                  a.T*Ij*Sd.I*Ij/den)
+                            a.T*Ij*Sd.I*Ij/den)
                 vara = Ga*omega_a*Ga.T
                 
                 var1 = (vara + vare)/nd
@@ -297,12 +294,78 @@ def asymp_pdc(x):
                 th = st.chi2.ppf(1-pr_.alpha, patdf)/(patden*2*nd)
                 var2 = 2*patdf/(patden*2*nd)**2
                 
-                res[:,i,j,ff] = [pdc, th, ic1, ic2, patdf, patden, var1, var2]
-                
+                res[:,i,j,ff] = [pdc[0,0], th, ic1, ic2, patdf, patden, var1, var2]
+        
     res_.mes = res[0]
     res_.th = res[1]
     res_.ic1 = res[2]
     res_.ic2 = res[3]
+    res_.asy = res[4:]
+
+    return res
+
+
+
+def asymp_pdt(x):
+    '''Asymptotic statistics for the three PDC formulations
+        x -> data
+        res_.A -> autoregressive matrix
+        res_.er -> residues
+    '''
+    nf = pr_.nf
+    n,n,p = res_.A.shape
+    n, nd = x.shape
+    
+    x = mat(x)
+    er = mat(res_.er)
+    Af = A_to_f(res_.A, nf)
+    
+    res = zeros([8, n, n, nf])
+    
+    gamma = mat(bigautocorr(x, p))
+    omega = kron(gamma.I, er)
+    
+
+    for ff in range(nf):
+        #print 'ff', ff
+        
+        f = ff/(2.0*nf)
+        Ca = fCa(f, p, n)
+        omega_a = Ca*omega*Ca.T
+        
+        L = fChol(omega_a)
+            
+        a = vec(Af[ff, :, :])
+        a = cat(a.real, a.imag, 0)
+        
+        H = mat(Af[ff]).I
+        f = H*er*H.T.conj()
+        
+        for i in range(n):
+            su = 0.0
+            for j in arange(n):
+                su += (abs(Af[ff,i,j])**2)*f[j,j]
+            su += er[i,i]
+            
+            for j in range(n):
+                
+                Iij = fIij(i, j, n)
+                
+                pdt = (abs(Af[ff,i,j])**2)*f[j,j]/su
+                
+                G2a = 2*Iij*f[j,j]/f[i,i]              
+                #print omega, eigh(omega, eigvals_only=True)
+                d = fEig(L, G2a)
+                patdf = sum(d)**2/sum(d**2)
+                patden = sum(d)/sum(d**2)
+                
+                th = st.chi2.ppf(1-pr_.alpha, patdf)/(patden*2*nd)
+                var2 = 2*patdf/(patden*2*nd)**2
+                
+                res[:,i,j,ff] = [pdt, th, 0, 0, patdf, patden, 0, var2]
+                
+    res_.mes = res[0]
+    res_.th = res[1]
     res_.asy = res[4:]
 
     return res
@@ -347,6 +410,8 @@ def asymp_dtf(x):
         Ed = 0
     
     Teta = fTe(n)
+    EnT = En*Teta
+    EdT = Ed*Teta
     D = Dup(n)
     omega_e = 2*D*D.I*kron(er, er)*D.I.T*D.T
     
@@ -371,8 +436,8 @@ def asymp_dtf(x):
                 den = h.T*Ii*Sd*Ii*h
                 dtf = num/den
     
-                Ge = dtf*(kron((Iij*h).T, h.T*Iij)*En/num - 
-                          kron((Ii*h).T, h.T*Ii)*Ed/den)*Teta
+                Ge = dtf*(kron((Iij*h).T, h.T*Iij)*EnT/num - 
+                          kron((Ii*h).T, h.T*Ii)*EdT/den)
                 vare = Ge*omega_e*Ge.T
                 
                 Gh = 2*dtf*(h.T*Iij*Sn*Iij/num - 
@@ -439,6 +504,7 @@ def asymp_pc(x):
     S = kron(I(2*n), er)
     Teta = fTe(n)
     E = -kron(S.I.T, S.I)
+    ET = E*Teta
     
     for ff in range(nf):
         #print 'ff', ff
@@ -466,9 +532,9 @@ def asymp_pc(x):
                 If[i,j] = a.T*Ii*S*Ija*a
                 
                 RGa[i,j] = a.T*(Ii*S*Ij + Ij*S*Ii)
-                RGe[i,j] = kron((Ij*a).T, a.T*Ii)*E*Teta
+                RGe[i,j] = kron((Ij*a).T, a.T*Ii)*ET
                 IGa[i,j] = a.T*(Ii*S*Ija + Ija*S*Ii)
-                IGe[i,j] = kron((Ija*a).T, a.T*Ii)*E*Teta
+                IGe[i,j] = kron((Ija*a).T, a.T*Ii)*ET
                 
         for i in range(n):
             for j in range(n):
@@ -503,7 +569,7 @@ def asymp_pc(x):
                 th = st.chi2.ppf(1-pr_.alpha, patdf)/(patden*2*nd)
                 var2 = 2*patdf/(patden*2*nd)**2
                 
-                res[:,i,j,ff] = [pc, th, ic1, ic2, patdf, patden, var1, var2]
+                res[:,i,j,ff] = [pc[0,0], th, ic1, ic2, patdf, patden, var1, var2]
                 
     res_.mes = res[0]
     res_.th = res[1]
@@ -540,6 +606,7 @@ def asymp_coh(x):
     S = kron(I(2*n), er)
     Teta = fTe(n)
     #E = ?
+    ET = E*Teta
     
     for ff in range(nf):
         #print 'ff', ff
@@ -570,9 +637,9 @@ def asymp_coh(x):
                 If[i,j] = h.T*Ii*S*Ija*h
                 
                 RGh[i,j] = h.T*(Ii*S*Ij + Ij*S*Ii)
-                RGe[i,j] = kron((Ij*h).T, h.T*Ii)*E*Teta
+                RGe[i,j] = kron((Ij*h).T, h.T*Ii)*ET
                 IGh[i,j] = h.T*(Ii*S*Ija + Ija*S*Ii)
-                IGe[i,j] = kron((Ija*h).T, h.T*Ii)*E*Teta
+                IGe[i,j] = kron((Ija*h).T, h.T*Ii)*ET
                 
         for i in range(n):
             for j in range(n):
@@ -716,4 +783,6 @@ def asymp_ss(x):
     res_.asy = res[4:]
     
     return res
+
+
 
