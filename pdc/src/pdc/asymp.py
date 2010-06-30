@@ -18,6 +18,8 @@ import pdc.params as gl
 import time
 import sys
 
+from pdc.params import pr_, res_
+
 # These functions are used to make code more readable.
 vec = lambda x: mat(x.ravel('F')).T
 O = lambda n: mat(zeros([n, n], dtype=float))
@@ -221,6 +223,74 @@ def fEig(L, G2):
         print d
     return d
 
+
+
+def asymp_pdt(x,d=0, e=0, f=0, g=0, h=0, alpha = 0, metric = 0):
+    '''Asymptotic statistics for the three PDC formulations
+        x -> data
+        res_.A -> autoregressive matrix
+        res_.er -> residues
+    '''
+    nf = pr_.nf
+    n,n,p = res_.A.shape
+    n, nd = x.shape
+    
+    x = mat(x)
+    er = mat(res_.er)
+    Af = A_to_f(res_.A, nf)
+    
+    res = zeros([8, n, n, nf])
+    
+    gamma = mat(bigautocorr(x, p))
+    omega = kron(gamma.I, er)
+    
+
+    for ff in range(nf):
+        #print 'ff', ff
+        
+        f = ff/(2.0*nf)
+        Ca = fCa(f, p, n)
+        omega_a = Ca*omega*Ca.T
+        
+        L = fChol(omega_a)
+            
+        #a = vec(Af[ff, :, :])
+        #a = cat(a.real, a.imag, 0)
+        
+        H = mat(Af[ff]).I
+        f = H*er*H.T.conj()
+               
+        for i in range(n):
+            
+            su = 0.0
+            for j in arange(n):
+                su += (abs(Af[ff,i,j])**2)*f[j,j]
+            su += er[i,i]
+            
+            for j in range(n):
+                
+                Iij = fIij(i, j, n)
+                
+                pdt = (abs(Af[ff,i,j])**2)*f[j,j]/su
+                
+                G2a = 2*Iij*f[j,j]/su           
+                #print omega, eigh(omega, eigvals_only=True)
+                d = fEig(L, G2a)
+                patdf = sum(d)**2/sum(d**2)
+                patden = sum(d)/sum(d**2)
+                
+                th = st.chi2.ppf(1-pr_.alpha, patdf)/(patden*2*nd)
+                var2 = 2*patdf/(patden*2*nd)**2
+                
+                res[:,i,j,ff] = [pdt, th, 0, 0, patdf, patden, 0, var2]
+                
+    res_.mes = res[0]
+    res_.th = res[1]
+    res_.asy = res[4:]
+
+    return res[0], res[1], res[2], res[3] 
+
+
 def asymp_pdc(x, A, nf, e_var, p, metric = 'gen', alpha = 0.05):
     '''Asymptotic statistics for the three PDC formulations
         x -> data
@@ -252,9 +322,6 @@ def asymp_pdc(x, A, nf, e_var, p, metric = 'gen', alpha = 0.05):
     omega = kron(gammai, e_var)
     
     omega_evar = 2*Dup(n).I*kron(e_var, e_var)*Dup(n).I.T
-    
-   
-
     #print 'alpha', alpha
     
     for ff in range(nf):
@@ -274,8 +341,7 @@ def asymp_pdc(x, A, nf, e_var, p, metric = 'gen', alpha = 0.05):
         #a = vec(cat(I(n), O(n), 1)) - dot(Ca, al)
         
         for i in range(n):
-            for j in range(n):
-                
+            for j in range(n):                
                 Iij = fIij(i, j, n)
                 Ij = fIj(j, n)
                 
@@ -291,6 +357,8 @@ def asymp_pdc(x, A, nf, e_var, p, metric = 'gen', alpha = 0.05):
                     Ije = Ij*evar_d_big.I
                 
                 else: #metric == 'info' 
+                    if metric != 'info':
+                        print 'metric invalid!' 
                     evar_d = mdiag(e_var)
                     evar_d_big = kron(I(2*n), evar_d)
                     Iije = Iij*evar_d_big.I
@@ -306,7 +374,7 @@ def asymp_pdc(x, A, nf, e_var, p, metric = 'gen', alpha = 0.05):
                 if metric == 'orig':
                     dpdc_dev = mat(zeros((n*(n+1))/2))
                 
-                elif metric == 'diag':
+                elif metric == 'gen':
                     
                     #todo: tirar partes que nao dependem de f do loop.
                     
@@ -328,7 +396,8 @@ def asymp_pdc(x, A, nf, e_var, p, metric = 'gen', alpha = 0.05):
                     dpdc_dev = (den*dnum_dev - num*dden_dev)/(den**2)
                 
                 else: # metric == 'info'
-                    
+                    if metric != 'info':
+                        print 'metric invalid!' 
                     if i == 0 and j == 0 and ff == 0:
                         evar_d = mdiag(e_var)
                         evar_d_big = kron(I(2*n), evar_d)
