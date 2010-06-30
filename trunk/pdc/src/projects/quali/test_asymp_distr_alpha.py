@@ -616,9 +616,9 @@ def test_varios_p():
 if __name__ == '__main__':
     pass#
     
-    figuras1()
+    #figuras1()
     #all_plots1()
-    #save_data1()
+    save_data1()
     #print 'loading'
     #r = load_data1()
     #print r[3]

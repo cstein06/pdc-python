@@ -23,7 +23,6 @@ from numpy.random import rand
 from numpy.random import multivariate_normal as mnorm
 from scipy.integrate import odeint
 
-from utils import *
 from pdc import *
 
 def teste_simples():
