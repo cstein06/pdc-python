@@ -8,7 +8,6 @@ Testa ditribuicao e tamanho da estat asymp
 
 @author: stein
 '''
-"""
  
 from pdc import *
 from pdc.tests.asymp_tests import test_asymp
@@ -18,6 +17,8 @@ from numpy.random import multivariate_normal as mnorm
 import matplotlib.pyplot as pp
 import scipy.stats as st
 import cPickle
+from numpy.matlib import rand
+from scipy.stats.distributions import rand
 
 #pp.rcParams['ps.usedistiller'] = 'xpdf' #para ter texto no .ps salvo da figura
 #pp.rcParams['text.usetex'] = True
@@ -33,7 +34,7 @@ def gen_data1(nd, dummy = 100):
         x[0,i] = 0.95*sqrt(2)*x[0,i-1] - 0.9025*x[0,i-2] + e[0,i]
         x[1,i] = 0.5*x[1,i-1] + e[1,i]
         x[2,i] = -0.4*x[0,i-3] + e[2,i]
-        x[3,i] = -0.5*x[0,i-2] + 0.3*x[1,i-1] + 0.25*sqrt(2)*x[3,i-1] + 0.25*sqrt(2)*x[4,i-1] + e[3,i]
+        x[3,i] = -0.5*x[0,i-2] + 0.8*x[1,i-1] + 0.25*sqrt(2)*x[3,i-1] + 0.25*sqrt(2)*x[4,i-1] + e[3,i]
         x[4,i] = -0.25*sqrt(2)*x[3,i-1] + 0.25*sqrt(2)*x[4,i-1] + e[4,i]
 
     return x[:,dummy:]
@@ -47,7 +48,7 @@ def model1():
     A[1,1,0] = 0.5
     A[2,0,2] = -0.4
     A[3,0,1] = -0.5
-    A[3,1,0] = 0.3
+    A[3,1,0] = 0.8
     A[3,3,0] = 0.25*sqrt(2)
     A[3,4,0] = 0.25*sqrt(2)
     A[4,3,0] = -0.25*sqrt(2)
@@ -240,7 +241,7 @@ def qqplots1(res, resa):
     
     mes = ['coh', 'pdc', 'dtf', 'pc']
     
-    f = 2
+    f = 1
     
     pares = array([[1,0], [3,0], [4,0]])
     
@@ -302,7 +303,7 @@ def qqplots1_oneplot(res, resa):
     
     mes = ['coh', 'pdc', 'dtf', 'pc']
     
-    f = 2
+    f = 1
     
     pares = array([[1,0], [3,2], [3,0], [4,0]])
     
@@ -334,8 +335,8 @@ def qqplots1_oneplot(res, resa):
 def hists1(res, resa):
     '''compara histograma sampled com asintotica'''
     
-    res1 = res[0,:,3,0,2]
-    resa1 = resa[0,:,3,0,2]
+    res1 = res[0,:,3,0,1]
+    resa1 = resa[0,:,3,0,1]
     
     pp.figure()
     
@@ -378,8 +379,10 @@ def tab1(res, resa):
     
     m = res.shape[1]
     
-    patdf = resa[:,3,2,1,2]
-    patden = resa[:,2,2,1,2]
+    f = 1
+    
+    patdf = resa[:,3,2,1,f]
+    patden = resa[:,2,2,1,f]
     
     alpha = 0.01
     th1 = st.chi2.ppf(1-alpha, patdf)/(patden*2)
@@ -387,8 +390,8 @@ def tab1(res, resa):
     alpha = 0.05
     th5 = st.chi2.ppf(1-alpha, patdf)/(patden*2)
     
-    mes = resa[:,0,3,0,2]
-    pst = resa[:,1,3,0,2]
+    mes = resa[:,0,3,0,f]
+    pst = resa[:,1,3,0,f]
     
     alpha = 0.01
     ic111 = mes - pst*st.norm.ppf(1-alpha/2.0)
@@ -398,8 +401,8 @@ def tab1(res, resa):
     ic115 = mes - pst*st.norm.ppf(1-alpha/2.0)
     ic215 = mes + pst*st.norm.ppf(1-alpha/2.0)
     
-    mes = resa[:,0,4,0,2]
-    pst = resa[:,1,4,0,2]
+    mes = resa[:,0,4,0,f]
+    pst = resa[:,1,4,0,f]
     
     alpha = 0.01
     ic121 = mes - pst*st.norm.ppf(1-alpha/2.0)
@@ -419,12 +422,12 @@ def tab1(res, resa):
     eic21 = zeros(4)
     eic25 = zeros(4)
     for i in arange(4):
-        eth1[i] = sum(res[i,:,1,0,2] > th1[i])/float(m)
-        eth5[i] = sum(res[i,:,1,0,2] > th5[i])/float(m)
-        eic11[i] = sum((res[i,:,3,0,2] < ic111[i]) + (res[i,:,3,0,2] > ic211[i]))/float(m)
-        eic15[i] = sum((res[i,:,3,0,2] < ic115[i]) + (res[i,:,3,0,2] > ic215[i]))/float(m)
-        eic21[i] = sum((res[i,:,4,0,2] < ic121[i]) + (res[i,:,4,0,2] > ic221[i]))/float(m)
-        eic25[i] = sum((res[i,:,4,0,2] < ic125[i]) + (res[i,:,4,0,2] > ic225[i]))/float(m)
+        eth1[i] = sum(res[i,:,1,0,f] > th1[i])/float(m)
+        eth5[i] = sum(res[i,:,1,0,f] > th5[i])/float(m)
+        eic11[i] = sum((res[i,:,3,0,f] < ic111[i]) + (res[i,:,3,0,f] > ic211[i]))/float(m)
+        eic15[i] = sum((res[i,:,3,0,f] < ic115[i]) + (res[i,:,3,0,f] > ic215[i]))/float(m)
+        eic21[i] = sum((res[i,:,4,0,f] < ic121[i]) + (res[i,:,4,0,f] > ic221[i]))/float(m)
+        eic25[i] = sum((res[i,:,4,0,f] < ic125[i]) + (res[i,:,4,0,f] > ic225[i]))/float(m)
     
     r = [eth1, eth5, eic11, eic15, eic21, eic25]
     
@@ -495,7 +498,7 @@ def load_data1(file = 'data2.pic'):
     bignd = cPickle.load(f)
     return res, resa, m, nd, bignd
     
-def save_data1(m = 20000, nd = 20000, bignd = 200000, file = 'data2.pic'):
+def save_data1(m = 10000, nd = 10000, bignd = 200000, file = 'data3.pic'):
     res, resa = monte_carlo1(m = m, nd = nd, bignd = bignd)
     
     f = open(root + 'mini' + file, 'wb')
@@ -575,9 +578,7 @@ def all_plots1():
 
     pr_.plot_diag = True
     pr_.alg = 'pdt'
-    measure_full(data) #, stat = 'boot')
-    pp.show()
-    return 
+    measure_full(data)
 
     pp.figure()
 
@@ -615,7 +616,8 @@ def gen_big_Ar(p = 100, n = 3):
     A = zeros(n,n,p)
     
     for i in arange(p):
-        A[:,:] = Aa * ra**i * randn([n,n])/3
+        #A[:,:] = Aa * ra**i *randn([n,n])/3
+        pass
     
     return Aa
 
@@ -634,18 +636,13 @@ def test_varios_p():
 if __name__ == '__main__':
     pass#
     
-    #figuras1()
+    figuras1()
     #all_plots1()
-    save_data1()
+    #save_data1()
     #print 'loading'
     #r = load_data1()
     #print r[3]
     #save_varios_nd(m = 10000, bignd = 200000)
     #table_varios_nd()
     #simple_plot1()
-    
-    
-
-            
-            
     

@@ -605,8 +605,6 @@ def asymp_coh(x):
     
     S = kron(I(2*n), er)
     Teta = fTe(n)
-    #E = ?
-    ET = E*Teta
     
     for ff in range(nf):
         #print 'ff', ff
@@ -637,9 +635,9 @@ def asymp_coh(x):
                 If[i,j] = h.T*Ii*S*Ija*h
                 
                 RGh[i,j] = h.T*(Ii*S*Ij + Ij*S*Ii)
-                RGe[i,j] = kron((Ij*h).T, h.T*Ii)*ET
+                RGe[i,j] = kron((Ij*h).T, h.T*Ii)*Teta
                 IGh[i,j] = h.T*(Ii*S*Ija + Ija*S*Ii)
-                IGe[i,j] = kron((Ija*h).T, h.T*Ii)*ET
+                IGe[i,j] = kron((Ija*h).T, h.T*Ii)*Teta
                 
         for i in range(n):
             for j in range(n):
