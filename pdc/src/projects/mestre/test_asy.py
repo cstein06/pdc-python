@@ -570,16 +570,19 @@ def all_plots1():
     #res_.A = A
     #res_.er = e
     
+    pr_.plot_labels = [r'$x_1$', r'$x_2$', r'$x_3$', r'$x_4$', r'$x_5$']
+    
     pr_.alpha = 0.01
     data = ar_data(A,e, nd = 5000)
     
     pp.figure()
 #    data = ar_data(A,e)
 
-    pr_.plot_diag = True
+    #pr_.plot_diag = True
     pr_.alg = 'pdt'
     measure_full(data)
-
+    #pp.show()
+    #return
     pp.figure()
 
     pr_.alg = 'coh'
@@ -636,8 +639,8 @@ def test_varios_p():
 if __name__ == '__main__':
     pass#
     
-    figuras1()
-    #all_plots1()
+    #figuras1()
+    all_plots1()
     #save_data1()
     #print 'loading'
     #r = load_data1()

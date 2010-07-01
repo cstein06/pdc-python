@@ -9,6 +9,8 @@ from pdc.params import mnames_
 
 from matplotlib.pyplot import imshow
 import matplotlib.colors as mc_
+import matplotlib as mpl
+
 
 #def plot_all(mes, th, ic1, ic2, ss = None, sample_f = 1.0, 
 #             logss = False, sqrtmes = False, plotf = None):
@@ -86,22 +88,22 @@ def plot_all(**args):
             if (i == n-1):
                 try:
                     if pr_.plot_labels != None:
-                        pp.xlabel(pr_.plot_labels[j])
+                        pp.xlabel(pr_.plot_labels[j] + r'$\to$' )
                     else:
-                        pp.xlabel(str(j+1))
+                        pp.xlabel(str(j+1) + r'$\to$')
                 except:
                     print '\nProblem with plot labels.'
-                    pp.xlabel(str(j+1))
+                    pp.xlabel(str(j+1) + r'$\to$')
                     
             if (j == 0):
                 try:
                     if pr_.plot_labels != None:
-                        pp.ylabel(pr_.plot_labels[i])
+                        pp.ylabel(r'$\to$' + pr_.plot_labels[i])
                     else:
-                        pp.ylabel(str(i+1))
+                        pp.ylabel(r'$\to$' + str(i+1))
                 except:
                     print '\nProblem with plot labels.'
-                    pp.ylabel(str(i+1))
+                    pp.ylabel(r'$\to$' + str(i+1))
                 
             if i == j and not pr_.plot_diag:
                 #pp.xticks([])
