@@ -216,14 +216,22 @@ def teste_sunspot_melanoma():
    
     nf = 64
     alpha = 0.01
-    metric = 'gen'
+    metric = 'orig'
     maxp = 10
    
     set_params(plot_labels = ['sun spots', 'melanome'])
+
    
     pdc_full(data, maxp = maxp, nf = nf, ss = True, 
-                 alpha = alpha, metric = metric, normalize = False, 
+                 alpha = alpha, metric = metric, normalize = True, 
                  stat = 'asymp')
+    
+    
+    dtf_full(data, maxp = maxp, nf = nf, ss = True, 
+                 alpha = alpha, metric = metric, normalize = True, 
+                 stat = 'asymp')
+    
+    pp.show()
 
 
 def gen_winterhalter_2005_van_der_Pol(n, dummy = 100, dt = 0.01):
@@ -317,10 +325,10 @@ def teste_data():
 
 if __name__ == "__main__":
     #artigo()
-    teste_simples()
+    #teste_simples()
     
     #teste_Guo()
-    #teste_sunspot_melanoma()
+    teste_sunspot_melanoma()
     #teste_data()
     #a = gen_winterhalter_2005_van_der_Pol(30, 30)
     #print a

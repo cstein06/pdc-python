@@ -213,7 +213,7 @@ def qqchi2(res, resa, ax):
     x = linspace(1.0/m, 1-1.0/m, m)
     y = st.chi2.ppf(x, resa[3], scale = 1/(resa[2]*2.0))
     
-    tic = array(['0.01', '0.50', '0.75', '0.95', '0.99'])
+    tic = array(['0.75', '0.95', '0.99'])
     ytic = y[int32(tic.astype(float)*m)]
     
     #xmi = min(y.min(), res[:,4,0,2].min())
@@ -320,7 +320,7 @@ def qqplots1_oneplot(res, resa):
             else:
                 qqchi2(r1, ra1, ax)
     
-            if j == 2:
+            if j == 3:
                 pp.xlabel(mes[i].upper())
                 #todo colocar titulo sampled, mini titulos com alg
             if i == 0:
@@ -489,7 +489,7 @@ def figuras1():
     
     pp.show()
     
-def load_data1(file = 'data2.pic'):
+def load_data1(file = 'data3.pic'):
     f = open(root + file, 'rb')
     res = cPickle.load(f)
     resa = cPickle.load(f)
@@ -573,7 +573,7 @@ def all_plots1():
     pr_.plot_labels = [r'$x_1$', r'$x_2$', r'$x_3$', r'$x_4$', r'$x_5$']
     
     pr_.alpha = 0.01
-    data = ar_data(A,e, nd = 5000)
+    data = ar_data(A,e, nd = 500)
     
     pp.figure()
 #    data = ar_data(A,e)

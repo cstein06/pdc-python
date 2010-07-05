@@ -68,7 +68,7 @@ def ar_models(id, lam = 0.0):
                [[0, 0],[-0.1,0.2],[0.4,0.1]]], dtype = float), 
      identity(3)],
              #1
-    [array([[[4,-4],[3,3]],[[0,-2],[2,-3]]], dtype=float).reshape(2,2,2)/20,
+    [array([[[4,-4],[3,3]],[[0,0],[2,-3]]], dtype=float).reshape(2,2,2)/20,
      array([[0.7,0],[0,2]], dtype = float)],
              #2 sunspot melanoma
     sun,

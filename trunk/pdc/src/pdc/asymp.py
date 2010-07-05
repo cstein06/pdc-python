@@ -472,6 +472,8 @@ def asymp_dtf(x, A, nf, e_var, p, alpha = 0.05, metric = 'dummy'):
     e_var = mat(e_var)
     Af = A_to_f(A, nf)
     
+    #Af[:,1,0] = 0 #TODO tirar
+    
     n, nd = x.shape
     
     th = empty([n, n, nf])
