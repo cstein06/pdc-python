@@ -18,6 +18,7 @@ import pdc.params as gl
 import time
 import sys
 
+from pdc.ar_est import yule_walker_restricted as ywr
 from pdc.params import pr_, res_
 
 # These functions are used to make code more readable.
@@ -290,6 +291,241 @@ def asymp_pdt(x,d=0, e=0, f=0, g=0, h=0, alpha = 0, metric = 0):
 
     return res[0], res[1], res[2], res[3] 
 
+def asymp_pdt_rest(x,d=0, e=0, f=0, g=0, h=0, alpha = 0, metric = 0):
+    '''Asymptotic statistics for the three PDC formulations
+        x -> data
+        res_.A -> autoregressive matrix
+        res_.er -> residues
+    '''
+    nf = pr_.nf
+    n,n,p = res_.A.shape
+    n, nd = x.shape
+    
+    x = mat(x)
+    er = mat(res_.er)
+    
+    res = zeros([8, n, n, nf])
+    
+    gamma = mat(bigautocorr(x, p))
+    omega = kron(gamma.I, er)
+    
+    for i in range(n):
+        for j in range(n):     
+            A,dum = ywr(x,i,j,p)
+            Af = A_to_f(A, nf)
+            for ff in range(nf):    
+    #for ff in range(nf):
+        #print 'ff', ff
+        
+                f = ff/(2.0*nf)
+                Ca = fCa(f, p, n)
+                omega_a = Ca*omega*Ca.T
+        
+                L = fChol(omega_a)
+            
+        #a = vec(Af[ff, :, :])
+        #a = cat(a.real, a.imag, 0)
+        
+                H = mat(Af[ff]).I
+                f = H*er*H.T.conj()
+                
+                su = 0.0
+                for k in arange(n):
+                    su += (abs(Af[ff,i,k])**2)*f[k,k]
+                su += er[k,k]
+                
+                Iij = fIij(i, j, n)
+                
+                pdt = (abs(Af[ff,i,j])**2)*f[j,j]/su
+                
+                G2a = 2*Iij*f[j,j]/su           
+                #print omega, eigh(omega, eigvals_only=True)
+                d = fEig(L, G2a)
+                patdf = sum(d)**2/sum(d**2)
+                patden = sum(d)/sum(d**2)
+                
+                th = st.chi2.ppf(1-pr_.alpha, patdf)/(patden*2*nd)
+                var2 = 2*patdf/(patden*2*nd)**2
+                
+                res[:,i,j,ff] = [pdt, th, 0, 0, patdf, patden, 0, var2]
+                
+    res_.mes = res[0]
+    res_.th = res[1]
+    res_.asy = res[4:]
+
+    return res[0], res[1], res[2], res[3] 
+
+
+def asymp_pdc_rest(x, A, nf, e_var, p, metric = 'gen', alpha = 0.05):
+    '''Asymptotic statistics for the three PDC formulations
+        x -> data
+        A -> autoregressive matrix
+        nf -> number of frequencies
+        e_var -> residues
+        p -> model order
+        metric -> witch PDC (iPDC = 'info', dPDC = 'gen', PDC = 'orig')
+        alpha -> confidence margin
+    '''
+    
+    x = mat(x)
+    e_var = mat(e_var)
+    Af = A_to_f(A, nf)
+    
+    n, nd = x.shape
+    
+    th = empty([n, n, nf])
+    ic1 = empty([n, n, nf])
+    ic2 = empty([n, n, nf])
+    pdc = empty([n, n, nf])
+    varass1 = empty([n, n, nf])
+    varass2 = empty([n, n, nf])
+    patdfr = empty([n, n, nf])
+    patdenr = empty([n, n, nf])
+    
+    gamma = mat(bigautocorr(x, p))
+    gammai = inv(gamma)
+    omega = kron(gammai, e_var)
+    
+    omega_evar = 2*Dup(n).I*kron(e_var, e_var)*Dup(n).I.T
+    #print 'alpha', alpha
+    
+    for i in range(n):
+        for j in range(n):     
+            A,dum = ywr(x,i,j,p)
+            Af = A_to_f(A, nf)
+            for ff in range(nf):    
+        
+        
+                #print 'ff', ff
+            
+                f = ff/(2.0*nf)
+        
+                Ca = fCa(f, p, n)
+        
+                omega2 = Ca*omega*Ca.T
+        
+                L = fChol(omega2)
+            
+                a = vec(Af[ff, :, :])
+                a = cat(a.real, a.imag, 0)
+                #a = vec(cat(I(n), O(n), 1)) - dot(Ca, al)
+               
+                Iij = fIij(i, j, n)
+                Ij = fIj(j, n)
+                
+                'No caso gen ou info, deve-se acrescentar o evar na formula'
+                if metric == 'orig':
+                    Iije = Iij
+                    Ije = Ij
+                
+                elif metric == 'gen':
+                    evar_d = mdiag(e_var)
+                    evar_d_big = kron(I(2*n), evar_d)
+                    Iije = Iij*evar_d_big.I
+                    Ije = Ij*evar_d_big.I
+                
+                else: #metric == 'info' 
+                    if metric != 'info':
+                        print 'metric invalid!' 
+                    evar_d = mdiag(e_var)
+                    evar_d_big = kron(I(2*n), evar_d)
+                    Iije = Iij*evar_d_big.I
+                    
+                    evar_big = kron(I(2*n), e_var)
+                    Ije = Ij*evar_big.I*Ij                
+                
+                num = a.T*Iije*a
+                den = a.T*Ije*a
+                pdc[i, j, ff] = num/den
+                
+                'Acrescenta derivada em relacao a evar'
+                if metric == 'orig':
+                    dpdc_dev = mat(zeros((n*(n+1))/2))
+                
+                elif metric == 'gen':
+                    
+                    #todo: tirar partes que nao dependem de f do loop.
+                    
+                    if i == 0 and j == 0 and ff == 0:
+                        evar_d = mdiag(e_var)
+                        evar_d_big = kron(I(2*n), evar_d)
+                        inv_ed = evar_d_big.I
+                        
+                        'derivada de vec(Ed-1) por vecE'
+                        de_deh = Dup(n)
+                        debig_de = fdebig_de(n)
+                        dedinv_dev = diagtom(vec(-inv_ed*inv_ed))
+                        dedinv_deh = dedinv_dev*debig_de*de_deh
+                    
+                    'derivada do num por vecE'
+                    dnum_dev = kron((Iij*a).T, a.T)*dedinv_deh
+                    'derivada do den por vecE'
+                    dden_dev = kron((Ij*a).T, a.T)*dedinv_deh
+                    dpdc_dev = (den*dnum_dev - num*dden_dev)/(den**2)
+                
+                else: # metric == 'info'
+                    if metric != 'info':
+                        print 'metric invalid!' 
+                    if i == 0 and j == 0 and ff == 0:
+                        evar_d = mdiag(e_var)
+                        evar_d_big = kron(I(2*n), evar_d)
+                        inv_ed = evar_d_big.I
+                        
+                        evar_big = kron(I(2*n), e_var)
+                        inv_e = evar_big.I
+    
+                        'derivada de vec(Ed-1) por vecE'
+                        de_deh = Dup(n)
+                        debig_de = fdebig_de(n)
+                        
+                        dedinv_devd = diagtom(vec(-inv_ed*inv_ed)) 
+                        dedinv_dehd = dedinv_devd*debig_de*de_deh
+                        
+                        dedinv_dev = -kron(inv_e.T, inv_e)
+                        dedinv_deh = dedinv_dev*debig_de*de_deh
+                    
+                    'derivada do num por vecE'
+                    dnum_dev = kron((Iij*a).T, a.T)*dedinv_dehd
+                    'derivada do den por vecE'
+                    dden_dev = kron((Ij*a).T, a.T*Ij)*dedinv_deh
+                    dpdc_dev = (den*dnum_dev - num*dden_dev)/(den**2)
+                    
+                G1a = 2*a.T*Iije/den - 2*num*a.T*Ije/(den**2)
+                G1 = -G1a*Ca
+
+                varalpha = G1*omega*G1.T
+                varevar = dpdc_dev*omega_evar*dpdc_dev.T
+                varass1[i, j, ff] = (varalpha + varevar)/nd
+                
+                ic1[i, j, ff] = pdc[i, j, ff] - sqrt(varass1[i, j, ff])*st.norm.ppf(1-alpha/2.0)
+                ic2[i, j, ff] = pdc[i, j, ff] + sqrt(varass1[i, j, ff])*st.norm.ppf(1-alpha/2.0)
+                
+                G2a = 2*Iije/den
+                #G2 = Ca.T*G2a*Ca
+                
+                #print omega, eigh(omega, eigvals_only=True)
+                d = fEig(L, G2a)
+                
+                patdf = sum(d)**2/sum(d**2)
+                patden = sum(d)/sum(d**2)
+                th[i, j, ff] = st.chi2.ppf(1-alpha, patdf)/(patden*2*nd)
+                varass2[i, j, ff] = 2*patdf/(patden*2*nd)**2
+                patdfr[i, j, ff] = patdf
+                patdenr[i, j, ff] = patden
+                
+                
+                
+                #if (i == 1 and j == 0 and ff == 3):
+                #    patdfr = patdf
+                #    patdenr = patden TODO retirar
+
+    gl.res_.varass1 = varass1
+    gl.res_.patden = patdenr
+    gl.res_.patdf = patdfr
+
+    return pdc, th, ic1, ic2
+
+
 
 def asymp_pdc(x, A, nf, e_var, p, metric = 'gen', alpha = 0.05):
     '''Asymptotic statistics for the three PDC formulations
@@ -323,6 +559,8 @@ def asymp_pdc(x, A, nf, e_var, p, metric = 'gen', alpha = 0.05):
     
     omega_evar = 2*Dup(n).I*kron(e_var, e_var)*Dup(n).I.T
     #print 'alpha', alpha
+    
+            
     
     for ff in range(nf):
         
@@ -471,8 +709,6 @@ def asymp_dtf(x, A, nf, e_var, p, alpha = 0.05, metric = 'dummy'):
     x = mat(x)
     e_var = mat(e_var)
     Af = A_to_f(A, nf)
-    
-    #Af[:,1,0] = 0 #TODO tirar
     
     n, nd = x.shape
     

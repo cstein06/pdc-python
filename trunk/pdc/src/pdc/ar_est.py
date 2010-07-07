@@ -215,6 +215,42 @@ def xlags(x, lags):
         
     return xl
 
+vec = lambda x: mat(x.ravel('F')).T
+
+def yule_walker_restricted(x, ai, aj, p = None, return_ef = False):
+    
+    if p is None:
+        p = pr_.maxp
+    n, nd = x.shape
+    
+    #a = ones(n*n, dtype = int)
+    #a[j*n+i] = 0
+    #a = kron(ones(p, dtype = int),a)
+    au = arange(aj*n+ai,p*n**2,n*n)
+    R = identity(p*n**2)
+    R = mat(delete(R, au, 1))
+    #print R
+    
+    xlag = xlags(x, p+1)
+    
+    gamma = zeros([n*(p+1), n*(p+1)])
+    for i in arange(p+1):
+        for j in arange(p+1):
+            gamma[i*n:i*n+n, j*n:j*n+n] = dot(xlag[i], xlag[j].T)/nd
+            
+    yz = gamma[:n*1,n*1:n*(p+1)]
+    igamma = inv(gamma[:n*p,:n*p])
+    #A = dot(yz, igamma)
+    er = gamma[:n*1,:n*1] - dot(dot(yz, igamma), yz.T)
+    A = inv(R.T*kron(gamma[:n*p,:n*p], inv(er))*R)*R.T*vec(inv(er)*mat(yz))
+    au = arange(aj*n+ai,aj*n+ai+(n*n-1)*p,n*n-1)
+    A = array(insert(A, au, 0))
+    #print A.shape, A, au
+    
+    if return_ef:
+        print '\nreturn_ef for YW not implemented yet.'    
+    return A.reshape(p,n,n).transpose(2,1,0), er
+
 def yule_walker(x, p = None, return_ef = False):
     
     if p is None:

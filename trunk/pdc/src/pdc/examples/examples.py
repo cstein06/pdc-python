@@ -122,6 +122,17 @@ def gen_data_Guo(m, dummy = 100, a = None, bv = 2, cv = 5):
 def gen_data_Baccala(m, dummy = 100, a = None, bv = 2, cv = 5):
     '''Baccala and Sameshima, 2001. Biol. Cyber.'''
     gen_data_Guo(m, dummy, a = zeros(5), bv = 0, cv = 0)
+    
+def model_Eichler_2006():
+    '''Eq. 26 Eichler 2006 on the DTF limiar'''
+    
+    a = zeros([2,2,4])
+    a[0,0,:] = [7.0/8, -4.0/5, 4.0/5, -1.0/2]
+    a[1,0,:2] = [10.0/20, 10.0/20]
+    e = identity(2)
+    
+    return a,e 
+    
 
 def teste_Guo():
     nd = 2000

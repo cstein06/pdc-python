@@ -29,12 +29,12 @@ def plot_all(**args):
     mes = res_.mes.copy()
     
     th = None
-    if res_.th is not None:
+    if pr_.plot_th and res_.th is not None:
         th = res_.th.copy()
         
     ic1 = None
     ic2 = None
-    if res_.ic1 is not None:
+    if pr_.plot_ic and res_.ic1 is not None:
         ic1 = res_.ic1.copy()
         ic2 = res_.ic2.copy()
     #else:
@@ -229,9 +229,10 @@ def plot_coherogram(res, states = None, **args):
                     col = pr_.state_colors[int(srgb[0,i,0]-1)]
                 else:
                     col = mc_.colorConverter.to_rgb('k')
+                    
                 srgb[0,i] = mc_.colorConverter.to_rgb(col)
             
-            imshow(srgb, origin='lower', extent=(0,pr_.window_size*res.shape[0],0,1), aspect = 10)
+            imshow(srgb, origin='lower', extent=(0,pr_.window_size*res.shape[0],0,50), aspect = 10)
             pp.xticks([])
             pp.yticks([])
             
@@ -288,7 +289,7 @@ def plot_coherogram(res, states = None, **args):
                 ax = imshow(res[:,i,j,:].T, origin='lower', 
                        extent=(0,pr_.window_size*res.shape[0],0,pr_.sample_f/2.0),
                        interpolation = 'nearest', aspect = 'auto',
-                       vmin = 0, vmax = 1)
+                       vmin = 0, vmax = 0.3)
 
             if pr_.plotf is not None:
                 pp.ylim([0, pr_.plotf])
