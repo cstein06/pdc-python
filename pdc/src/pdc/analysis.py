@@ -22,7 +22,7 @@ import pdc.plotting as pl_
 import pdc.bootstrap as bt_
 from pdc.params import *
 from pdc.params import mnames_
-from pdc.ar_est import ar_estim
+import pdc.ar_est as est_
 
 def list_to_array(data):
     '''Converts a list to an array'''
@@ -34,9 +34,13 @@ def list_to_array(data):
 def pre_data(data, normalize = False, detrend = True):
     
     if (detrend):
+        if pr_.v:
+            print 'Detrending data.\n'
         data = sig.detrend(data)
         
     if (normalize):
+        if pr_.v:
+            print 'Normalizing data.\n'
         data = data/std(data, axis = 1).reshape(-1,1)
         
     return data
@@ -472,7 +476,7 @@ def measure_full(data, **args):
     
     #Estimate AR parameters with Nuttall-Strand
     if not pr_.reuse_A:
-        res_.A, res_.er = ar_estim(data)
+        res_.A, res_.er = est_.ar_estim(data)
     elif pr_.v:
         print '\nReusing given A instead...'
     
@@ -491,35 +495,41 @@ def measure_full(data, **args):
     #print 'evar:', erest
     
     #Calculate the connectivity and statistics
+    alg_method = globals()[pr_.alg + '_alg']
+    res_.mes = alg_method(res_.A, res_.er, pr_.nf, metric = pr_.metric)
+    #th = zeros(mes.shape)
+    #ic1 = zeros(mes.shape)
+    #ic2 = zeros(mes.shape)
     
+    if pr_.power:
+        if pr_.v:
+            print 'Calculates squared power of the measure\n'
+        res_.mes = (res_.mes*res_.mes.conj()).real #todo: check power consistency of everything
+
     if pr_.stat == 'asymp': 
         if pr_.v:
             print 'Calculating asymptotic statistics'
-        as_method = vars(as_)['asymp_' + pr_.alg]
-        res_.mes, res_.th, res_.ic1, res_.ic2 = \
-            as_method(data, res_.A, pr_.nf, res_.er, 
-                      res_.p, alpha = pr_.alpha, metric = pr_.metric)
+        if not pr_.power:
+            print 'No statistics for non-squared measure.'
+        else:
+            as_method = vars(as_)['asymp_' + pr_.alg]
+            dum, res_.th, res_.ic1, res_.ic2 = \
+                as_method(data, res_.A, pr_.nf, res_.er, 
+                          res_.p, alpha = pr_.alpha, metric = pr_.metric)
     elif pr_.stat == 'boot':
         if pr_.v:
             print 'Calculating bootstrap statistics'
-        alg_method = globals()[pr_.alg + '_alg']
-        res_.mes, res_.th, res_.ic1, res_.ic2 = \
-            bt_.bootstrap(alg_method, nd, pr_.n_boot, res_.A, res_.er, 
-            pr_.nf, alpha = pr_.alpha, metric = pr_.metric)
+        if not pr_.power:
+            print 'No statistics for non-squared measure.'
+        else:
+            alg_method = globals()[pr_.alg + '_alg']
+            dum, res_.th, res_.ic1, res_.ic2 = \
+                bt_.bootstrap(alg_method, nd, pr_.n_boot, res_.A, res_.er, 
+                              pr_.nf, alpha = pr_.alpha, metric = pr_.metric)
     else:
         if pr_.v:
             print 'Choosing no statistics'
-        alg_method = globals()[pr_.alg + '_alg']
-        res_.mes = alg_method(res_.A, res_.er, pr_.nf, metric = pr_.metric)
-        #th = zeros(mes.shape)
-        #ic1 = zeros(mes.shape)
-        #ic2 = zeros(mes.shape)
-    
-        if pr_.power:
-            if pr_.v:
-                print 'Calculates squared power of the measure\n'
-            res_.mes = (res_.mes*res_.mes.conj()).real #todo: check power consistency of everything
-    
+            
     
     if pr_.v:
         print '\n', mnames_[pr_.alg], 'estimaded'
@@ -587,11 +597,15 @@ def measure_and_plot(data, **args):
     
     aux = pr_.stat
     pr_.stat = 'no'
+    pr_.plot_th = False
+    pr_.plot_ic = False
+    pr_.do_plot = True
     
     r = measure_full(data)
     
     pr_.stat = aux
-    
+    pr_.plot_th = True
+    pr_.plot_ic = True
     return r[0]
     
 #    if(type(data) == type([])):
@@ -657,13 +671,13 @@ def gci(data, **args):
     
     data = pre_data(data, pr_.normalize, pr_.detrend)
         
-    A0, er0 = ar_estim(data)
+    A0, er0 = est_.ar_estim(data)
     va0 = diag(er0)
     
     gci = zeros([n,n])
     for i in arange(n): 
         aux_data = delete(data, i, 0)
-        A1, er1 = ar_estim(aux_data)
+        A1, er1 = est_.ar_estim(aux_data)
         va1 = diag(er1) 
         va1 = insert(va1, i, 0)
         gci[:,i] = log(float64(va1)/va0)
@@ -682,7 +696,7 @@ def gct(data,**args):
     
     data = pre_data(data, pr_.normalize, pr_.detrend)
     
-    A, e_var = ar_estim(data)
+    A, e_var = est_.ar_estim(data)
         
     return as_.asymp_gct(data, A, e_var)
 
@@ -696,7 +710,7 @@ def igct(data, **args):
     
     data = pre_data(data, pr_.normalize, pr_.detrend)
     
-    A, e_var = ar_estim(data)
+    A, e_var = est_.ar_estim(data)
     
     n, nd = data.shape
         
@@ -706,7 +720,7 @@ def white_test(data, h = 20, **args):
     
     read_args(args)
     
-    A, res = ar_estim(data, return_ef=True)
+    A, res = est_.ar_estim(data, return_ef=True)
     
     p = A.shape[2]
     

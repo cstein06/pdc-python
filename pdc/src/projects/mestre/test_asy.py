@@ -56,12 +56,30 @@ def model1():
     return A, e
 
 
+def model1pdt(a = -0.4, b = -0.5, e3 = 1):
+    '''Adaptado de Baccala e Sameshima 2001, tirando conexao 0->1 e colocando 1->3'''
+    e = identity(5)
+    e[2,2] = e3
+    print e
+    A = zeros([5,5,3])
+    A[0,0,0] = 0.95*sqrt(2)
+    A[0,0,1] = -0.9025
+    A[1,1,0] = 0.5
+    A[2,0,2] = a
+    A[3,0,1] = b
+    A[3,1,0] = 0.8
+    A[3,3,0] = 0.25*sqrt(2)
+    A[3,4,0] = 0.25*sqrt(2)
+    A[4,3,0] = -0.25*sqrt(2)
+    A[4,4,0] = 0.25*sqrt(2)
+    return A, e
+
 def monte_carlo1(m = 10000, nd = 20000, bignd = 200000):
     '''Roda todas medidas m vezes para model1 e guarda em res. 
        Roda asymp e guarda em resa.
     '''
     
-    mes = ['coh', 'pdc', 'dtf', 'pc']
+    mes = ['coh', 'pc', 'dtf', 'pdc']
     
     pr_.metric = 'gen'
     pr_.fixp = True
@@ -239,7 +257,7 @@ def qqplots1(res, resa):
     para 3 pares, em 0.2hz.
     separa em dois graficos'''
     
-    mes = ['coh', 'pdc', 'dtf', 'pc']
+    mes = ['coh', 'pc', 'dtf', 'pdc']
     
     f = 1
     
@@ -277,6 +295,7 @@ def qqplots1(res, resa):
                 pp.ylabel('Quantile for Chi^2')
             else:
                 ax.yaxis.set_ticks([])
+                #ax.yaxis.set_ticklabels("")
     
 #    
     pp.show()
@@ -301,11 +320,11 @@ def qqplots1_oneplot(res, resa):
         
     
     
-    mes = ['coh', 'pdc', 'dtf', 'pc']
+    mes = ['coh', 'pc', 'dtf', 'pdc']
     
-    f = 1
+    f = 2
     
-    pares = array([[1,0], [3,2], [3,0], [4,0]])
+    pares = array([[1,0], [3,0], [4,0], [2,1]])
     
     fig = pp.figure()
     
@@ -326,7 +345,8 @@ def qqplots1_oneplot(res, resa):
             if i == 0:
                 pp.ylabel(("$%d \\to %d$") % (pares[j,1]+1,pares[j,0]+1))
             else:
-                ax.yaxis.set_ticks([])
+                #ax.yaxis.set_ticks([])
+                ax.yaxis.set_ticklabels("")
                 #todo colocar titulo quantile, mini titulos com pares
     
     #pp.show()
@@ -335,14 +355,16 @@ def qqplots1_oneplot(res, resa):
 def hists1(res, resa):
     '''compara histograma sampled com asintotica'''
     
-    res1 = res[0,:,3,0,1]
-    resa1 = resa[0,:,3,0,1]
+    f = 2
+    
+    res1 = res[0,:,3,0,f]
+    resa1 = resa[0,:,3,0,f]
     
     pp.figure()
     
     pp.suptitle(r'Sampled Coherence histogram and asymptotic statistics')
     
-    pp.subplot(1,2,1)
+    pp.subplot(1,2,2)
     
     bins = 60
     
@@ -353,13 +375,13 @@ def hists1(res, resa):
     
     pp.plot(x, st.norm.pdf(x, loc = resa1[0], scale = resa1[1]))
     
-    pp.title(r'$1 \to 4 (Normal)$')
+    pp.title(r'$1 \to 4 \; (Normal)$')
     
-    pp.subplot(1,2,2)
+    pp.subplot(1,2,1)
     #pp.figure()
     
-    res1 = res[0,:,1,0,2]
-    resa1 = resa[0,:,1,0,2]
+    res1 = res[0,:,1,0,f]
+    resa1 = resa[0,:,1,0,f]
     
     pp.hist(res1, bins = bins, normed = True)
     
@@ -367,20 +389,22 @@ def hists1(res, resa):
     
     pp.plot(x, st.chi2.pdf(x, resa1[3], scale = 1.0/(resa1[2]*2)))
     
-    pp.title(r'$1 \to 5 (weigthed \chi^2$)')
+    pp.title(r'$1 \to 2 \;(weigthed\;\chi^2$)')
         
     #pp.draw()
 
 #root = '/home/stein/producao/quali/simulados/'
-root = '/media/dados/work/dados/simulation/'
+#root = '/media/dados/work/dados/simulation/'
+root = '/media/8c8a676c-a8cd-4a18-ae81-0ad35333149b/dados/sim/'
 
 def tab1(res, resa):
     '''acha tamanho do erro I sob h0 e h1'''
     
     m = res.shape[1]
     
-    f = 1
+    f = 2
     
+    #y = st.chi2.ppf(x, resa[3], scale = 1/(resa[2]*2.0))
     patdf = resa[:,3,2,1,f]
     patden = resa[:,2,2,1,f]
     
@@ -401,16 +425,16 @@ def tab1(res, resa):
     ic115 = mes - pst*st.norm.ppf(1-alpha/2.0)
     ic215 = mes + pst*st.norm.ppf(1-alpha/2.0)
     
-    mes = resa[:,0,4,0,f]
-    pst = resa[:,1,4,0,f]
+    #mes = resa[:,0,4,0,f]
+    #pst = resa[:,1,4,0,f]
     
-    alpha = 0.01
-    ic121 = mes - pst*st.norm.ppf(1-alpha/2.0)
-    ic221 = mes + pst*st.norm.ppf(1-alpha/2.0)
+    #alpha = 0.01
+    #ic121 = mes - pst*st.norm.ppf(1-alpha/2.0)
+    #ic221 = mes + pst*st.norm.ppf(1-alpha/2.0)
     
-    alpha = 0.05
-    ic125 = mes - pst*st.norm.ppf(1-alpha/2.0)
-    ic225 = mes + pst*st.norm.ppf(1-alpha/2.0)
+    #alpha = 0.05
+    #ic125 = mes - pst*st.norm.ppf(1-alpha/2.0)
+    #ic225 = mes + pst*st.norm.ppf(1-alpha/2.0)
     
     #li = [th1, th5, ic11, ic21, ic15, ic25]
     
@@ -419,19 +443,20 @@ def tab1(res, resa):
     eth5 = zeros(4)
     eic11 = zeros(4)
     eic15 = zeros(4)
-    eic21 = zeros(4)
-    eic25 = zeros(4)
+    #eic21 = zeros(4)
+    #eic25 = zeros(4)
     for i in arange(4):
-        eth1[i] = sum(res[i,:,1,0,f] > th1[i])/float(m)
-        eth5[i] = sum(res[i,:,1,0,f] > th5[i])/float(m)
+        #print th1[i]
+        eth1[i] = sum(res[i,:,2,1,f] > th1[i])/float(m)
+        eth5[i] = sum(res[i,:,2,1,f] > th5[i])/float(m)
         eic11[i] = sum((res[i,:,3,0,f] < ic111[i]) + (res[i,:,3,0,f] > ic211[i]))/float(m)
         eic15[i] = sum((res[i,:,3,0,f] < ic115[i]) + (res[i,:,3,0,f] > ic215[i]))/float(m)
-        eic21[i] = sum((res[i,:,4,0,f] < ic121[i]) + (res[i,:,4,0,f] > ic221[i]))/float(m)
-        eic25[i] = sum((res[i,:,4,0,f] < ic125[i]) + (res[i,:,4,0,f] > ic225[i]))/float(m)
+        #eic21[i] = sum((res[i,:,4,0,f] < ic121[i]) + (res[i,:,4,0,f] > ic221[i]))/float(m)
+        #eic25[i] = sum((res[i,:,4,0,f] < ic125[i]) + (res[i,:,4,0,f] > ic225[i]))/float(m)
     
-    r = [eth1, eth5, eic11, eic15, eic21, eic25]
+    r = [eth1, eth5, eic11, eic15] #, eic21, eic25]
     
-    print array(r).T
+    print array(r)
     
     return r
 
@@ -483,19 +508,46 @@ def figuras1():
     #qqplots1(res,resa)
     qqplots1_oneplot(res, resa)
     hists1(res,resa)
-    tab1(res,resa)
-    #table_varios_nd()
-    #tab1_hard()
     
     pp.show()
     
-def load_data1(file = 'data3.pic'):
+def tabs1():  
+    #table_varios_nd()
+    #tab1_hard()
+    nds = [100, 500, 1000, 10000]
+    r = empty([4,4,4])
+    for i in arange(len(nds)):
+        [res, resa, du, du, du] = load_data1('data3_nd' + str(nds[i]) + '.pic')
+        
+        r[i] = tab1(res,resa)
+    
+    set_printoptions(precision=1)
+
+    print r.transpose([2,1,0])*100
+    
+    for i in arange(4):
+        for j in arange(4):
+            for k in arange(4):
+                print "&", 100*r[k,j,i],
+            print "\\\\"
+    
+def load_data1(file = 'data3_nd10000.pic'):
+    #ordem de res eh coh, pdc, dtf, pc
+    
     f = open(root + file, 'rb')
     res = cPickle.load(f)
     resa = cPickle.load(f)
     m = cPickle.load(f)
     nd = cPickle.load(f)
     bignd = cPickle.load(f)
+    
+    aux = res.copy()
+    res[1] = aux[3]
+    res[3] = aux[1]
+    aux = resa.copy()
+    resa[1] = aux[3]
+    resa[3] = aux[1]
+    
     return res, resa, m, nd, bignd
     
 def save_data1(m = 10000, nd = 10000, bignd = 200000, file = 'data3.pic'):
@@ -536,12 +588,14 @@ def save_data_geral(res, resa, m, nd, bignd, file = 'data1.pic'):
     f.close()
 
 #nds = [50, 100, 200, 500, 2000, 5000]
-nds = [50, 200, 1000]
+#nds = [50, 200, 1000]
+#nds = [100, 500]
+nds = [1000]
 
 def table_varios_nd():
         
     for i in arange(len(nds)):
-        [res, resa, du, du, du] = load_data1('data1_nd' + str(nds[i]) + '.pic')
+        [res, resa, du, du, du] = load_data1('data3_nd' + str(nds[i]) + '.pic')
         
         for j in arange(4):
             print 'alg', j, 'nd', nds[i]
@@ -552,20 +606,25 @@ def table_varios_nd():
 def save_varios_nd(m = 10000, bignd = 200000):
     
     for i in arange(len(nds)):
-        save_data1(m = m, bignd = bignd, nd = nds[i], file = 'data1_nd' + str(nds[i]) + '.pic')
+        save_data1(m = m, bignd = bignd, nd = nds[i], file = 'data3_nd' + str(nds[i]) + '.pic')
 
-def simple_plot1():
+def save_simple():
     
     A,e = model1()
-    data = ar_data(A,e)
-    pr_.alg = 'pdc'
-    measure_full(data)
     
-    pp.show()
+    data = ar_data(A,e, nd = 10000) 
+    f = open(root + 'datasimple_10000.pic', 'wb')
+    data.dump(f)
+    f.close()
+    
+    data = ar_data(A,e, nd = 500) 
+    
+    f = open(root + 'datasimple_500.pic', 'wb')
+    data.dump(f)
+    f.close()
     
 def all_plots1():
     
-    A,e = model1()
     #pr_.reuse_A = True
     #res_.A = A
     #res_.er = e
@@ -573,74 +632,67 @@ def all_plots1():
     pr_.plot_labels = [r'$x_1$', r'$x_2$', r'$x_3$', r'$x_4$', r'$x_5$']
     
     pr_.alpha = 0.01
-    data = ar_data(A,e, nd = 500)
+    
+    f = open(root + 'datasimple_500.pic', 'rb')
+    data = cPickle.load(f)
     
     pp.figure()
-#    data = ar_data(A,e)
-
-    #pr_.plot_diag = True
-    pr_.alg = 'pdt'
-    measure_full(data)
-    #pp.show()
-    #return
-    pp.figure()
-
-    pr_.alg = 'coh'
-    measure_full(data)
-    
-    pp.figure()
-#    data = ar_data(A,e)
-
-    pr_.alg = 'pdc'
-    measure_full(data)
-    
-    pp.figure()
-#    data = ar_data(A,e)
-
     pr_.alg = 'dtf'
     measure_full(data)
     
     pp.figure()
-#    data = ar_data(A,e)
-
+    pr_.alg = 'coh'
+    measure_full(data)
+    
+    pp.figure()
+    pr_.alg = 'pdt'
+    measure_full(data)
+    
+    pp.figure()
+    pr_.alg = 'pdc'
+    measure_full(data)
+    
+    pp.figure()
     pr_.alg = 'pc'
-    measure_full(data) #, stat = 'no')
-    
-    
+    measure_full(data)
     
     pp.show()
-    
-def gen_big_Ar(p = 100, n = 3):
-    Aa = ((rand([n,n])<0.25)*rand([n,n])*0.2 + 
-          identity(n)*rand([n,n])*0.4)
-         
-    ra = 0.3
-    
-    A = zeros(n,n,p)
-    
-    for i in arange(p):
-        #A[:,:] = Aa * ra**i *randn([n,n])/3
-        pass
-    
-    return Aa
 
-ps = [5, 10, 20, 50]
-ns = [3]
+    
+    
+def pdt_plots():
+    
+    A,e = model1pdt(a = 10)
+    #A,e = model1pdt(a = -0.004, b = -0.005)
+    #A,e = model1pdt(e3 = 0.1)
+    #pr_.reuse_A = True
+    #res_.A = A
+    #res_.er = e
+    
+    pr_.plot_labels = [r'$x_1$', r'$x_2$', r'$x_3$', r'$x_4$', r'$x_5$']
+    
+    pr_.alpha = 0.01
+    data = ar_data(A,e, nd = 10000)
+    
+    pp.figure()
+    
+    #pr_.plot_diag = True
+    pr_.alg = 'pdt'
+    measure_full(data)
+    pp.figure()
 
-#a = b43.tr()
+    pr_.alg = 'pdc'
+    measure_full(data)
+    
+    pp.show()
 
-def test_varios_p():
-    n = 3
-    A = ps
-    for i in ps:
-        3
-        
-
+    
 if __name__ == '__main__':
     pass#
     
     #figuras1()
-    all_plots1()
+    #all_plots1()
+    #pdt_plots()
     #save_data1()
     #print 'loading'
     #r = load_data1()
@@ -648,4 +700,5 @@ if __name__ == '__main__':
     #save_varios_nd(m = 10000, bignd = 200000)
     #table_varios_nd()
     #simple_plot1()
+    tabs1()
     

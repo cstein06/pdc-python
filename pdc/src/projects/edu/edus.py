@@ -189,9 +189,10 @@ ls = [['Ca1e', 'Ca3e', 'Ca1d', 'Ca2d', 'Ca3d'],
       ['Ca1e', 'Ca2e', 'Ca3e','Ca1d', 'Ca2d', 'Ca3d'],
       ['Ca1e', 'Ca2e', 'Ca3e','Ca1d', 'Ca2d', 'Ca3d']]
 
-root = "/media/STEIN MOBIL/work/dados_edu_p_carlos/"
+#root = "/media/STEIN MOBIL/work/dados_edu_p_carlos/"
 #root = "/home/stein/dados/edu_comp/"
 #root = "G:\\stein\\dados\\edu_comp\\"
+root = '/media/8c8a676c-a8cd-4a18-ae81-0ad35333149b/dados/edu_comp/'
 
 def get_data(t = 0, r = 0, d = 0, cs = None):
 
@@ -413,7 +414,7 @@ def set_def():
     pr_.nf = 250
     pr_.sample_f = 500
     
-    pr_.plot_labels = ['Ca1e', 'Ca3e', 'Ca1d', 'Ca2d', 'Ca3d']
+    pr_.plot_labels = ['Ca1e', 'Ca2e', 'Ca3e', 'Ca1d', 'Ca2d', 'Ca3d']
     #plot_labels = ['Ca1e', 'Ca2e', 'Ca1d']
     #plot_states = array([1,2,3,4,5,6])
     #plot_states = array([2])
