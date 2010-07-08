@@ -104,7 +104,26 @@ def plot_all(**args):
 #                except:
 #                    print '\nProblem with plot labels.'
 #                    pp.ylabel(r'$\to$' + str(i+1))
-            pp.xlabel(str(j+1) + r'$\to$' + str(i+1))
+
+            if pr_.alg == 'coh' or pr_.alg == 'pc':
+                arrow = r'$\leftrightarrow$'
+            else:
+                arrow = r'$\to$'
+                
+            try:
+                if pr_.plot_labels != None:
+                    pp.xlabel(pr_.plot_labels[j] + arrow + pr_.plot_labels[i])
+                else:
+                    pp.xlabel(str(j+1) + arrow + str(i+1))
+            except:
+                print '\nProblem with plot labels.'
+                pp.xlabel(str(j+1) + arrow + str(i+1))
+                
+            if i == j:
+                if pr_.plot_labels != None:
+                    pp.xlabel(pr_.plot_labels[j])
+                else:
+                    pp.xlabel(str(j+1))
                 
             if i == j and not pr_.plot_diag:
                 #pp.xticks([])
@@ -213,6 +232,8 @@ def plot_coherogram(res, states = None, **args):
             
             states = states[:res.shape[0]]
     
+    asp = 7
+    
     auxsub = 0
     if states is not None:
         auxsub = 1
@@ -233,7 +254,9 @@ def plot_coherogram(res, states = None, **args):
                     
                 srgb[0,i] = mc_.colorConverter.to_rgb(col)
             
-            imshow(srgb, origin='lower', extent=(0,pr_.window_size*res.shape[0],0,50), aspect = 10)
+            imshow(srgb, origin='lower', 
+                   extent=(0,pr_.window_size*res.shape[0],0,50), 
+                   aspect = asp)
             pp.xticks([])
             pp.yticks([])
             
@@ -244,26 +267,46 @@ def plot_coherogram(res, states = None, **args):
             
             pp.subplot(n+auxsub,n,n*auxsub+i*n+j+1)
             
-            if (i == n-1):
-                try:
-                    if pr_.plot_labels != None:
-                        pp.xlabel(pr_.plot_labels[j])
-                    else:
-                        pp.xlabel(str(j+1))
-                except:
-                    print '\nProblem with plot labels.'
+#            if (i == n-1):
+#                try:
+#                    if pr_.plot_labels != None:
+#                        pp.xlabel(pr_.plot_labels[j])
+#                    else:
+#                        pp.xlabel(str(j+1))
+#                except:
+#                    print '\nProblem with plot labels.'
+#                    pp.xlabel(str(j+1))
+#                    
+#            if (j == 0):
+#                try:
+#                    if pr_.plot_labels != None:
+#                        pp.ylabel(pr_.plot_labels[i])
+#                    else:
+#                        pp.ylabel(str(i+1))
+#                except:
+#                    print '\nProblem with plot labels.'
+#                    pp.ylabel(str(i+1))
+
+            if pr_.alg == 'coh' or pr_.alg == 'pc':
+                arrow = r'$\leftrightarrow$'
+            else:
+                arrow = r'$\to$'
+                
+            try:
+                if pr_.plot_labels != None:
+                    pp.xlabel(pr_.plot_labels[j] + arrow + pr_.plot_labels[i])
+                else:
+                    pp.xlabel(str(j+1) + arrow + str(i+1))
+            except:
+                print '\nProblem with plot labels.'
+                pp.xlabel(str(j+1) + arrow + str(i+1))
+                
+            if i == j:
+                if pr_.plot_labels != None:
+                    pp.xlabel(pr_.plot_labels[j])
+                else:
                     pp.xlabel(str(j+1))
-                    
-            if (j == 0):
-                try:
-                    if pr_.plot_labels != None:
-                        pp.ylabel(pr_.plot_labels[i])
-                    else:
-                        pp.ylabel(str(i+1))
-                except:
-                    print '\nProblem with plot labels.'
-                    pp.ylabel(str(i+1))
-                    
+                
             if (i < n-1):
                 pp.xticks([])
             if (j > 0):
@@ -285,12 +328,16 @@ def plot_coherogram(res, states = None, **args):
             if i == j and pr_.ss and pr_.logss:
                 ax = imshow(10*log10(res[:,i,j,:]).T, origin='lower', 
                        extent=(0,pr_.window_size*res.shape[0],0,pr_.sample_f/2.0),
-                       interpolation = 'nearest', aspect = 'auto')
+                       interpolation = 'bilinear', aspect = asp, 
+                       vmax = (10*log10(res[0,i,j,:])).max()+12)
             else:
                 ax = imshow(res[:,i,j,:].T, origin='lower', 
                        extent=(0,pr_.window_size*res.shape[0],0,pr_.sample_f/2.0),
-                       interpolation = 'nearest', aspect = 'auto',
-                       vmin = 0, vmax = 1)
+                       interpolation = 'bilinear', aspect = asp,
+                       vmin = 0, vmax = 0.5)
+            
+            #if i == 0 and j == n-1:
+            #     pp.colorbar()
 
             if pr_.plotf is not None:
                 pp.ylim([0, pr_.plotf])
