@@ -11,17 +11,22 @@ Testa ditribuicao e tamanho da estat asymp
  
 from pdc import *
 from pdc.tests.asymp_tests import test_asymp
+#from pdc.params import pr_, res_
 
 from numpy import *
+
+
 from numpy.random import multivariate_normal as mnorm
 import matplotlib.pyplot as pp
 import scipy.stats as st
+from matplotlib.axes import rcParams
 import cPickle
 from numpy.matlib import rand
 from scipy.stats.distributions import rand
 
 #pp.rcParams['ps.usedistiller'] = 'xpdf' #para ter texto no .ps salvo da figura
 #pp.rcParams['text.usetex'] = True
+#rcParams['figure.dpi'] = 100
 
 
 def gen_data1(nd, dummy = 100):
@@ -319,8 +324,7 @@ def qqplots1_oneplot(res, resa):
 #        resa[i,3] = res_.patdf
         
     
-    
-    mes = ['coh', 'pc', 'dtf', 'pdc']
+    mes = ['Coh', 'PC', 'DTF', 'PDC']
     
     f = 2
     
@@ -340,7 +344,7 @@ def qqplots1_oneplot(res, resa):
                 qqchi2(r1, ra1, ax)
     
             if j == 3:
-                pp.xlabel(mes[i].upper())
+                pp.xlabel(mes[i])
                 #todo colocar titulo sampled, mini titulos com alg
             if i == 0:
                 pp.ylabel(("$%d \\to %d$") % (pares[j,1]+1,pares[j,0]+1))
@@ -395,7 +399,8 @@ def hists1(res, resa):
 
 #root = '/home/stein/producao/quali/simulados/'
 #root = '/media/dados/work/dados/simulation/'
-root = '/media/8c8a676c-a8cd-4a18-ae81-0ad35333149b/dados/sim/'
+#root = '/media/8c8a676c-a8cd-4a18-ae81-0ad35333149b/dados/sim/'
+root = 'D:\\work\\dados\\simulation\\mestrado\\'
 
 def tab1(res, resa):
     '''acha tamanho do erro I sob h0 e h1'''
@@ -636,29 +641,46 @@ def all_plots1():
     f = open(root + 'datasimple_500.pic', 'rb')
     data = cPickle.load(f)
     
+    pr_.do_log = True
+    pr_.root_dir = root
+    
     pp.figure()
     pr_.alg = 'dtf'
-    measure_full(data)
+    pr_.log_string = 'simple' + pr_.alg
+    measure_full(data) 
     
     pp.figure()
     pr_.alg = 'coh'
+    pr_.log_string = 'simple' + pr_.alg
     measure_full(data)
     
     pp.figure()
     pr_.alg = 'pdt'
+    pr_.log_string = 'simple' + pr_.alg
     measure_full(data)
     
     pp.figure()
     pr_.alg = 'pdc'
+    pr_.log_string = 'simple' + pr_.alg
     measure_full(data)
     
     pp.figure()
     pr_.alg = 'pc'
+    pr_.log_string = 'simple' + pr_.alg
     measure_full(data)
     
     pp.show()
 
+def load_plots():
+    pr_.root_dir = root
+    algs = ['coh', 'pc', 'dtf', 'pdc', 'pdt']
     
+    for i in algs:
+        pr_.log_string = 'simple' + i
+        load_results()
+        pp.figure()
+        plot_all()
+    pp.show()
     
 def pdt_plots():
     
@@ -691,14 +713,16 @@ if __name__ == '__main__':
     pass#
     
     #figuras1()
+    #
     #all_plots1()
-    #pdt_plots()
+    #load_plots()
+    pdt_plots()
     #save_data1()
     #print 'loading'
     #r = load_data1()
     #print r[3]
     #save_varios_nd(m = 10000, bignd = 200000)
     #table_varios_nd()
-    #simple_plot1()
-    tabs1()
+    #tabs1()
+    #save_simple()
     
