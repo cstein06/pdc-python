@@ -85,25 +85,26 @@ def plot_all(**args):
             if (j > 0):
                 pp.yticks([])
                 
-            if (i == n-1):
-                try:
-                    if pr_.plot_labels != None:
-                        pp.xlabel(pr_.plot_labels[j] + r'$\to$' )
-                    else:
-                        pp.xlabel(str(j+1) + r'$\to$')
-                except:
-                    print '\nProblem with plot labels.'
-                    pp.xlabel(str(j+1) + r'$\to$')
-                    
-            if (j == 0):
-                try:
-                    if pr_.plot_labels != None:
-                        pp.ylabel(r'$\to$' + pr_.plot_labels[i])
-                    else:
-                        pp.ylabel(r'$\to$' + str(i+1))
-                except:
-                    print '\nProblem with plot labels.'
-                    pp.ylabel(r'$\to$' + str(i+1))
+#            if (i == n-1):
+#                try:
+#                    if pr_.plot_labels != None:
+#                        pp.xlabel(pr_.plot_labels[j] + r'$\to$' )
+#                    else:
+#                        pp.xlabel(str(j+1) + r'$\to$')
+#                except:
+#                    print '\nProblem with plot labels.'
+#                    pp.xlabel(str(j+1) + r'$\to$')
+#                    
+#            if (j == 0):
+#                try:
+#                    if pr_.plot_labels != None:
+#                        pp.ylabel(r'$\to$' + pr_.plot_labels[i])
+#                    else:
+#                        pp.ylabel(r'$\to$' + str(i+1))
+#                except:
+#                    print '\nProblem with plot labels.'
+#                    pp.ylabel(r'$\to$' + str(i+1))
+            pp.xlabel(str(j+1) + r'$\to$' + str(i+1))
                 
             if i == j and not pr_.plot_diag:
                 #pp.xticks([])
@@ -289,7 +290,7 @@ def plot_coherogram(res, states = None, **args):
                 ax = imshow(res[:,i,j,:].T, origin='lower', 
                        extent=(0,pr_.window_size*res.shape[0],0,pr_.sample_f/2.0),
                        interpolation = 'nearest', aspect = 'auto',
-                       vmin = 0, vmax = 0.3)
+                       vmin = 0, vmax = 1)
 
             if pr_.plotf is not None:
                 pp.ylim([0, pr_.plotf])

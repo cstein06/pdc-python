@@ -192,7 +192,8 @@ ls = [['Ca1e', 'Ca3e', 'Ca1d', 'Ca2d', 'Ca3d'],
 #root = "/media/STEIN MOBIL/work/dados_edu_p_carlos/"
 #root = "/home/stein/dados/edu_comp/"
 #root = "G:\\stein\\dados\\edu_comp\\"
-root = '/media/8c8a676c-a8cd-4a18-ae81-0ad35333149b/dados/edu_comp/'
+#root = '/media/8c8a676c-a8cd-4a18-ae81-0ad35333149b/dados/edu_comp/'
+root = "H:\\work\\dados_edu_p_carlos\\"
 
 def get_data(t = 0, r = 0, d = 0, cs = None):
 
@@ -421,7 +422,7 @@ def set_def():
     pr_.plotf = 120
     pr_.plota = True
     pr_.plot_ic = True
-    pr_.do_window_log = True
+    pr_.do_window_log = False
     
     pr_.ss = True
     pr_.logss = True

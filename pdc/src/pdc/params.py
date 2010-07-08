@@ -61,7 +61,7 @@ class Param():
         
         self.do_log = False # Log results
         self.log_matlab = False # Log matlab format
-        self.root_dir = 'G:\\stein\\dados\\edu_comp\\' # root data directory
+        self.root_dir = 'D:\\work\\dados\\' # root data directory
         self.log_string = 'current_log' # file string
         self.mat_file = '%s%s' # matlab file name
         self.log_file = '%s%s.log' # log file name
@@ -116,13 +116,16 @@ class Results():
 
 res_ = Results()
 
-
+def copy_struct(a, b):
+    for i in vars(b).keys():
+        vars(a)[i] = vars(b)[i]
+        
 def reset():
     global res_
     global pr_
     
-    res_ = Results()
-    pr_ = Param()
+    copy_struct(pr_, Param())
+    copy_struct(res_, Results())
 
 #
 #pm_ = {}
@@ -201,10 +204,15 @@ def load_results():
     global res_
     global pr_ 
     
-    f = open(pr_.pic_file, 'rb')
+    aux_pic = pr_.pic_file % (pr_.root_dir, pr_.log_string) 
     
-    pr_ = cPickle.load(f)
-    res_ = cPickle.load(f)
+    f = open(aux_pic, 'rb')
+    
+    #TODO: if reassigned, loses global scope. make copy by element.
+    #pr_ = cPickle.load(f)
+    #res_ = cPickle.load(f)
+    copy_struct(pr_, cPickle.load(f))
+    copy_struct(res_, cPickle.load(f))
     
     f.close()
 
@@ -236,7 +244,8 @@ def load_params(file):
     
     f = open(pr_.output_dir + file, 'rb')
     
-    pr_ = cPickle.load(f)
+    copy_struct(pr_, cPickle.load(f))
+    #pr_ = cPickle.load(f)
     
     f.close()
 
@@ -317,6 +326,7 @@ def log_windows_results(stres, stmean, ststds, nstates, states, bind = False):
     
         
     log_params(file = aux_pr)
+    
     
 def read_args(args):
     global res_
