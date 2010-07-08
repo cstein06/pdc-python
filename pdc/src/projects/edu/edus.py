@@ -415,11 +415,12 @@ def set_def():
     pr_.nf = 250
     pr_.sample_f = 500
     
-    pr_.plot_labels = ['Ca1e', 'Ca2e', 'Ca3e', 'Ca1d', 'Ca2d', 'Ca3d']
+    #pr_.plot_labels = ['Ca1e', 'Ca2e', 'Ca3e', 'Ca1d', 'Ca2d', 'Ca3d']
+    pr_.plot_labels = ['Ca1e', 'Ca3e', 'Ca1d', 'Ca3d']
     #plot_labels = ['Ca1e', 'Ca2e', 'Ca1d']
     #plot_states = array([1,2,3,4,5,6])
     #plot_states = array([2])
-    pr_.plotf = 120
+    pr_.plotf = 50
     pr_.plota = True
     pr_.plot_ic = True
     pr_.do_window_log = False
