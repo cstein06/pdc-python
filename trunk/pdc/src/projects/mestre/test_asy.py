@@ -721,8 +721,8 @@ if __name__ == '__main__':
     #print 'loading'
     #r = load_data1()
     #print r[3]
-    #save_varios_nd(m = 10000, bignd = 200000)
-    #table_varios_nd()
+    #save_varios_nd(m = 40000, bignd = 200000)
+    table_varios_nd()
     #tabs1()
     #save_simple()
     
